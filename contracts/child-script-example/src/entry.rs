@@ -3,18 +3,16 @@ use core::result::Result;
 
 // Import heap related library from `alloc`
 // https://doc.rust-lang.org/alloc/index.html
-use alloc::{format, vec, vec::Vec};
+use alloc::{vec, vec::Vec};
 
 // Import CKB syscalls and structures
 // https://docs.rs/ckb-std/
 use ckb_std::{
-    ckb_types::{bytes::Bytes, prelude::*},
     debug,
-    high_level::{load_script, load_tx_hash},
-    syscalls::debug,
+    high_level::{load_script},
+    ckb_types::{bytes::Bytes, prelude::*},
 };
 
-use crate::blake2b::hash;
 use crate::error::Error;
 
 pub fn main() -> Result<(), Error> {
@@ -26,14 +24,14 @@ pub fn main() -> Result<(), Error> {
 
     // return an error if args is invalid
     if args.is_empty() {
-        return Err(Error::WrongArgs);
+        return Err(Error::MyError);
     }
 
-    let tx_hash = load_tx_hash()?;
-    debug(format!("tx hash is {:?}", tx_hash));
+    // let tx_hash = load_tx_hash()?;
+    // debug!("tx hash is {:?}", tx_hash);
 
-    let buf: Vec<_> = vec![0u8; 32];
-    hash(&buf);
+    let _buf: Vec<_> = vec![0u8; 32];
 
     Ok(())
 }
+

@@ -17,4 +17,3 @@ Run tests:
 ``` sh
 make ci
 ```
-s

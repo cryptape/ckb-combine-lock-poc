@@ -7,7 +7,6 @@ all:
 all-via-docker:
 
 mol:
-	${MOLC} --language rust --schema-file ckb-combine-lock-common/blockchain.mol | rustfmt > ckb-combine-lock-common/src/blockchain.rs
 	${MOLC} --language rust --schema-file ckb-combine-lock-common/combine_lock.mol | rustfmt > ckb-combine-lock-common/src/combine_lock_mol.rs
 
 ci:
