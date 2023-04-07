@@ -25,7 +25,7 @@ pub fn main() -> Result<(), Error> {
 
     // return an error if args is invalid
     if args.is_empty() {
-        return Err(Error::MyError);
+        return Err(Error::WrongArgs);
     }
 
     let tx_hash = load_tx_hash()?;

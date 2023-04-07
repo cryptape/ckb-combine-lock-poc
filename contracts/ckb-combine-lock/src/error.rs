@@ -7,8 +7,8 @@ pub enum Error {
     ItemMissing,
     LengthNotEnough,
     Encoding,
-    // Add customized errors here...
-    MyError,
+    // combine lock errors starts from 120:
+    WrongArgs,
 }
 
 impl From<SysError> for Error {
