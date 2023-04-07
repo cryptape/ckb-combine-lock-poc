@@ -13,3 +13,7 @@ deployment = "deployment.toml"
 [[contracts]]
 name = "ckb-combine-lock"
 template_type = "Rust"
+
+[[contracts]]
+name = "child-script-example"
+template_type = "Rust"

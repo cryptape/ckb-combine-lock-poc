@@ -1,5 +1,5 @@
 [workspace]
-members = ["contracts/ckb-combine-lock"]
+members = ["contracts/ckb-combine-lock", "contracts/child-script-example"]
 
 [profile.release]
 overflow-checks = true
