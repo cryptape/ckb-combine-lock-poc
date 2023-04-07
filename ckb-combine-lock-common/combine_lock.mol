@@ -1,0 +1,17 @@
+import blockchain;
+
+array Uint16 [byte; 2];
+
+table ChildScript {
+    code_hash:      Byte32,
+    hash_type:      byte,
+    args:           Bytes,
+}
+
+vector ChildScriptVec <ChildScript>;
+
+table CombineWitnessLock {
+    witness_base_index: Uint16,
+    proof: Bytes,
+    scripts: ChildScriptVec,
+}
