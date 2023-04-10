@@ -6,20 +6,7 @@ use ckb_std::{
 };
 use core::result::Result;
 
-// Import heap related library from `alloc`
-// https://doc.rust-lang.org/alloc/index.html
-use alloc::{format, vec, vec::Vec};
-
-// Import CKB syscalls and structures
-// https://docs.rs/ckb-std/
-use ckb_std::{
-    ckb_types::{bytes::Bytes, prelude::*},
-    debug,
-    high_level::{load_script, load_tx_hash},
-    syscalls::debug,
-};
-
-use crate::blake2b::hash;
+use crate::constant::{ARGS_SIZE, SMT_SIZE};
 use crate::error::Error;
 use crate::{blake2b::hash, constant::SMT_VALUE};
 use ckb_combine_lock_common::combine_lock_mol::{
