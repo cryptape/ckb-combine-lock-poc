@@ -20,7 +20,6 @@ use ckb_std::{
 };
 
 use crate::blake2b::hash;
-use crate::child_script_args::ChildScriptArgs;
 use crate::error::Error;
 use crate::{blake2b::hash, constant::SMT_VALUE};
 use ckb_combine_lock_common::combine_lock_mol::{

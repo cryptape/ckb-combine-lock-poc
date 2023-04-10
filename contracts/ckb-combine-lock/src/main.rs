@@ -16,7 +16,6 @@ mod blake2b;
 mod constant;
 mod entry;
 mod error;
-mod child_script_args;
 
 use ckb_std::default_alloc;
 
