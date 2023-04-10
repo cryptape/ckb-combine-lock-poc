@@ -13,6 +13,7 @@
 
 // define modules
 mod blake2b;
+mod constant;
 mod entry;
 mod error;
 

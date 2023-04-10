@@ -807,8 +807,8 @@ impl<'t: 'r, 'r> ::core::iter::ExactSizeIterator for ChildScriptVecReaderIterato
     }
 }
 #[derive(Clone)]
-pub struct CombineWitnessLock(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for CombineWitnessLock {
+pub struct CombineLockWitness(molecule::bytes::Bytes);
+impl ::core::fmt::LowerHex for CombineLockWitness {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -817,12 +817,12 @@ impl ::core::fmt::LowerHex for CombineWitnessLock {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl ::core::fmt::Debug for CombineWitnessLock {
+impl ::core::fmt::Debug for CombineLockWitness {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl ::core::fmt::Display for CombineWitnessLock {
+impl ::core::fmt::Display for CombineLockWitness {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "witness_base_index", self.witness_base_index())?;
@@ -835,13 +835,13 @@ impl ::core::fmt::Display for CombineWitnessLock {
         write!(f, " }}")
     }
 }
-impl ::core::default::Default for CombineWitnessLock {
+impl ::core::default::Default for CombineLockWitness {
     fn default() -> Self {
         let v = molecule::bytes::Bytes::from_static(&Self::DEFAULT_VALUE);
-        CombineWitnessLock::new_unchecked(v)
+        CombineLockWitness::new_unchecked(v)
     }
 }
-impl CombineWitnessLock {
+impl CombineLockWitness {
     const DEFAULT_VALUE: [u8; 26] = [
         26, 0, 0, 0, 16, 0, 0, 0, 18, 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0,
     ];
@@ -884,15 +884,15 @@ impl CombineWitnessLock {
             ChildScriptVec::new_unchecked(self.0.slice(start..))
         }
     }
-    pub fn as_reader<'r>(&'r self) -> CombineWitnessLockReader<'r> {
-        CombineWitnessLockReader::new_unchecked(self.as_slice())
+    pub fn as_reader<'r>(&'r self) -> CombineLockWitnessReader<'r> {
+        CombineLockWitnessReader::new_unchecked(self.as_slice())
     }
 }
-impl molecule::prelude::Entity for CombineWitnessLock {
-    type Builder = CombineWitnessLockBuilder;
-    const NAME: &'static str = "CombineWitnessLock";
+impl molecule::prelude::Entity for CombineLockWitness {
+    type Builder = CombineLockWitnessBuilder;
+    const NAME: &'static str = "CombineLockWitness";
     fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        CombineWitnessLock(data)
+        CombineLockWitness(data)
     }
     fn as_bytes(&self) -> molecule::bytes::Bytes {
         self.0.clone()
@@ -901,10 +901,10 @@ impl molecule::prelude::Entity for CombineWitnessLock {
         &self.0[..]
     }
     fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CombineWitnessLockReader::from_slice(slice).map(|reader| reader.to_entity())
+        CombineLockWitnessReader::from_slice(slice).map(|reader| reader.to_entity())
     }
     fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CombineWitnessLockReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
+        CombineLockWitnessReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
     }
     fn new_builder() -> Self::Builder {
         ::core::default::Default::default()
@@ -917,8 +917,8 @@ impl molecule::prelude::Entity for CombineWitnessLock {
     }
 }
 #[derive(Clone, Copy)]
-pub struct CombineWitnessLockReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for CombineWitnessLockReader<'r> {
+pub struct CombineLockWitnessReader<'r>(&'r [u8]);
+impl<'r> ::core::fmt::LowerHex for CombineLockWitnessReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -927,12 +927,12 @@ impl<'r> ::core::fmt::LowerHex for CombineWitnessLockReader<'r> {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl<'r> ::core::fmt::Debug for CombineWitnessLockReader<'r> {
+impl<'r> ::core::fmt::Debug for CombineLockWitnessReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl<'r> ::core::fmt::Display for CombineWitnessLockReader<'r> {
+impl<'r> ::core::fmt::Display for CombineLockWitnessReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "witness_base_index", self.witness_base_index())?;
@@ -945,7 +945,7 @@ impl<'r> ::core::fmt::Display for CombineWitnessLockReader<'r> {
         write!(f, " }}")
     }
 }
-impl<'r> CombineWitnessLockReader<'r> {
+impl<'r> CombineLockWitnessReader<'r> {
     pub const FIELD_COUNT: usize = 3;
     pub fn total_size(&self) -> usize {
         molecule::unpack_number(self.as_slice()) as usize
@@ -986,14 +986,14 @@ impl<'r> CombineWitnessLockReader<'r> {
         }
     }
 }
-impl<'r> molecule::prelude::Reader<'r> for CombineWitnessLockReader<'r> {
-    type Entity = CombineWitnessLock;
-    const NAME: &'static str = "CombineWitnessLockReader";
+impl<'r> molecule::prelude::Reader<'r> for CombineLockWitnessReader<'r> {
+    type Entity = CombineLockWitness;
+    const NAME: &'static str = "CombineLockWitnessReader";
     fn to_entity(&self) -> Self::Entity {
         Self::Entity::new_unchecked(self.as_slice().to_owned().into())
     }
     fn new_unchecked(slice: &'r [u8]) -> Self {
-        CombineWitnessLockReader(slice)
+        CombineLockWitnessReader(slice)
     }
     fn as_slice(&self) -> &'r [u8] {
         self.0
@@ -1039,12 +1039,12 @@ impl<'r> molecule::prelude::Reader<'r> for CombineWitnessLockReader<'r> {
     }
 }
 #[derive(Debug, Default)]
-pub struct CombineWitnessLockBuilder {
+pub struct CombineLockWitnessBuilder {
     pub(crate) witness_base_index: Uint16,
     pub(crate) proof: Bytes,
     pub(crate) scripts: ChildScriptVec,
 }
-impl CombineWitnessLockBuilder {
+impl CombineLockWitnessBuilder {
     pub const FIELD_COUNT: usize = 3;
     pub fn witness_base_index(mut self, v: Uint16) -> Self {
         self.witness_base_index = v;
@@ -1059,9 +1059,9 @@ impl CombineWitnessLockBuilder {
         self
     }
 }
-impl molecule::prelude::Builder for CombineWitnessLockBuilder {
-    type Entity = CombineWitnessLock;
-    const NAME: &'static str = "CombineWitnessLockBuilder";
+impl molecule::prelude::Builder for CombineLockWitnessBuilder {
+    type Entity = CombineLockWitness;
+    const NAME: &'static str = "CombineLockWitnessBuilder";
     fn expected_length(&self) -> usize {
         molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1)
             + self.witness_base_index.as_slice().len()
@@ -1090,6 +1090,6 @@ impl molecule::prelude::Builder for CombineWitnessLockBuilder {
         let mut inner = Vec::with_capacity(self.expected_length());
         self.write(&mut inner)
             .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        CombineWitnessLock::new_unchecked(inner.into())
+        CombineLockWitness::new_unchecked(inner.into())
     }
 }

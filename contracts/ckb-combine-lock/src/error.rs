@@ -8,7 +8,10 @@ pub enum Error {
     LengthNotEnough,
     Encoding,
     // combine lock errors starts from 120:
-    WrongArgs,
+    WrongArgs = 120,
+    WrongInfoCell,
+    WrongWitnessFormat,
+    SmtVerifyFailed,
 }
 
 impl From<SysError> for Error {
