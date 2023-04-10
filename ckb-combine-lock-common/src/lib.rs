@@ -8,4 +8,6 @@ mod blockchain {
         BytesOptReader, BytesReader, BytesVec, BytesVecReader,
     };
 }
+
+pub mod child_script_entry;
 pub mod primitives;
