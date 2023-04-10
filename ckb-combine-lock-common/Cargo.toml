@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 molecule = { version = "0.7.5", default-features = false }
 ckb-std = { git = "https://github.com/nervosnetwork/ckb-std.git", rev="762a0ab", default-features = false, features = ["allocator","ckb-types"] }
+hex = { version = "0.4.3", default-features = false, features = ["alloc"]}

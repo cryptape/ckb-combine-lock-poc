@@ -2,6 +2,7 @@ extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
 use ckb_std::ckb_types::core::ScriptHashType;
+use hex::{decode, encode_upper};
 
 pub struct ChildScriptEntry {
     code_hash: [u8; 32],
@@ -62,7 +63,10 @@ impl ChildScriptEntry {
         };
 
         let script_args = {
-            match Self::str_to_vec(datas[3]) {
+            if datas[3].len() % 2 == 1 {
+                return Err(());
+            }
+            match decode(datas[3]) {
                 Err(_) => return Err(()),
                 Ok(v) => v,
             }
@@ -137,42 +141,6 @@ impl ChildScriptEntry {
         }
     }
 
-    fn str_to_vec(d: &str) -> Result<Vec<u8>, ()> {
-        let d = d.as_bytes();
-        let d_len = d.len();
-
-        let mut r = Vec::<u8>::new();
-        let r_len = if d_len % 2 == 0 {
-            d_len / 2
-        } else {
-            d_len / 2 + 1
-        };
-        r.resize(r_len, 0);
-
-        let mut i = (d.len() - 1) as i32;
-        let mut r_pos = 0usize;
-        while i >= 0 {
-            let v = Self::char_to_num(d[i as usize]);
-            if v.is_err() {
-                return Err(());
-            }
-            r[r_pos] = v.unwrap();
-            i -= 1;
-            if i < 0 {
-                break;
-            }
-            let v = Self::char_to_num(d[i as usize]);
-            if v.is_err() {
-                return Err(());
-            }
-            r[r_pos] += v.unwrap() << 4;
-            i -= 1;
-            r_pos += 1;
-        }
-
-        Ok(r)
-    }
-
     fn str_to_int(d: &str) -> Result<u64, ()> {
         if d.len() > 8 {
             return Err(());
@@ -197,24 +165,18 @@ impl ChildScriptEntry {
     }
 
     fn str_to_byte32(d: &str) -> Result<[u8; 32], ()> {
-        if d.len() > 32 * 2 {
+        if d.len() != 32 * 2 {
             return Err(());
         }
-        let r = Self::str_to_vec(d);
-        if r.is_err() {
-            return Err(());
-        }
-        let r = r.unwrap();
-        if r.len() == 32 {
-            Ok(r.try_into().unwrap())
-        } else if r.len() < 32 {
-            const R2_LEN: usize = 32;
-            let mut r2 = [0u8; R2_LEN];
-            r2[..r.len()].copy_from_slice(&r);
-
-            Ok(r2.try_into().unwrap())
-        } else {
-            Err(())
+        match decode(d) {
+            Err(_) => return Err(()),
+            Ok(v) => {
+                if v.len() != 32 {
+                    return Err(());
+                } else {
+                    Ok(v.try_into().unwrap())
+                }
+            }
         }
     }
 
@@ -229,16 +191,11 @@ impl ChildScriptEntry {
     }
 
     fn vec_to_str(d: &[u8], r: &mut [u8], offset: usize) -> usize {
-        let d_len = d.len();
-
-        assert!(r.len() >= offset + d_len * 2);
-        let mut r_count = offset;
-        for i in 0..d_len {
-            r[r_count] = Self::num_to_char(d[d_len - 1 - i] >> 4);
-            r[r_count + 1] = Self::num_to_char(d[d_len - 1 - i] & 0xF);
-            r_count += 2;
-        }
-        r_count
+        let d = encode_upper(d);
+        let d_byte = d.as_bytes();
+        let d_len = d_byte.len();
+        r[offset..d_len + offset].copy_from_slice(d_byte);
+        d_len + offset
     }
 
     fn num_to_str(d: u64, r: &mut [u8], offset: usize) -> usize {
@@ -274,16 +231,16 @@ fn test_child_script_args_fmt() {
     assert_eq!(
         data2.code_hash.as_slice(),
         [
-            0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x00, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33,
-            0x22, 0x11, 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x00, 0x99, 0x88, 0x77, 0x66, 0x55,
-            0x44, 0x33, 0x22, 0x11
+            0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00, 0xAA, 0xBB, 0xCC, 0xDD,
+            0xEE, 0xFF, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00, 0xAA, 0xBB,
+            0xCC, 0xDD, 0xEE, 0xFF,
         ]
     );
     assert!(data2.hash_type == ScriptHashType::Type);
     assert_eq!(data2.witness_index, 0x2A13);
     assert_eq!(
         data2.script_args.to_vec().as_slice(),
-        [0x31, 0x12, 0x34, 0x12, 0x23]
+        [0x23, 0x12, 0x34, 0x12, 0x31]
     );
 
     let data3 = data2.to_str().unwrap();
@@ -317,14 +274,6 @@ fn test_char_to_num() {
 }
 
 #[test]
-fn test_str_to_vec() {
-    assert_eq!(
-        [0xb1, 0xaa, 0x11, 0x02],
-        ChildScriptEntry::str_to_vec("211AAB1").unwrap().as_slice()
-    );
-}
-
-#[test]
 fn test_str_to_num() {
     assert_eq!(ChildScriptEntry::str_to_int("11AA").unwrap(), 0x11AA);
     assert_eq!(ChildScriptEntry::str_to_int("12A13").unwrap(), 0x12A13);
@@ -332,45 +281,27 @@ fn test_str_to_num() {
 }
 
 #[test]
-fn test_str_to_byte32() {
-    // assert_eq!(
-    //     ChildScriptEntry::str_to_byte32(
-    //         "11223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF",
-    //     )
-    //     .unwrap()
-    //     .as_slice(),
-    //     [
-    //         0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x00, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33,
-    //         0x22, 0x11, 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x00, 0x99, 0x88, 0x77, 0x66, 0x55,
-    //         0x44, 0x33, 0x22, 0x11
-    //     ]
-    // );
-
+fn test_str_to_byte() {
     assert_eq!(
         ChildScriptEntry::str_to_byte32(
-            "223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF",
+            "11223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF",
         )
         .unwrap()
         .as_slice(),
         [
-            0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x00, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33,
-            0x22, 0x11, 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x00, 0x99, 0x88, 0x77, 0x66, 0x55,
-            0x44, 0x33, 0x22, 0x00
+            0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00, 0xAA, 0xBB, 0xCC, 0xDD,
+            0xEE, 0xFF, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00, 0xAA, 0xBB,
+            0xCC, 0xDD, 0xEE, 0xFF
         ]
     );
 
-    assert_eq!(
-        ChildScriptEntry::str_to_byte32(
-            "3344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF",
-        )
-        .unwrap()
-        .as_slice(),
-        [
-            0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x00, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33,
-            0x22, 0x11, 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x00, 0x99, 0x88, 0x77, 0x66, 0x55,
-            0x44, 0x33, 0x00, 0x00
-        ]
-    );
+    assert!(ChildScriptEntry::str_to_byte32(
+        "223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF",
+    )
+    .is_err());
+
+    assert!(decode("123").is_err());
+    assert_eq!(decode("1234").unwrap(), [0x12, 0x34])
 }
 
 #[test]
@@ -381,7 +312,7 @@ fn test_vec_to_char() {
     let r = ChildScriptEntry::vec_to_str(&data, &mut buf, 0);
     assert_eq!(r, data.len() * 2);
     let buf = String::from_utf8(buf).unwrap();
-    assert_eq!(buf.as_str(), "0221AA");
+    assert_eq!(buf.as_str(), "AA2102");
 
     let data = [0xaa, 0x21, 0x02];
     let mut buf = Vec::new();
@@ -391,7 +322,7 @@ fn test_vec_to_char() {
     let r = ChildScriptEntry::vec_to_str(&data, &mut buf, 2);
     assert_eq!(r, data.len() * 2 + 2);
     let buf = String::from_utf8(buf).unwrap();
-    assert_eq!(buf.as_str(), "0x0221AA")
+    assert_eq!(buf.as_str(), "0xAA2102")
 }
 
 #[test]
