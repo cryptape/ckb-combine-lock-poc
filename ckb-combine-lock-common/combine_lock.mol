@@ -10,7 +10,7 @@ table ChildScript {
 
 vector ChildScriptVec <ChildScript>;
 
-table CombineWitnessLock {
+table CombineLockWitness {
     witness_base_index: Uint16,
     proof: Bytes,
     scripts: ChildScriptVec,

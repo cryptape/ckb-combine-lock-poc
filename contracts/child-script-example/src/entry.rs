@@ -8,9 +8,9 @@ use alloc::{vec, vec::Vec};
 // Import CKB syscalls and structures
 // https://docs.rs/ckb-std/
 use ckb_std::{
-    debug,
-    high_level::{load_script},
     ckb_types::{bytes::Bytes, prelude::*},
+    debug,
+    high_level::load_script,
 };
 
 use crate::error::Error;
@@ -34,4 +34,3 @@ pub fn main() -> Result<(), Error> {
 
     Ok(())
 }
-

@@ -14,7 +14,7 @@ impl<'r> Unpack<u16> for super::combine_lock_mol::Uint16Reader<'r> {
     }
 }
 
-impl Unpack<u16> for super::combine_lock_mol::Uint16  {
+impl Unpack<u16> for super::combine_lock_mol::Uint16 {
     fn unpack(&self) -> u16 {
         self.as_reader().unpack()
     }
