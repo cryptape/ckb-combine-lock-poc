@@ -222,7 +222,7 @@ impl ChildScriptEntry {
 }
 
 #[test]
-fn test_child_script_args_fmt() {
+fn test_child_script_entry_fmt() {
     let data = "11223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF:1:2A13:2312341231";
     let data2 = ChildScriptEntry::from_str(data);
     assert!(data2.is_ok());
@@ -246,6 +246,63 @@ fn test_child_script_args_fmt() {
     let data3 = data2.to_str().unwrap();
 
     assert_eq!(data3.as_str(), data);
+}
+
+#[test]
+fn test_child_script_entry_from_str() {
+    assert!(ChildScriptEntry::from_str(
+        "223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF:1:2A13:2312341231"
+    )
+    .is_err());
+
+    assert!(ChildScriptEntry::from_str(
+        "1X223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF:1:2A13:2312341231"
+    )
+    .is_err());
+
+    assert!(ChildScriptEntry::from_str(
+        "11223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF:1:2A13"
+    )
+    .is_err());
+
+    assert!(ChildScriptEntry::from_str(
+        "11223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF:1:12A13:2312341231"
+    )
+    .is_err());
+
+    assert!(ChildScriptEntry::from_str(
+        "11223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF:11:2A13:2312341231"
+    )
+    .is_err());
+
+    assert!(ChildScriptEntry::from_str(
+        "1223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF:1:2A13:2312341231"
+    )
+    .is_err());
+}
+
+#[test]
+fn test_child_script_entry_to_str() {
+    assert_eq!(
+        ChildScriptEntry {
+            code_hash: [0u8; 32],
+            hash_type: ScriptHashType::Data,
+            witness_index: 0xFF11,
+            script_args: [0x11].to_vec(),
+        }
+        .to_str()
+        .unwrap(),
+        "0000000000000000000000000000000000000000000000000000000000000000:0:FF11:11"
+    );
+
+    assert!(ChildScriptEntry {
+        code_hash: [0u8; 32],
+        hash_type: ScriptHashType::Data,
+        witness_index: 0x1FF11,
+        script_args: [0x11].to_vec(),
+    }
+    .to_str()
+    .is_err());
 }
 
 #[test]
