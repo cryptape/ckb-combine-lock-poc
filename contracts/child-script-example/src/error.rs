@@ -8,7 +8,11 @@ pub enum Error {
     LengthNotEnough,
     Encoding,
     // Add customized errors here...
-    MyError,
+    ArgsError,
+    WitnessError,
+    GeneratedMsgError,
+    LoadDLError,
+    RunAuthError,
 }
 
 impl From<SysError> for Error {
