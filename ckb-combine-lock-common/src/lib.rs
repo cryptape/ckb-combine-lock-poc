@@ -10,4 +10,5 @@ mod blockchain {
 }
 
 pub mod child_script_entry;
+pub mod error;
 pub mod primitives;

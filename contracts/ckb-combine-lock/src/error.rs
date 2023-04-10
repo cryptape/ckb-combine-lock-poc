@@ -12,6 +12,9 @@ pub enum Error {
     WrongInfoCell,
     WrongWitnessFormat,
     SmtVerifyFailed,
+    WrongMolecule,
+    WrongHex,
+    ExecError,
 }
 
 impl From<SysError> for Error {
