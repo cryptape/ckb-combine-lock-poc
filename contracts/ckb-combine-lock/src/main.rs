@@ -17,7 +17,6 @@ mod constant;
 mod entry;
 mod error;
 mod generate_sighash_all;
-mod log;
 
 use ckb_std::default_alloc;
 

@@ -8,10 +8,10 @@ use core::{ffi::CStr, result::Result};
 
 use crate::constant::{ARGS_SIZE, SMT_SIZE};
 use crate::error::Error;
-use crate::log;
 use crate::{blake2b::hash, constant::SMT_VALUE};
 use ckb_combine_lock_common::child_script_entry::ChildScriptEntry;
 use ckb_combine_lock_common::combine_lock_mol::{ChildScriptVec, CombineLockWitness};
+use ckb_combine_lock_common::log;
 use ckb_std::high_level::exec_cell;
 use sparse_merkle_tree::h256::H256;
 use sparse_merkle_tree::SMTBuilder;
@@ -45,7 +45,7 @@ fn exec_child_scripts(witness_base_index: u16, scripts: ChildScriptVec) -> Resul
 
         let s = entry.to_str().map_err(|_| Error::WrongHex)?;
         let s = CString::new(s).map_err(|_| Error::WrongHex)?;
-        log!("argv: {}", &s);
+        log!("exec_child_scripts, argv: {}", &s);
         argv.push(s);
     }
     let first_script = scripts.get(0).unwrap();

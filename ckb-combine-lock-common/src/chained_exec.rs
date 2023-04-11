@@ -9,7 +9,7 @@ use ckb_std::high_level::exec_cell;
 use core::ffi::CStr;
 use core::ops::Deref;
 
-pub fn chained_child_scripts(argv: &'static [Arg]) -> Result<(), Error> {
+pub fn continue_running(argv: &'static [Arg]) -> Result<(), Error> {
     if argv.len() == 0 || argv.len() == 1 {
         log!("count argv is zero or one. Exec stopped.");
         return Ok(());
