@@ -102,7 +102,7 @@ fn load_and_hash_witness(
 }
 
 fn calculate_inputs_len() -> Result<usize, Error> {
-    let mut temp = [0u8; 0];
+    let mut temp = [0u8; 8];
     let mut i = 0;
     loop {
         let sysret = load_input_by_field(&mut temp, 0, i, Source::Input, InputField::Since);
