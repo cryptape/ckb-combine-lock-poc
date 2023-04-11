@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = []
+log = ["ckb-combine-lock-common/log"]
 
 [dependencies]
 ckb-std = { git = "https://github.com/nervosnetwork/ckb-std.git", rev="762a0ab"}

@@ -17,3 +17,7 @@ template_type = "Rust"
 [[contracts]]
 name = "child-script-example"
 template_type = "Rust"
+
+[[contracts]]
+name = "child-script-always-success"
+template_type = "Rust"

@@ -12,7 +12,7 @@ Suggested for production usage for sake of reproducible build.
 ```
 rustup target add riscv64imac-unknown-none-elf
 sudo apt install gcc-riscv64-unknown-elf
-cargo build --release
+cargo build --release --target riscv64imac-unknown-none-elf
 ```
 Suggested for developing phase.
 

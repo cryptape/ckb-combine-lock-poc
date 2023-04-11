@@ -9,5 +9,8 @@ mod blockchain {
     };
 }
 
+pub mod chained_exec;
 pub mod child_script_entry;
+pub mod error;
+pub mod log;
 pub mod primitives;
