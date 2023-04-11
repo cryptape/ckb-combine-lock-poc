@@ -39,8 +39,11 @@ pub const MAX_CYCLES: u64 = std::u64::MAX;
 pub const SIGNATURE_SIZE: usize = 65;
 
 lazy_static! {
+    // pub static ref AUTH_DEMO: Bytes =
+        // Bytes::from(&include_bytes!("../../../build/debug/child-script-example")[..]);
     pub static ref AUTH_DEMO: Bytes =
-        Bytes::from(&include_bytes!("../../../build/debug/child-script-example")[..]);
+        Bytes::from(&include_bytes!("../../../build/release/child-script-example")[..]);
+
     pub static ref AUTH_DL: Bytes = Bytes::from(&include_bytes!("bin/auth")[..]);
     pub static ref SECP256K1_DATA_BIN: Bytes =
         Bytes::from(&include_bytes!("bin/secp256k1_data")[..]);
