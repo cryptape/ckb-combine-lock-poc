@@ -41,11 +41,10 @@ pub const SIGNATURE_SIZE: usize = 65;
 lazy_static! {
     pub static ref AUTH_DEMO: Bytes =
         Bytes::from(&include_bytes!("../../../build/debug/child-script-example")[..]);
-    pub static ref AUTH_DL: Bytes = Bytes::from(&include_bytes!("../../../build/debug/auth")[..]);
+    pub static ref AUTH_DL: Bytes = Bytes::from(&include_bytes!("bin/auth")[..]);
     pub static ref SECP256K1_DATA_BIN: Bytes =
-        Bytes::from(&include_bytes!("../../../build/debug/secp256k1_data")[..]);
-    pub static ref ALWAYS_SUCCESS: Bytes =
-        Bytes::from(&include_bytes!("../../../build/debug/always_success")[..]);
+        Bytes::from(&include_bytes!("bin/secp256k1_data")[..]);
+    pub static ref ALWAYS_SUCCESS: Bytes = Bytes::from(&include_bytes!("bin/always_success")[..]);
 }
 
 fn _dbg_print_mem(data: &Vec<u8>, name: &str) {
