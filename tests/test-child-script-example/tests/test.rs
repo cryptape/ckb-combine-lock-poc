@@ -1,0 +1,346 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
+
+use ckb_crypto::secp::{Generator, Privkey, Pubkey};
+use ckb_script::TransactionScriptsVerifier;
+use ckb_types::{
+    bytes::{BufMut, Bytes, BytesMut},
+    H256,
+};
+use log::{Level, LevelFilter, Metadata, Record};
+use openssl::{sha::Sha256, ssl::ErrorCode};
+use rand::{thread_rng, Rng};
+use sha3::{digest::generic_array::typenum::private::IsEqualPrivate, Digest, Keccak256};
+
+use test_child_script_example::misc::*;
+
+fn verify_unit(config: &TestConfig) -> Result<u64, ckb_error::Error> {
+    let mut data_loader = DummyDataLoader::new();
+    let tx = gen_tx(&mut data_loader, &config);
+    let tx = sign_tx(tx, &config);
+    let resolved_tx = build_resolved_tx(&data_loader, &tx);
+
+    let consensus = gen_consensus();
+    let tx_env = gen_tx_env();
+
+    let mut verifier =
+        TransactionScriptsVerifier::new(&resolved_tx, &consensus, &data_loader, &tx_env);
+    verifier.set_debug_printer(debug_printer);
+    verifier.verify(MAX_CYCLES)
+}
+
+fn assert_result_ok(res: Result<u64, ckb_error::Error>, des: &str) {
+    assert!(
+        res.is_ok(),
+        "pass {} verification, des: {}",
+        des,
+        res.unwrap_err().to_string()
+    );
+}
+
+fn assert_result_error(res: Result<u64, ckb_error::Error>, des: &str) {
+    assert!(
+        res.is_err(),
+        "pass failed {} verification, des: run ok",
+        des
+    );
+    // let err_str = res.unwrap_err().to_string();
+    // let mut is_assert = false;
+    // for err_code in err_codes {
+    //     if err_str.contains(format!("error code {}", err_code).as_str()) {
+    //         is_assert = true;
+    //         break;
+    //     }
+    // }
+
+    // if !is_assert {
+    //     assert!(false, "pass {} verification, des: {}", des, err_str);
+    // }
+}
+
+fn unit_test_success(auth: &Box<dyn Auth>, run_type: EntryCategoryType) {
+    let config = TestConfig::new(auth, run_type, 1);
+    assert_result_ok(verify_unit(&config), "");
+}
+
+fn unit_test_multiple_args(auth: &Box<dyn Auth>, run_type: EntryCategoryType) {
+    let config = TestConfig::new(auth, run_type, 5);
+
+    assert_result_ok(verify_unit(&config), "multiple args");
+}
+
+fn unit_test_multiple_group(auth: &Box<dyn Auth>, run_type: EntryCategoryType) {
+    let mut data_loader = DummyDataLoader::new();
+
+    let config = TestConfig::new(auth, run_type, 1);
+
+    let mut rng = thread_rng();
+    let tx = gen_tx_with_grouped_args(
+        &mut data_loader,
+        vec![
+            (gen_args(&config), 1),
+            (gen_args(&config), 1),
+            (gen_args(&config), 1),
+        ],
+        &mut rng,
+        &config,
+    );
+
+    let tx = sign_tx(tx, &config);
+    let resolved_tx = build_resolved_tx(&data_loader, &tx);
+
+    let consensus = gen_consensus();
+    let tx_env = gen_tx_env();
+
+    let mut verifier =
+        TransactionScriptsVerifier::new(&resolved_tx, &consensus, &data_loader, &tx_env);
+    verifier.set_debug_printer(debug_printer);
+
+    assert_result_ok(verify_unit(&config), "multiple group");
+}
+
+fn unit_test_faileds(auth: &Box<dyn Auth>, run_type: EntryCategoryType) {
+    // public key
+    {
+        let mut config = TestConfig::new(auth, run_type, 1);
+        config.incorrect_pubkey = true;
+
+        assert_result_error(verify_unit(&config), "public key");
+    }
+
+    // sign data
+    {
+        let mut config = TestConfig::new(&auth, run_type, 1);
+        config.incorrect_sign = true;
+        assert_result_error(verify_unit(&config), "sign data");
+    }
+
+    // sign size bigger
+    {
+        let mut config = TestConfig::new(&auth, run_type, 1);
+        config.incorrect_sign_size = TestConfigIncorrectSing::Bigger;
+        let mut config = TestConfig::new(&auth, run_type, 1);
+        config.incorrect_sign = true;
+        assert_result_error(verify_unit(&config), "sign size(bigger)");
+    }
+
+    // sign size smaller
+    {
+        let mut config = TestConfig::new(&auth, run_type, 1);
+        config.incorrect_sign_size = TestConfigIncorrectSing::Smaller;
+        assert_result_error(verify_unit(&config), "sign size(smaller)");
+    }
+}
+
+fn unit_test_common_with_auth(auth: &Box<dyn Auth>, run_type: EntryCategoryType) {
+    unit_test_success(auth, run_type);
+    unit_test_multiple_args(auth, run_type);
+    unit_test_multiple_group(auth, run_type);
+
+    unit_test_faileds(auth, run_type);
+}
+
+fn unit_test_common_with_runtype(algorithm_type: AlgorithmType, run_type: EntryCategoryType) {
+    let auth = auth_builder(algorithm_type).unwrap();
+    unit_test_common_with_auth(&auth, run_type);
+}
+
+fn unit_test_common(algorithm_type: AlgorithmType) {
+    unit_test_common_with_runtype(algorithm_type, EntryCategoryType::DynamicLinking);
+    unit_test_common_with_runtype(algorithm_type, EntryCategoryType::Exec);
+}
+
+#[test]
+fn ckb_verify() {
+    unit_test_common(AlgorithmType::Ckb);
+}
+
+#[test]
+fn ethereum_verify() {
+    unit_test_common(AlgorithmType::Ethereum);
+}
+
+#[test]
+fn eos_verify() {
+    unit_test_common(AlgorithmType::Eos);
+}
+
+#[test]
+fn tron_verify() {
+    unit_test_common(AlgorithmType::Tron);
+}
+
+#[test]
+fn bitcoin_verify() {
+    unit_test_common(AlgorithmType::Bitcoin);
+}
+
+#[test]
+fn bitcoin_uncompress_verify() {
+    let mut auth = BitcoinAuth::new();
+    auth.compress = false;
+    let auth: Box<dyn Auth> = auth;
+    unit_test_common_with_auth(&auth, EntryCategoryType::DynamicLinking);
+    unit_test_common_with_auth(&auth, EntryCategoryType::Exec);
+}
+
+#[test]
+fn bitcoin_pubkey_recid_verify() {
+    #[derive(Clone)]
+    pub struct BitcoinFailedAuth(BitcoinAuth);
+    impl Auth for BitcoinFailedAuth {
+        fn get_pub_key_hash(&self) -> Vec<u8> {
+            BitcoinAuth::get_btc_pub_key_hash(&self.0.privkey, self.0.compress)
+        }
+        fn get_algorithm_type(&self) -> u8 {
+            AlgorithmType::Bitcoin as u8
+        }
+        fn convert_message(&self, message: &[u8; 32]) -> H256 {
+            BitcoinAuth::btc_convert_message(message)
+        }
+        fn sign(&self, msg: &H256) -> Bytes {
+            let sign = self
+                .0
+                .privkey
+                .sign_recoverable(&msg)
+                .expect("sign")
+                .serialize();
+            assert_eq!(sign.len(), 65);
+
+            let mut rng = rand::thread_rng();
+            let mut recid: u8 = rng.gen_range(0, 4);
+            while recid == sign[64] && recid < 31 {
+                recid = rng.gen_range(0, 4);
+            }
+            let mut mark: u8 = sign[64];
+            if self.0.compress {
+                mark = mark | 4;
+            }
+            let mut ret = BytesMut::with_capacity(65);
+            ret.put_u8(mark);
+            ret.put(&sign[0..64]);
+            Bytes::from(ret)
+        }
+    }
+
+    let privkey = Generator::random_privkey();
+    let auth: Box<dyn Auth> = Box::new(BitcoinFailedAuth {
+        0: BitcoinAuth {
+            privkey,
+            compress: true,
+        },
+    });
+
+    let config = TestConfig::new(&auth, EntryCategoryType::DynamicLinking, 1);
+    assert_result_error(verify_unit(&config), "failed conver btc");
+}
+
+#[test]
+fn dogecoin_verify() {
+    unit_test_common(AlgorithmType::Dogecoin);
+}
+
+#[test]
+fn convert_eth_error() {
+    #[derive(Clone)]
+    struct EthConverFaileAuth(EthereumAuth);
+    impl Auth for EthConverFaileAuth {
+        fn get_pub_key_hash(&self) -> Vec<u8> {
+            EthereumAuth::get_eth_pub_key_hash(&self.0.pubkey)
+        }
+        fn get_algorithm_type(&self) -> u8 {
+            AlgorithmType::Ethereum as u8
+        }
+        fn convert_message(&self, message: &[u8; 32]) -> H256 {
+            let eth_prefix: &[u8; 28] = b"\x19Ethereum Signed Xessage:\n32";
+            let mut hasher = Keccak256::new();
+            hasher.update(eth_prefix);
+            hasher.update(message);
+            let r = hasher.finalize();
+            let ret = H256::from_slice(r.as_slice()).expect("convert_keccak256_hash");
+            ret
+        }
+        fn sign(&self, msg: &H256) -> Bytes {
+            EthereumAuth::eth_sign(msg, &self.0.privkey)
+        }
+    }
+
+    let generator: secp256k1::Secp256k1<secp256k1::All> = secp256k1::Secp256k1::new();
+    let mut rng = thread_rng();
+    let (privkey, pubkey) = generator.generate_keypair(&mut rng);
+
+    let auth: Box<dyn Auth> = Box::new(EthConverFaileAuth {
+        0: EthereumAuth { privkey, pubkey },
+    });
+
+    let config = TestConfig::new(&auth, EntryCategoryType::DynamicLinking, 1);
+    assert_result_error(verify_unit(&config), "failed conver eth");
+}
+
+#[test]
+fn convert_eos_error() {
+    #[derive(Clone)]
+    struct EthConverFaileAuth(EosAuth);
+    impl Auth for EthConverFaileAuth {
+        fn get_pub_key_hash(&self) -> Vec<u8> {
+            EthereumAuth::get_eth_pub_key_hash(&self.0.pubkey)
+        }
+        fn get_algorithm_type(&self) -> u8 {
+            AlgorithmType::Eos as u8
+        }
+        fn convert_message(&self, message: &[u8; 32]) -> H256 {
+            let mut md = Sha256::new();
+            md.update(message);
+            md.update(&[1, 2, 3]);
+            let msg = md.finish();
+            H256::from(msg)
+        }
+        fn sign(&self, msg: &H256) -> Bytes {
+            EthereumAuth::eth_sign(msg, &self.0.privkey)
+        }
+    }
+
+    let generator: secp256k1::Secp256k1<secp256k1::All> = secp256k1::Secp256k1::new();
+    let mut rng = thread_rng();
+    let (privkey, pubkey) = generator.generate_keypair(&mut rng);
+
+    let auth: Box<dyn Auth> = Box::new(EthConverFaileAuth {
+        0: EosAuth { privkey, pubkey },
+    });
+    let config = TestConfig::new(&auth, EntryCategoryType::DynamicLinking, 1);
+    assert_result_error(verify_unit(&config), "failed conver eos");
+}
+
+#[test]
+fn convert_tron_error() {
+    #[derive(Clone)]
+    struct TronConverFaileAuth(TronAuth);
+    impl Auth for TronConverFaileAuth {
+        fn get_pub_key_hash(&self) -> Vec<u8> {
+            EthereumAuth::get_eth_pub_key_hash(&self.0.pubkey)
+        }
+        fn get_algorithm_type(&self) -> u8 {
+            AlgorithmType::Tron as u8
+        }
+        fn convert_message(&self, message: &[u8; 32]) -> H256 {
+            let eth_prefix: &[u8; 24] = b"\x19TRON Signed Xessage:\n32";
+            let mut hasher = Keccak256::new();
+            hasher.update(eth_prefix);
+            hasher.update(message);
+            let r = hasher.finalize();
+            H256::from_slice(r.as_slice()).expect("convert_keccak256_hash")
+        }
+        fn sign(&self, msg: &H256) -> Bytes {
+            EthereumAuth::eth_sign(msg, &self.0.privkey)
+        }
+    }
+
+    let generator: secp256k1::Secp256k1<secp256k1::All> = secp256k1::Secp256k1::new();
+    let mut rng = thread_rng();
+    let (privkey, pubkey) = generator.generate_keypair(&mut rng);
+    let auth: Box<dyn Auth> = Box::new(TronConverFaileAuth {
+        0: TronAuth { privkey, pubkey },
+    });
+    let config = TestConfig::new(&auth, EntryCategoryType::DynamicLinking, 1);
+    assert_result_error(verify_unit(&config), "failed conver tron");
+}
