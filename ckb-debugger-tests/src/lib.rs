@@ -1,16 +1,24 @@
+#[allow(dead_code)]
+mod combine_lock_mol;
 mod hash;
 mod smt;
 
+pub mod blockchain {
+    pub use ckb_types::packed::{
+        Byte, Byte32, Byte32Reader, Byte32Vec, Byte32VecReader, ByteReader, Bytes, BytesOpt,
+        BytesOptReader, BytesReader, BytesVec, BytesVecReader, WitnessArgs, WitnessArgsBuilder,
+        WitnessArgsReader,
+    };
+}
+
+use blockchain::Bytes as BlockchainBytes;
+use blockchain::WitnessArgs;
+use ckb_types::prelude::*;
+use combine_lock_mol::{ChildScript, ChildScriptVec, CombineLockWitness, Uint16};
+use molecule::bytes::Bytes;
+use molecule::prelude::*;
 use std::{fs::read_to_string, path::PathBuf};
 
-use ckb_combine_lock_common::blockchain::Bytes as BlockchainBytes;
-use ckb_combine_lock_common::blockchain::WitnessArgs;
-use ckb_combine_lock_common::ckb_std::ckb_types::prelude::*;
-use ckb_combine_lock_common::combine_lock_mol::{
-    ChildScript, ChildScriptVec, CombineLockWitness, Uint16,
-};
-use ckb_combine_lock_common::molecule::bytes::Bytes;
-use ckb_combine_lock_common::molecule::prelude::*;
 use ckb_debugger_api::embed::Embed;
 use ckb_mock_tx_types::{MockTransaction, ReprMockTransaction};
 use hash::hash;

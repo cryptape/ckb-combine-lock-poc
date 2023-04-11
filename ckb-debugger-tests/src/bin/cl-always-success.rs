@@ -1,4 +1,3 @@
-use ckb_combine_lock_common::molecule::prelude::Entity;
 use ckb_debugger_tests::read_tx_template;
 use ckb_mock_tx_types::ReprMockTransaction;
 
