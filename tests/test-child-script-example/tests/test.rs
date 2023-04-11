@@ -344,3 +344,272 @@ fn convert_tron_error() {
     let config = TestConfig::new(&auth, EntryCategoryType::DynamicLinking, 1);
     assert_result_error(verify_unit(&config), "failed conver tron");
 }
+
+#[test]
+fn convert_btc_error() {
+    #[derive(Clone)]
+    struct BtcConverFaileAuth(BitcoinAuth);
+    impl Auth for BtcConverFaileAuth {
+        fn get_pub_key_hash(&self) -> Vec<u8> {
+            BitcoinAuth::get_btc_pub_key_hash(&self.0.privkey, self.0.compress)
+        }
+        fn get_algorithm_type(&self) -> u8 {
+            AlgorithmType::Bitcoin as u8
+        }
+        fn convert_message(&self, message: &[u8; 32]) -> H256 {
+            let message_magic = b"\x18Bitcoin Signed Xessage:\n\x40";
+            let msg_hex = hex::encode(message);
+            assert_eq!(msg_hex.len(), 64);
+
+            let mut temp2: BytesMut = BytesMut::with_capacity(message_magic.len() + msg_hex.len());
+            temp2.put(Bytes::from(message_magic.to_vec()));
+            temp2.put(Bytes::from(hex::encode(message)));
+
+            let msg = calculate_sha256(&temp2);
+            let msg = calculate_sha256(&msg);
+
+            H256::from(msg)
+        }
+        fn sign(&self, msg: &H256) -> Bytes {
+            BitcoinAuth::btc_sign(msg, &self.0.privkey, self.0.compress)
+        }
+    }
+
+    let privkey = Generator::random_privkey();
+    let auth: Box<dyn Auth> = Box::new(BtcConverFaileAuth {
+        0: BitcoinAuth {
+            privkey,
+            compress: true,
+        },
+    });
+
+    let config = TestConfig::new(&auth, EntryCategoryType::DynamicLinking, 1);
+    assert_result_error(verify_unit(&config), "failed conver btc");
+}
+
+#[test]
+fn convert_doge_error() {
+    #[derive(Clone)]
+    struct DogeConverFaileAuth(DogecoinAuth);
+    impl Auth for DogeConverFaileAuth {
+        fn get_pub_key_hash(&self) -> Vec<u8> {
+            BitcoinAuth::get_btc_pub_key_hash(&self.0.privkey, self.0.compress)
+        }
+        fn get_algorithm_type(&self) -> u8 {
+            AlgorithmType::Bitcoin as u8
+        }
+        fn convert_message(&self, message: &[u8; 32]) -> H256 {
+            let message_magic = b"\x18Bitcoin Signed Xessage:\n\x40";
+            let msg_hex = hex::encode(message);
+            assert_eq!(msg_hex.len(), 64);
+
+            let mut temp2: BytesMut = BytesMut::with_capacity(message_magic.len() + msg_hex.len());
+            temp2.put(Bytes::from(message_magic.to_vec()));
+            temp2.put(Bytes::from(hex::encode(message)));
+
+            let msg = calculate_sha256(&temp2);
+            let msg = calculate_sha256(&msg);
+
+            H256::from(msg)
+        }
+        fn sign(&self, msg: &H256) -> Bytes {
+            BitcoinAuth::btc_sign(msg, &self.0.privkey, self.0.compress)
+        }
+    }
+
+    let privkey = Generator::random_privkey();
+    let auth: Box<dyn Auth> = Box::new(DogeConverFaileAuth {
+        0: DogecoinAuth {
+            privkey,
+            compress: true,
+        },
+    });
+
+    let config = TestConfig::new(&auth, EntryCategoryType::DynamicLinking, 1);
+    assert_result_error(verify_unit(&config), "failed conver doge");
+}
+
+#[derive(Clone)]
+pub struct CkbMultisigFailedAuth(CkbMultisigAuth);
+impl Auth for CkbMultisigFailedAuth {
+    fn get_pub_key_hash(&self) -> Vec<u8> {
+        self.0.hash.clone()
+    }
+    fn get_algorithm_type(&self) -> u8 {
+        AlgorithmType::CkbMultisig as u8
+    }
+    fn sign(&self, msg: &H256) -> Bytes {
+        let sign_data = self.0.multickb_sign(msg);
+        let mut buf = BytesMut::with_capacity(sign_data.len() + 10);
+        buf.put(sign_data);
+        buf.put(Bytes::from([0; 10].to_vec()));
+        buf.freeze()
+    }
+    fn get_sign_size(&self) -> usize {
+        self.0.get_mulktisig_size()
+    }
+}
+
+fn unit_test_ckbmultisig(auth: &Box<dyn Auth>, run_type: EntryCategoryType) {
+    unit_test_success(auth, run_type);
+    unit_test_multiple_args(auth, run_type);
+    unit_test_multiple_group(auth, run_type);
+
+    // public key
+    {
+        let mut config = TestConfig::new(auth, run_type, 1);
+        config.incorrect_pubkey = true;
+
+        assert_result_error(verify_unit(&config), "public key");
+    }
+
+    // sign data
+    {
+        let mut config = TestConfig::new(&auth, run_type, 1);
+        config.incorrect_sign = true;
+        assert_result_error(verify_unit(&config), "sign data");
+    }
+
+    // sign size bigger
+    {
+        let mut config = TestConfig::new(&auth, run_type, 1);
+        config.incorrect_sign_size = TestConfigIncorrectSing::Bigger;
+        let mut config = TestConfig::new(&auth, run_type, 1);
+        config.incorrect_sign = true;
+        assert_result_error(verify_unit(&config), "sign size(bigger)");
+    }
+
+    // sign size smaller
+    {
+        let mut config = TestConfig::new(&auth, run_type, 1);
+        config.incorrect_sign_size = TestConfigIncorrectSing::Smaller;
+        assert_result_error(verify_unit(&config), "sign size(smaller)");
+    }
+
+    // cnt_failed
+    {
+        let auth: Box<dyn Auth> = CkbMultisigAuth::new(2, 3, 1);
+        let config = TestConfig::new(&auth, run_type, 1);
+        assert_result_error(verify_unit(&config), "cnt failed");
+    }
+
+    // cnt_failed
+    {
+        let auth: Box<dyn Auth> = CkbMultisigAuth::new(2, 2, 4);
+        let config = TestConfig::new(&auth, run_type, 1);
+        assert_result_error(verify_unit(&config), "require_first_n failed");
+
+        // #define ERROR_INVALID_REQUIRE_FIRST_N -44
+    }
+
+    {
+        let auth: Box<dyn Auth> = Box::new(CkbMultisigFailedAuth {
+            0: {
+                let pubkeys_cnt = 2;
+                let threshold = 2;
+                let require_first_n = 0;
+                let (pubkey_data, privkeys) =
+                    CkbMultisigAuth::generator_key(pubkeys_cnt, threshold, require_first_n);
+                let hash = ckb_hash::blake2b_256(&pubkey_data);
+                CkbMultisigAuth {
+                    pubkeys_cnt,
+                    threshold,
+                    pubkey_data,
+                    privkeys,
+                    hash: hash[0..20].to_vec(),
+                }
+            },
+        });
+        let config = TestConfig::new(&auth, run_type, 1);
+        assert_result_error(verify_unit(&config), "require_first_n failed");
+        // #define ERROR_WITNESS_SIZE -22
+    }
+}
+
+#[test]
+fn ckbmultisig_verify() {
+    let auth: Box<dyn Auth> = CkbMultisigAuth::new(2, 2, 1);
+    unit_test_ckbmultisig(&auth, EntryCategoryType::DynamicLinking);
+    unit_test_ckbmultisig(&auth, EntryCategoryType::Exec);
+}
+
+#[test]
+fn ckbmultisig_verify_sing_size_failed() {}
+
+#[test]
+fn schnorr_verify() {
+    unit_test_common(AlgorithmType::SchnorrOrTaproot);
+}
+
+fn unit_test_rsa(auth: &Box<dyn Auth>, run_type: EntryCategoryType) {
+    unit_test_success(auth, run_type);
+    unit_test_multiple_args(auth, run_type);
+    unit_test_multiple_group(auth, run_type);
+    // public key
+    {
+        let mut config = TestConfig::new(auth, run_type, 1);
+        config.incorrect_pubkey = true;
+
+        assert_result_error(verify_unit(&config), "public key");
+    }
+
+    // sign data
+    {
+        let mut config = TestConfig::new(&auth, run_type, 1);
+        config.incorrect_sign = true;
+        assert_result_error(verify_unit(&config), "sign data");
+        // ERROR_INVALID_MD_TYPE
+        // ERROR_INVALID_PADDING
+    }
+
+    // sign size bigger
+    {
+        let mut config = TestConfig::new(&auth, run_type, 1);
+        config.incorrect_sign_size = TestConfigIncorrectSing::Bigger;
+        let mut config = TestConfig::new(&auth, run_type, 1);
+        config.incorrect_sign = true;
+        assert_result_error(verify_unit(&config), "sign size(bigger)");
+        // ERROR_RSA_INVALID_PARAM2
+    }
+
+    // sign size smaller
+    {
+        let mut config = TestConfig::new(&auth, run_type, 1);
+        config.incorrect_sign_size = TestConfigIncorrectSing::Smaller;
+        assert_result_error(verify_unit(&config), "sign size(smaller)");
+    }
+}
+
+#[test]
+fn rsa_verify() {
+    let auth = auth_builder(AlgorithmType::RSA).unwrap();
+    unit_test_rsa(&auth, EntryCategoryType::DynamicLinking);
+    unit_test_rsa(&auth, EntryCategoryType::Exec);
+}
+
+#[test]
+fn abnormal_algorithm_type() {
+    #[derive(Clone)]
+    struct AbnormalAuth {}
+    impl Auth for AbnormalAuth {
+        fn get_pub_key_hash(&self) -> Vec<u8> {
+            [0; 20].to_vec()
+        }
+        fn get_algorithm_type(&self) -> u8 {
+            32
+        }
+        fn sign(&self, _msg: &H256) -> Bytes {
+            Bytes::from([0; 85].to_vec())
+        }
+    }
+
+    let auth: Box<dyn Auth> = Box::new(AbnormalAuth {});
+    {
+        let config = TestConfig::new(&auth, EntryCategoryType::DynamicLinking, 1);
+        assert_result_error(verify_unit(&config), "sign size(smaller)");
+    }
+    {
+        let config = TestConfig::new(&auth, EntryCategoryType::Exec, 1);
+        assert_result_error(verify_unit(&config), "sign size(smaller)");
+    }
+}
