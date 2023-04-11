@@ -1,14 +1,13 @@
+use ckb_hash::{Blake2b, Blake2bBuilder};
 use sparse_merkle_tree::default_store::DefaultStore;
 use sparse_merkle_tree::traits::Hasher;
 use sparse_merkle_tree::{SparseMerkleTree, H256};
-use ckb_hash::{Blake2b, Blake2bBuilder};
 
 pub struct CKBBlake2bHasher(Blake2b);
 pub const BLAKE2B_KEY: &[u8] = &[];
 pub const BLAKE2B_LEN: usize = 32;
 pub const PERSONALIZATION: &[u8] = b"ckb-default-hash";
 use lazy_static::lazy_static;
-
 
 lazy_static! {
     pub static ref SMT_EXISTING: H256 = H256::from([
@@ -51,7 +50,6 @@ pub fn new_smt(pairs: Vec<(H256, H256)>) -> SMT {
     smt
 }
 
-
 // return smt root and proof
 pub fn build_tree(hashes: &Vec<[u8; 32]>) -> (H256, Vec<u8>) {
     let existing_pairs: Vec<(H256, H256)> = hashes
@@ -66,13 +64,8 @@ pub fn build_tree(hashes: &Vec<[u8; 32]>) -> (H256, Vec<u8>) {
     let root = smt.root();
 
     let keys: Vec<H256> = existing_pairs.clone().into_iter().map(|(k, _)| k).collect();
-    let proof = smt
-        .merkle_proof(keys.clone())
-        .expect("gen proof");
-    let compiled_proof = proof
-        .clone()
-        .compile(keys.clone())
-        .expect("compile proof");
+    let proof = smt.merkle_proof(keys.clone()).expect("gen proof");
+    let compiled_proof = proof.clone().compile(keys.clone()).expect("compile proof");
     let _ = compiled_proof
         .verify::<CKBBlake2bHasher>(root, existing_pairs.clone())
         .expect("verify compiled proof");

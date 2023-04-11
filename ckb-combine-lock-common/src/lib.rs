@@ -5,7 +5,7 @@ pub use molecule;
 pub mod blockchain {
     pub use ckb_std::ckb_types::packed::{
         Byte, Byte32, Byte32Reader, Byte32Vec, Byte32VecReader, ByteReader, Bytes, BytesOpt,
-        BytesOptReader, BytesReader, BytesVec, BytesVecReader,
+        BytesOptReader, BytesReader, BytesVec, BytesVecReader, WitnessArgs, WitnessArgsBuilder, WitnessArgsReader
     };
 }
 pub use ckb_std;

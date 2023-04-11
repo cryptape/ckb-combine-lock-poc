@@ -11,7 +11,6 @@ edition = "2021"
 clap = "2.33.0"
 ckb-debugger-api = { git = "https://github.com/nervosnetwork/ckb-standalone-debugger.git", rev="975a954" }
 ckb-mock-tx-types =  { git = "https://github.com/nervosnetwork/ckb-standalone-debugger.git", rev="975a954" }
-ckb-types = "=0.108.1"
 ckb-hash = "=0.108.1"
 env_logger = "0.4.3"
 lazy_static = "1.4.0"

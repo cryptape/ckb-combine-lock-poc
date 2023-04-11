@@ -232,7 +232,6 @@ dependencies = [
  "ckb-debugger-api",
  "ckb-hash",
  "ckb-mock-tx-types",
- "ckb-types",
  "clap",
  "env_logger",
  "lazy_static",

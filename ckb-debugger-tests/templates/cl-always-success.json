@@ -59,7 +59,7 @@
             "type": {{ def_type always_success }}
           },
           "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/child-script-always-success }}"
-        },
+        }
       ],
       "header_deps": []
     },

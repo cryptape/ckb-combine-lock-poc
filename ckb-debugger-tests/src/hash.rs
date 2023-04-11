@@ -1,4 +1,3 @@
-
 use ckb_hash::{Blake2b, Blake2bBuilder};
 
 pub const CKB_PERSONALIZATION: &[u8] = b"ckb-default-hash";
@@ -17,4 +16,3 @@ pub fn hash(bytes: &[u8]) -> [u8; 32] {
     hasher.finalize(&mut hash);
     hash
 }
-
