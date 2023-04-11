@@ -12,12 +12,8 @@
 #![feature(panic_info_message)]
 
 // define modules
-mod blake2b;
-mod constant;
 mod entry;
 mod error;
-mod generate_sighash_all;
-mod log;
 
 use ckb_std::default_alloc;
 

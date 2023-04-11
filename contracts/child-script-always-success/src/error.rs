@@ -7,14 +7,8 @@ pub enum Error {
     ItemMissing,
     LengthNotEnough,
     Encoding,
-    // combine lock errors starts from 80
-    WrongArgs = 80,
-    WrongInfoCell,
-    WrongWitnessFormat,
-    SmtVerifyFailed,
-    WrongMolecule,
-    WrongHex,
-    ExecError,
+    //
+    ChainedExecError = 80,
 }
 
 impl From<SysError> for Error {

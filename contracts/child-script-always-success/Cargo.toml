@@ -1,5 +1,5 @@
 [package]
-name = "child-script-example"
+name = "child-script-always-success"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,7 +8,7 @@ edition = "2021"
 default = []
 log = ["ckb-combine-lock-common/log"]
 
+
 [dependencies]
 ckb-std = { git = "https://github.com/nervosnetwork/ckb-std.git", rev="762a0ab"}
 ckb-combine-lock-common = { path = "../../ckb-combine-lock-common" }
-blake2b-rs = "0.2.0"
