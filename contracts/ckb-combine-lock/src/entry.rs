@@ -45,7 +45,7 @@ fn exec_child_scripts(witness_base_index: u16, scripts: ChildScriptVec) -> Resul
 
         let s = entry.to_str().map_err(|_| Error::WrongHex)?;
         let s = CString::new(s).map_err(|_| Error::WrongHex)?;
-        log!("exec_child_scripts, argv: {}", &s);
+        log!("exec_child_scripts, argv: {:?}", &s);
         argv.push(s);
     }
     let first_script = scripts.get(0).unwrap();

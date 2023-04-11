@@ -1,1 +1,2 @@
-This crate is shared both by CKB scripts and native tools/tests. It should support "no_std".
+This crate is used by CKB scripts and should support "no_std". Do not attempt to
+include it in a native Rust program, as there are many RISC-V only elements.

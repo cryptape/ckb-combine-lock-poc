@@ -17,7 +17,7 @@ pub fn continue_running(argv: &'static [Arg]) -> Result<(), Error> {
     let c_str: &CStr = &argv[1];
     let next_entry =
         ChildScriptEntry::from_str(c_str.to_str().unwrap()).map_err(|_| Error::ChainedExec)?;
-    log!("exec with argv[1] is: {}", c_str);
+    log!("exec with argv[1] is: {:?}", c_str);
 
     let new_argv = (argv[1..])
         .iter()
