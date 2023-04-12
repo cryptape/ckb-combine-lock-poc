@@ -58,7 +58,7 @@ pub fn generate_sighash_all() -> Result<[u8; 32], Error> {
 
     // Digest witnesses that not covered by inputs.
     let mut i = calculate_inputs_len()?;
-    let end = i + calculate_outputs_len()?;
+    let end = std::cmp::max(i, calculate_outputs_len()?);
     loop {
         let sysret = load_and_hash_witness(&mut blake2b_ctx, 0, i, Source::Input, true);
         match sysret {
@@ -66,7 +66,7 @@ pub fn generate_sighash_all() -> Result<[u8; 32], Error> {
             Err(x) => return Err(x.into()),
             Ok(_) => i += 1,
         }
-        if i == end {
+        if i >= end {
             break;
         }
     }
