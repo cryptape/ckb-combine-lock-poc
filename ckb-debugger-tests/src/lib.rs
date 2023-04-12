@@ -11,6 +11,8 @@ pub mod blockchain {
     };
 }
 
+use anyhow;
+use anyhow::Context;
 use blockchain::Bytes as BlockchainBytes;
 use blockchain::WitnessArgs;
 use ckb_types::prelude::*;
@@ -26,11 +28,13 @@ use serde_json::from_str as from_json_str;
 use smt::build_tree;
 use sparse_merkle_tree::H256;
 
-pub fn read_tx_template(file_name: &str) -> Result<MockTransaction, Box<dyn std::error::Error>> {
-    let mock_tx = read_to_string(file_name)?;
+pub fn read_tx_template(file_name: &str) -> Result<MockTransaction, anyhow::Error> {
+    let mock_tx =
+        read_to_string(file_name).with_context(|| format!("Failed to read from {}", file_name))?;
     let mut mock_tx_embed = Embed::new(PathBuf::from(file_name), mock_tx.clone());
     let mock_tx = mock_tx_embed.replace_all();
-    let repr_mock_tx: ReprMockTransaction = from_json_str(&mock_tx)?;
+    let repr_mock_tx: ReprMockTransaction =
+        from_json_str(&mock_tx).with_context(|| "in from_json_str(&mock_tx)")?;
     Ok(repr_mock_tx.into())
 }
 

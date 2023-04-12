@@ -193,6 +193,7 @@ dependencies = [
 name = "ckb-debugger-tests"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "ckb-debugger-api",
  "ckb-hash",
  "ckb-mock-tx-types",
