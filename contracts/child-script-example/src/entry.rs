@@ -7,8 +7,8 @@ use core::result::Result;
 
 // Import CKB syscalls and structures
 // https://docs.rs/ckb-std/
-use super::generate_sighash_all::generate_sighash_all;
 use crate::error::Error;
+use ckb_combine_lock_common::generate_sighash_all::generate_sighash_all;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, core::ScriptHashType, prelude::*},

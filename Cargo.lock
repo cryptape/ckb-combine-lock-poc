@@ -48,7 +48,6 @@ dependencies = [
 name = "child-script-example"
 version = "0.1.0"
 dependencies = [
- "blake2b-rs",
  "ckb-combine-lock-common",
  "ckb-std",
 ]
@@ -67,6 +66,7 @@ dependencies = [
 name = "ckb-combine-lock-common"
 version = "0.1.0"
 dependencies = [
+ "blake2b-rs",
  "ckb-std",
  "hex",
  "molecule",
