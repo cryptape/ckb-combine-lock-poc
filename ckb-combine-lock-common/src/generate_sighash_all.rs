@@ -1,10 +1,12 @@
 use crate::blake2b::new_blake2b;
-use crate::constant::{MAX_WITNESS_SIZE, ONE_BATCH_SIZE};
 use crate::error::Error;
 use blake2b_rs::Blake2b;
 use ckb_std::ckb_constants::{InputField, Source};
 use ckb_std::high_level::load_tx_hash;
-use ckb_std::syscalls::{load_input_by_field, load_witness, SysError};
+use ckb_std::syscalls::{load_cell, load_input_by_field, load_witness, SysError};
+
+pub const MAX_WITNESS_SIZE: usize = 32768;
+pub const ONE_BATCH_SIZE: usize = 32768;
 
 #[allow(dead_code)]
 pub fn generate_sighash_all() -> Result<[u8; 32], Error> {
@@ -56,12 +58,16 @@ pub fn generate_sighash_all() -> Result<[u8; 32], Error> {
 
     // Digest witnesses that not covered by inputs.
     let mut i = calculate_inputs_len()?;
+    let end = i + calculate_outputs_len()?;
     loop {
         let sysret = load_and_hash_witness(&mut blake2b_ctx, 0, i, Source::Input, true);
         match sysret {
             Err(SysError::IndexOutOfBound) => break,
             Err(x) => return Err(x.into()),
             Ok(_) => i += 1,
+        }
+        if i == end {
+            break;
         }
     }
 
@@ -106,6 +112,20 @@ fn calculate_inputs_len() -> Result<usize, Error> {
     let mut i = 0;
     loop {
         let sysret = load_input_by_field(&mut temp, 0, i, Source::Input, InputField::Since);
+        match sysret {
+            Err(SysError::IndexOutOfBound) => break,
+            Err(x) => return Err(x.into()),
+            Ok(_) => i += 1,
+        }
+    }
+    Ok(i)
+}
+
+fn calculate_outputs_len() -> Result<usize, Error> {
+    let mut temp = [0u8; 8];
+    let mut i = 0;
+    loop {
+        let sysret = load_cell(&mut temp, 0, i, Source::Output);
         match sysret {
             Err(SysError::IndexOutOfBound) => break,
             Err(x) => return Err(x.into()),
