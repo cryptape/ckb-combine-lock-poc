@@ -133,6 +133,7 @@ fn calculate_outputs_len() -> Result<usize, Error> {
         let sysret = load_cell(&mut temp, 0, i, Source::Output);
         match sysret {
             Err(SysError::IndexOutOfBound) => break,
+            Err(SysError::LengthNotEnough(_)) => break,
             Err(x) => return Err(x.into()),
             Ok(_) => i += 1,
         }
