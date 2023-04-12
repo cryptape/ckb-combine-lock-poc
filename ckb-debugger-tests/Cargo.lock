@@ -170,7 +170,7 @@ dependencies = [
 [[package]]
 name = "ckb-debugger-api"
 version = "0.108.1"
-source = "git+https://github.com/nervosnetwork/ckb-standalone-debugger.git?rev=975a954#975a954d9f6a52b92aed21dc4546d22eb864ef9b"
+source = "git+https://github.com/nervosnetwork/ckb-standalone-debugger.git?rev=1a66c03#1a66c035de8db7092e578062d62729a93fe9c957"
 dependencies = [
  "ckb-chain-spec",
  "ckb-hash",
@@ -196,6 +196,7 @@ dependencies = [
  "anyhow",
  "ckb-debugger-api",
  "ckb-hash",
+ "ckb-jsonrpc-types",
  "ckb-mock-tx-types",
  "ckb-types",
  "env_logger",
@@ -286,7 +287,7 @@ dependencies = [
 [[package]]
 name = "ckb-mock-tx-types"
 version = "0.108.1"
-source = "git+https://github.com/nervosnetwork/ckb-standalone-debugger.git?rev=975a954#975a954d9f6a52b92aed21dc4546d22eb864ef9b"
+source = "git+https://github.com/nervosnetwork/ckb-standalone-debugger.git?rev=1a66c03#1a66c035de8db7092e578062d62729a93fe9c957"
 dependencies = [
  "ckb-jsonrpc-types",
  "ckb-traits",

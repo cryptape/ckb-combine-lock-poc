@@ -54,14 +54,16 @@ fn exec_child_scripts(witness_base_index: u16, scripts: ChildScriptVec) -> Resul
     let binding = argv.iter().map(|arg| arg.as_c_str()).collect::<Vec<_>>();
     let argv: &[&CStr] = &binding;
 
-    exec_cell(&first_script.code_hash, first_script.hash_type, 0, 0, argv)
-        .map_err(|_| Error::ExecError)?;
+    let sysret = exec_cell(&first_script.code_hash, first_script.hash_type, 0, 0, argv);
+    log!("sysret: {:?}", sysret);
+    sysret.map_err(|_| Error::ExecError)?;
     unreachable!("unreachable after exec");
 }
 
 pub fn main() -> Result<(), Error> {
     let script = load_script()?;
     let args: Bytes = script.args().unpack();
+    log!("script_args: {:?}", args);
     let args_slice = args.as_ref();
     if args_slice.len() < ARGS_SIZE {
         return Err(Error::WrongArgs);
@@ -81,6 +83,7 @@ pub fn main() -> Result<(), Error> {
         return Err(Error::WrongArgs);
     };
     let combine_lock_witness = parse_witness()?;
+    log!("combine_lock_witness: {:?}", combine_lock_witness);
     let child_scripts = combine_lock_witness.scripts();
     let child_scripts_hash = hash(child_scripts.as_slice());
     let proof: Bytes = combine_lock_witness.proof().unpack();
@@ -92,5 +95,16 @@ pub fn main() -> Result<(), Error> {
         let array = slice.try_into().map_err(|_| Error::WrongMolecule)?;
         u16::from_le_bytes(array)
     };
+    log!("witness_base_index: {}", witness_base_index);
+    log!(
+        "combine_lock_witness_scripts: {}",
+        combine_lock_witness.scripts()
+    );
+
+    // let mut buf = [0u8; 32];
+    // let sysret = ckb_std::syscalls::load_cell_by_field(&mut buf, 0, 0, Source::CellDep, ckb_std::ckb_constants::CellField::TypeHash);
+    // log!("sysret: {:?}", sysret);
+    // log!("buf: {:?}", buf);
+
     exec_child_scripts(witness_base_index, combine_lock_witness.scripts())
 }
