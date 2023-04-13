@@ -6,15 +6,16 @@ mod smt;
 pub mod blockchain {
     pub use ckb_types::packed::{
         Byte, Byte32, Byte32Reader, Byte32Vec, Byte32VecReader, ByteReader, Bytes, BytesOpt,
-        BytesOptReader, BytesReader, BytesVec, BytesVecReader, WitnessArgs, WitnessArgsBuilder,
-        WitnessArgsReader,
+        BytesOptReader, BytesReader, BytesVec, BytesVecReader, Script, WitnessArgs,
+        WitnessArgsBuilder, WitnessArgsReader,
     };
 }
-
 use anyhow;
 use anyhow::Context;
 use blockchain::Bytes as BlockchainBytes;
 use blockchain::WitnessArgs;
+use ckb_types::core::ScriptHashType;
+use ckb_types::packed;
 use ckb_types::prelude::*;
 use combine_lock_mol::{ChildScript, ChildScriptVec, CombineLockWitness, Uint16};
 use molecule::bytes::Bytes;
@@ -38,6 +39,33 @@ pub fn read_tx_template(file_name: &str) -> Result<MockTransaction, anyhow::Erro
     Ok(repr_mock_tx.into())
 }
 
+pub fn create_script_from_cell_dep(
+    tx: &ReprMockTransaction,
+    index: usize,
+    use_type: bool,
+) -> Result<packed::Script, anyhow::Error> {
+    assert!(index < tx.mock_info.cell_deps.len());
+    let code_hash = if use_type {
+        let cell_dep = &tx.mock_info.cell_deps[index];
+        let script = cell_dep.output.type_.clone().unwrap();
+        let script: packed::Script = script.into();
+        hash(script.as_slice())
+    } else {
+        let data = tx.mock_info.cell_deps[index].data.as_bytes();
+        hash(data)
+    };
+    let hash_type = if use_type {
+        ScriptHashType::Type
+    } else {
+        ScriptHashType::Data1
+    };
+    let script = packed::Script::new_builder()
+        .code_hash(code_hash.pack())
+        .hash_type(hash_type.into())
+        .build();
+    Ok(script)
+}
+
 // return smt root, witness args
 pub fn create_simple_case(scripts: Vec<ChildScript>) -> (H256, Bytes) {
     let builder = ChildScriptVec::new_builder();
@@ -58,4 +86,10 @@ pub fn create_simple_case(scripts: Vec<ChildScript>) -> (H256, Bytes) {
     let witness_args = WitnessArgs::new_builder().lock(Some(bytes).pack()).build();
 
     (root, witness_args.as_bytes())
+}
+
+impl From<packed::Script> for ChildScript {
+    fn from(value: packed::Script) -> Self {
+        ChildScript::new_unchecked(value.as_bytes())
+    }
 }
