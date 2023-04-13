@@ -20,11 +20,7 @@ fn verify_unit(config: &TestConfig) -> Result<u64, ckb_error::Error> {
     let tx = sign_tx(tx, &config);
     let resolved_tx = build_resolved_tx(&data_loader, &tx);
 
-    let consensus = gen_consensus();
-    let tx_env = gen_tx_env();
-
-    let mut verifier =
-        TransactionScriptsVerifier::new(&resolved_tx, &consensus, &data_loader, &tx_env);
+    let mut verifier = TransactionScriptsVerifier::new(&resolved_tx, &data_loader);
     verifier.set_debug_printer(debug_printer);
     verifier.verify(MAX_CYCLES)
 }
@@ -89,11 +85,7 @@ fn unit_test_multiple_group(auth: &Box<dyn Auth>, run_type: EntryCategoryType) {
     let tx = sign_tx(tx, &config);
     let resolved_tx = build_resolved_tx(&data_loader, &tx);
 
-    let consensus = gen_consensus();
-    let tx_env = gen_tx_env();
-
-    let mut verifier =
-        TransactionScriptsVerifier::new(&resolved_tx, &consensus, &data_loader, &tx_env);
+    let mut verifier = TransactionScriptsVerifier::new(&resolved_tx, &data_loader);
     verifier.set_debug_printer(debug_printer);
 
     assert_result_ok(verify_unit(&config), "multiple group");

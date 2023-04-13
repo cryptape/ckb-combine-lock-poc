@@ -1,4 +1,3 @@
-use ckb_chain_spec::consensus::{Consensus, ConsensusBuilder};
 use ckb_crypto::secp::{Generator, Privkey};
 use ckb_error::Error;
 use ckb_script::TxVerifyEnv;
@@ -7,7 +6,6 @@ use ckb_types::{
     bytes::{BufMut, Bytes, BytesMut},
     core::{
         cell::{CellMeta, CellMetaBuilder, ResolvedTransaction},
-        hardfork::HardForkSwitch,
         Capacity, DepType, EpochNumberWithFraction, HeaderView, ScriptHashType, TransactionBuilder,
         TransactionView,
     },
@@ -154,6 +152,7 @@ pub fn sign_tx_by_input_group(
                     blake2b.update(&witness.raw_data());
                 });
                 blake2b.finalize(&mut message);
+                println!("message: {:02X?}", message);
                 if config.incorrect_msg {
                     rng.fill(&mut message);
                 }
@@ -489,17 +488,6 @@ pub fn build_resolved_tx(
         resolved_inputs,
         resolved_dep_groups: vec![],
     }
-}
-
-pub fn gen_consensus() -> Consensus {
-    let hardfork_switch = HardForkSwitch::new_without_any_enabled()
-        .as_builder()
-        .rfc_0232(200)
-        .build()
-        .unwrap();
-    ConsensusBuilder::default()
-        .hardfork_switch(hardfork_switch)
-        .build()
 }
 
 pub fn gen_tx_env() -> TxVerifyEnv {
