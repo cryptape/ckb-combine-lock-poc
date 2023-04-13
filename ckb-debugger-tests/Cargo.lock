@@ -194,6 +194,7 @@ name = "ckb-debugger-tests"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "ckb-crypto",
  "ckb-debugger-api",
  "ckb-hash",
  "ckb-jsonrpc-types",
