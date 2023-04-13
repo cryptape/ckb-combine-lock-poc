@@ -13,6 +13,7 @@ pub enum Error {
     GeneratedMsgError,
     LoadDLError,
     RunAuthError,
+    ChainedExec,
 }
 
 impl From<SysError> for Error {

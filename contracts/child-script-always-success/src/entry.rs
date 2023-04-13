@@ -7,7 +7,7 @@ use core::result::Result;
 pub fn main() -> Result<(), Error> {
     inner_main()?;
 
-    continue_running(argv()).map_err(|_| Error::ChainedExecError)?;
+    continue_running(argv()).map_err(|_| Error::ChainedExec)?;
     Ok(())
 }
 

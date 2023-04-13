@@ -8,7 +8,7 @@ pub enum Error {
     LengthNotEnough,
     Encoding,
     //
-    ChainedExecError = 80,
+    ChainedExec = 80,
 }
 
 impl From<SysError> for Error {
