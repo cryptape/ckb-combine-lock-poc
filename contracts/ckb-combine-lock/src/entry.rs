@@ -101,10 +101,5 @@ pub fn main() -> Result<(), Error> {
         combine_lock_witness.scripts()
     );
 
-    // let mut buf = [0u8; 32];
-    // let sysret = ckb_std::syscalls::load_cell_by_field(&mut buf, 0, 0, Source::CellDep, ckb_std::ckb_constants::CellField::TypeHash);
-    // log!("sysret: {:?}", sysret);
-    // log!("buf: {:?}", buf);
-
     exec_child_scripts(witness_base_index, combine_lock_witness.scripts())
 }
