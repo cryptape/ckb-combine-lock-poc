@@ -10,12 +10,13 @@ mol:
 	cp ckb-combine-lock-common/src/combine_lock_mol.rs ckb-debugger-tests/src
 ci:
 	capsule build --release
-	# cd tests/test-child-script-example && cargo test -r
+	make -C ckb-debugger-tests all
 
 dev:
 	capsule build --release -- --features log
 
 install:
+	cargo install --rev c75d333 --git https://github.com/nervosnetwork/ckb-standalone-debugger ckb-debugger
 	wget 'https://github.com/nervosnetwork/capsule/releases/download/v0.9.0/capsule_v0.9.0_x86_64-linux.tar.gz'
 	tar xzvf capsule_v0.9.0_x86_64-linux.tar.gz
 	mv capsule_v0.9.0_x86_64-linux/capsule ~/.cargo/bin
