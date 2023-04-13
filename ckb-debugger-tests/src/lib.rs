@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-mod combine_lock_mol;
+pub mod combine_lock_mol;
 mod hash;
 mod smt;
 
