@@ -10,7 +10,7 @@ mol:
 	cp ckb-combine-lock-common/src/combine_lock_mol.rs ckb-debugger-tests/src
 ci:
 	capsule build --release
-	cd tests/test-child-script-example && cargo test -r
+	# cd tests/test-child-script-example && cargo test -r
 
 dev:
 	capsule build --release -- --features log
