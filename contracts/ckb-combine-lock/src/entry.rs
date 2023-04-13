@@ -63,7 +63,6 @@ fn exec_child_scripts(witness_base_index: u16, scripts: ChildScriptVec) -> Resul
 pub fn main() -> Result<(), Error> {
     let script = load_script()?;
     let args: Bytes = script.args().unpack();
-    log!("script_args: {:?}", args);
     let args_slice = args.as_ref();
     if args_slice.len() < ARGS_SIZE {
         return Err(Error::WrongArgs);
@@ -83,7 +82,6 @@ pub fn main() -> Result<(), Error> {
         return Err(Error::WrongArgs);
     };
     let combine_lock_witness = parse_witness()?;
-    log!("combine_lock_witness: {:?}", combine_lock_witness);
     let child_scripts = combine_lock_witness.scripts();
     let child_scripts_hash = hash(child_scripts.as_slice());
     let proof: Bytes = combine_lock_witness.proof().unpack();
@@ -95,7 +93,6 @@ pub fn main() -> Result<(), Error> {
         let array = slice.try_into().map_err(|_| Error::WrongMolecule)?;
         u16::from_le_bytes(array)
     };
-    log!("witness_base_index: {}", witness_base_index);
     log!(
         "combine_lock_witness_scripts: {}",
         combine_lock_witness.scripts()
