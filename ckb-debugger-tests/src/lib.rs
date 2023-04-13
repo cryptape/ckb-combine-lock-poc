@@ -122,3 +122,30 @@ impl From<ChildScript> for packed::Script {
         packed::Script::new_unchecked(value.as_bytes())
     }
 }
+
+pub fn generate_sighash_all(tx: &MockTransaction) -> Result<[u8; 32], anyhow::Error> {
+    let zero_extra_witness = {
+        let mut buf = Vec::new();
+        let witness = tx.tx.witnesses().get(0).expect("index:0 witness");
+        buf.resize(witness.len() - 20, 0);
+        buf
+    };
+
+    let witness_args = packed::WitnessArgsBuilder::default()
+        .lock(Some(Bytes::from(zero_extra_witness)).pack())
+        .build();
+
+    let mut blake2b = ckb_hash::new_blake2b();
+    let mut message = [0u8; 32];
+
+    let tx_hash = tx.tx.calc_tx_hash();
+    blake2b.update(&tx_hash.raw_data());
+    let witness_data = witness_args.as_bytes();
+    blake2b.update(&(witness_data.len() as u64).to_le_bytes());
+    blake2b.update(&witness_data);
+
+    // for...
+
+    blake2b.finalize(&mut message);
+    Ok(message)
+}
