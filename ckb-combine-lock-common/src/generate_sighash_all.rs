@@ -57,20 +57,25 @@ pub fn generate_sighash_all() -> Result<[u8; 32], Error> {
     }
 
     // Digest witnesses that not covered by inputs.
-    let mut i = calculate_inputs_len()?;
-    let end = core::cmp::max(i, calculate_outputs_len()?);
-    loop {
+    //
+    // In a combination lock, the length of the normal witness is the maximum of
+    // the input length and output length. Witnesses beyond that may be added by
+    // the combination lock. Signatures may be placed on these witnesses. When
+    // hashing, they should be excluded, such as the 'lock' field of the first
+    // witness in the input group (as seen above).
+
+    let input_len = calculate_inputs_len()?;
+    let normal_witness_len = core::cmp::max(input_len, calculate_outputs_len()?);
+    let mut i = input_len;
+
+    while i < normal_witness_len {
         let sysret = load_and_hash_witness(&mut blake2b_ctx, 0, i, Source::Input, true);
         match sysret {
             Err(SysError::IndexOutOfBound) => break,
             Err(x) => return Err(x.into()),
             Ok(_) => i += 1,
         }
-        if i >= end {
-            break;
-        }
     }
-
     let mut msg = [0u8; 32];
     blake2b_ctx.finalize(&mut msg);
     Ok(msg)
