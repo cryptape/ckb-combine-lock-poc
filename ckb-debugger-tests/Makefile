@@ -14,3 +14,7 @@ cl-always-success:
 cl-always-success-info-cell:
 	cargo run --bin cl-always-success-info-cell > tx.json
 	RUST_LOG=debug ckb-debugger --tx-file=tx.json --script-group-type=lock --cell-index=0 --cell-type=input
+
+child-script-example-success:
+	cargo run --bin child-script-example-success > tx.json
+	RUST_LOG=debug ckb-debugger --tx-file=tx.json --script-group-type=lock --cell-index=0 --cell-type=input
