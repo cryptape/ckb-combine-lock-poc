@@ -1,6 +1,6 @@
 
 
-all: always-success cl-always-success
+all: always-success cl-always-success cl-always-success-info-cell
 
 
 always-success:
