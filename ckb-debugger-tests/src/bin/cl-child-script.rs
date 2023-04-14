@@ -1,4 +1,5 @@
 use ckb_crypto::secp::Privkey;
+use ckb_debugger_tests::hash::blake160;
 use ckb_debugger_tests::{
     combine_lock_mol::ChildScript, create_script_from_cell_dep, create_simple_case,
     read_tx_template,
@@ -14,13 +15,18 @@ const G_PRIVKEY_BUF: [u8; 32] = [
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let private_key = Privkey::from(H256::from(G_PRIVKEY_BUF));
+    let pubkey = private_key.pubkey().expect("pubkey");
+    let pubkey_hash = blake160(&pubkey.serialize());
+
     let tx = read_tx_template("../ckb-debugger-tests/templates/cl-child-script.json")?;
     let mut repr_tx: ReprMockTransaction = tx.into();
 
-    // hard coded pubkey hash, from template
-    let args = repr_tx.mock_info.inputs[0].output.lock.args.clone();
+    let mut auth = vec![0u8; 21];
+    auth[0] = 0; // CKB
+    auth[1..].copy_from_slice(&pubkey_hash);
+    let args : Bytes = auth.into();
     let child_script = create_script_from_cell_dep(&repr_tx, 1, true)?;
-    let child_script = child_script.as_builder().args(args.into()).build();
+    let child_script = child_script.as_builder().args(args.pack()).build();
     let child_script: ChildScript = child_script.into();
 
     let (smt_root, witness_args) = create_simple_case(

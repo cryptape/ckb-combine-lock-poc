@@ -1,7 +1,7 @@
 #[allow(dead_code)]
 pub mod combine_lock_mol;
-mod hash;
-mod smt;
+pub mod hash;
+pub mod smt;
 
 pub mod blockchain {
     pub use ckb_types::packed::{

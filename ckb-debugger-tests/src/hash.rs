@@ -16,3 +16,7 @@ pub fn hash(bytes: &[u8]) -> [u8; 32] {
     hasher.finalize(&mut hash);
     hash
 }
+
+pub fn blake160(bytes: &[u8]) -> [u8; 20] {
+    hash(bytes)[0..20].try_into().unwrap()
+}
