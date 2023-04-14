@@ -67,8 +67,9 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // println!("args: {:02X?}", args);
     // assert!(false);
 
-    let tx = read_tx_template("../ckb-debugger-tests/templates/child-script-multisig-success.json")?;
-    let message = generate_sighash_all(&tx)?;
+    let tx =
+        read_tx_template("../ckb-debugger-tests/templates/child-script-multisig-success.json")?;
+    let message = generate_sighash_all(&tx, 0)?;
     let mut repr_tx: ReprMockTransaction = tx.into();
 
     // println!("--msg: {:02X?}", message);

@@ -21,7 +21,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // println!("args: {:02X?}", args.to_vec());
 
     let tx = read_tx_template("../ckb-debugger-tests/templates/child-script-success.json")?;
-    let message = generate_sighash_all(&tx)?;
+    let message = generate_sighash_all(&tx, 0)?;
     let mut repr_tx: ReprMockTransaction = tx.into();
 
     let sig = private_key
