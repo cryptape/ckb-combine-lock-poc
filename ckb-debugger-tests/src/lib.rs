@@ -14,6 +14,7 @@ use anyhow;
 use anyhow::Context;
 use blockchain::Bytes as BlockchainBytes;
 use blockchain::WitnessArgs;
+use ckb_hash::new_blake2b;
 use ckb_types::core::ScriptHashType;
 use ckb_types::packed;
 use ckb_types::prelude::*;
@@ -23,7 +24,7 @@ use molecule::prelude::*;
 use std::{fs::read_to_string, path::PathBuf};
 
 use ckb_debugger_api::embed::Embed;
-use ckb_mock_tx_types::ReprMockTransaction;
+use ckb_mock_tx_types::{MockTransaction, ReprMockTransaction};
 use hash::hash;
 use serde_json::from_str as from_json_str;
 use smt::build_tree;
@@ -121,4 +122,82 @@ impl From<ChildScript> for packed::Script {
     fn from(value: ChildScript) -> Self {
         packed::Script::new_unchecked(value.as_bytes())
     }
+}
+
+// Now, only support lock script
+fn get_group(index: usize, repr_tx: &ReprMockTransaction) -> Vec<usize> {
+    let lock = repr_tx.mock_info.inputs[index].output.lock.clone();
+    let mut result = vec![];
+    for (i, x) in repr_tx.mock_info.inputs.iter().enumerate() {
+        if lock == x.output.lock {
+            result.push(i);
+        }
+    }
+    result
+}
+
+pub fn generate_sighash_all(
+    tx: &ReprMockTransaction,
+    index: usize,
+) -> Result<[u8; 32], anyhow::Error> {
+    let lock_indexs = get_group(index, &tx);
+    if lock_indexs.is_empty() {
+        panic!("not get lock index");
+    }
+
+    let witness = tx
+        .tx
+        .witnesses
+        .get(lock_indexs[0])
+        .unwrap()
+        .as_bytes()
+        .to_vec();
+    let witness = packed::WitnessArgs::new_unchecked(Bytes::from(witness));
+
+    let witness = packed::WitnessArgsBuilder::default()
+        .lock({
+            let data = witness.lock().to_opt().unwrap();
+
+            let mut buf = Vec::new();
+            buf.resize(data.len(), 0);
+            Some(Bytes::from(buf)).pack()
+        })
+        .input_type(witness.input_type())
+        .output_type(witness.output_type())
+        .build();
+
+    let mut blake2b = new_blake2b();
+    let mut message = [0u8; 32];
+
+    let mock_tx: MockTransaction = tx.clone().into();
+
+    let tx_hash = mock_tx.tx.calc_tx_hash();
+    blake2b.update(&tx_hash.raw_data());
+    // println!("--hash: {:02X?}", &tx_hash.raw_data().to_vec());
+    let witness_data = witness.as_bytes();
+    blake2b.update(&(witness_data.len() as u64).to_le_bytes());
+    blake2b.update(&witness_data);
+
+    // group
+    if lock_indexs.len() > 1 {
+        for i in 1..lock_indexs.len() {
+            let witness = mock_tx.tx.witnesses().get(lock_indexs[i]).unwrap();
+
+            blake2b.update(&(witness.len() as u64).to_le_bytes());
+            blake2b.update(&witness.raw_data());
+        }
+    }
+
+    let normal_witness_len = std::cmp::max(tx.tx.inputs.len(), tx.tx.outputs.len());
+    if tx.tx.inputs.len() < normal_witness_len {
+        for i in tx.tx.inputs.len()..normal_witness_len {
+            let witness = mock_tx.tx.witnesses().get(i).unwrap();
+
+            blake2b.update(&(witness.len() as u64).to_le_bytes());
+            blake2b.update(&witness.raw_data());
+        }
+    }
+
+    blake2b.finalize(&mut message);
+    Ok(message)
 }

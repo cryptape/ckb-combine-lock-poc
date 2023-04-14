@@ -1,0 +1,163 @@
+{
+  "mock_info": {
+    "inputs": [
+      {
+        "input": {
+          "since": "0x0",
+          "previous_output": {
+            "index": "0x0",
+            "tx_hash": "0xf77ffe23253b8d6af3d7f918b616286232e0804f495e8fdfffc975d0b2b27f90"
+          }
+        },
+        "output": {
+          "capacity": "0x2a",
+          "lock": {
+            "code_hash": "0x{{ ref_type child-script-example }}",
+            "hash_type": "type",
+            "args": "0x0649B9917CD36D3F13B69A2A8F1605A468B0F4E84D"
+          },
+          "type": null
+        },
+        "data": "0x"
+      }
+    ],
+    "cell_deps": [
+      {
+        "cell_dep": {
+          "out_point": {
+            "index": "0x0",
+            "tx_hash": "0xe9e8e158d73dae3f4811fa903eb75e1e1b39297bdc22a1584370cd22cd3ee961"
+          },
+          "dep_type": "code"
+        },
+        "output": {
+          "capacity": "0x5b6bc386800",
+          "lock": {
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data",
+            "args": "0x"
+          },
+          "type": {{ def_type child-script-example }}
+        },
+        "data": "0x{{ data ../../build/release/child-script-example }}"
+      },
+      {
+        "cell_dep": {
+          "out_point": {
+            "index": "0x0",
+            "tx_hash": "0x013b4ed253d017a1bae94debf0414c76b50d20c7395a06582bebb7cafc3e0050"
+          },
+          "dep_type": "code"
+        },
+        "output": {
+          "capacity": "0xde783cf3000",
+          "lock": {
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data",
+            "args": "0x"
+          },
+          "type": {{ def_type auth }}
+        },
+        "data": "0x{{ data ../../tests/test-child-script-example/src/bin/auth }}"
+      },
+      {
+        "cell_dep": {
+          "out_point": {
+            "index": "0x0",
+            "tx_hash": "0x70fd3a1a88a019af76cd31239f0749bffe652ee994b203a4c1c97cf3e99b49ed"
+          },
+          "dep_type": "code"
+        },
+        "output": {
+          "capacity": "0xbebc20000",
+          "lock": {
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data",
+            "args": "0x"
+          },
+          "type": {{ def_type child-script-always-success }}
+        },
+        "data": "0x{{ data ../../build/release/child-script-always-success }}"
+      },
+      {
+        "cell_dep": {
+          "out_point": {
+            "index": "0x0",
+            "tx_hash": "0xb8690d106df175c39bf31539fc7c5202ff105674e9c879e8027ad7fc724a74f4"
+          },
+          "dep_type": "code"
+        },
+        "output": {
+          "capacity": "0x5f5e10000000",
+          "lock": {
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data",
+            "args": "0x"
+          },
+          "type": {{ def_type secp256k1_data }}
+        },
+        "data": "0x{{ data ../../tests/test-child-script-example/src/bin/secp256k1_data }}"
+      }
+    ],
+    "header_deps": []
+  },
+  "tx": {
+    "version": "0x0",
+    "cell_deps": [
+      {
+        "out_point": {
+          "index": "0x0",
+          "tx_hash": "0xe9e8e158d73dae3f4811fa903eb75e1e1b39297bdc22a1584370cd22cd3ee961"
+        },
+        "dep_type": "code"
+      },
+      {
+        "out_point": {
+          "index": "0x0",
+          "tx_hash": "0x013b4ed253d017a1bae94debf0414c76b50d20c7395a06582bebb7cafc3e0050"
+        },
+        "dep_type": "code"
+      },
+      {
+        "out_point": {
+          "index": "0x0",
+          "tx_hash": "0x70fd3a1a88a019af76cd31239f0749bffe652ee994b203a4c1c97cf3e99b49ed"
+        },
+        "dep_type": "code"
+      },
+      {
+        "out_point": {
+          "index": "0x0",
+          "tx_hash": "0xb8690d106df175c39bf31539fc7c5202ff105674e9c879e8027ad7fc724a74f4"
+        },
+        "dep_type": "code"
+      }
+    ],
+    "header_deps": [],
+    "inputs": [
+      {
+        "since": "0x0",
+        "previous_output": {
+          "index": "0x0",
+          "tx_hash": "0xf77ffe23253b8d6af3d7f918b616286232e0804f495e8fdfffc975d0b2b27f90"
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "capacity": "0x2a",
+        "lock": {
+          "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
+          "code_hash": "0x{{ ref_type child-script-example }}",
+          "hash_type": "type"
+        }
+      }
+    ],
+    "outputs_data": [
+      "0x"
+    ],
+    "witnesses": [
+      "0xC200000010000000C2000000C2000000AE000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    ]
+  }
+}
