@@ -1,18 +1,13 @@
 use ckb_crypto::secp::Privkey;
 use ckb_debugger_tests::{
-    blockchain::WitnessArgs, combine_lock_mol::ChildScript, create_script_from_cell_dep,
-    create_simple_case, read_tx_template,
+    combine_lock_mol::ChildScript, create_script_from_cell_dep, create_simple_case,
+    read_tx_template,
 };
 use ckb_jsonrpc_types::JsonBytes;
 use ckb_mock_tx_types::ReprMockTransaction;
-use ckb_types::{
-    bytes::Bytes,
-    packed::{self, WitnessArgsBuilder},
-    prelude::*,
-    H256,
-};
+use ckb_types::{bytes::Bytes, packed, prelude::*, H256};
 
-static G_PRIVKEY_BUF: [u8; 32] = [
+const G_PRIVKEY_BUF: [u8; 32] = [
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
 ];
@@ -22,6 +17,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tx = read_tx_template("../ckb-debugger-tests/templates/cl-child-script.json")?;
     let mut repr_tx: ReprMockTransaction = tx.into();
 
+    // hard coded pubkey hash, from template
     let args = repr_tx.mock_info.inputs[0].output.lock.args.clone();
     let child_script = create_script_from_cell_dep(&repr_tx, 1, true)?;
     let child_script = child_script.as_builder().args(args.into()).build();
@@ -37,13 +33,14 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     repr_tx.mock_info.inputs[0].output.lock.args = JsonBytes::from_vec(args);
 
     // gen empty witness
-    let zero_extra_witness: Vec<u8> = {
-        let w = WitnessArgs::from_slice(&witness_args)?;
-        let l = w.lock().to_opt().unwrap().raw_data().len();
+    let zero: Vec<u8> = {
+        let l = witness_args.lock().to_opt().unwrap().raw_data().len();
         vec![0; l]
     };
-    let witness_without_sig = WitnessArgsBuilder::default()
-        .lock(Some(Bytes::from(zero_extra_witness)).pack())
+    let witness_without_sig = witness_args
+        .clone()
+        .as_builder()
+        .lock(Some(Bytes::from(zero)).pack())
         .build();
 
     let tx_hash = {
@@ -69,7 +66,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     repr_tx
         .tx
         .witnesses
-        .push(JsonBytes::from(witness_args.pack()));
+        .push(JsonBytes::from_bytes(witness_args.as_bytes()));
     // extra witness by combine lock
     repr_tx.tx.witnesses.extend(vec![
         JsonBytes::from_vec(sig.clone()),

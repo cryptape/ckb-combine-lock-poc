@@ -19,7 +19,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     repr_tx.mock_info.cell_deps[2].data =
         ckb_jsonrpc_types::JsonBytes::from_bytes(smt_root.as_slice().to_vec().into());
-    repr_tx.tx.witnesses[0] = ckb_jsonrpc_types::JsonBytes::from(witness_args.pack());
+    repr_tx.tx.witnesses[0] = ckb_jsonrpc_types::JsonBytes::from(witness_args.as_bytes().pack());
 
     let json = serde_json::to_string_pretty(&repr_tx).unwrap();
     println!("{}", json);

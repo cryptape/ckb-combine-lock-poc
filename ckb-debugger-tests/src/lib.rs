@@ -67,7 +67,10 @@ pub fn create_script_from_cell_dep(
 }
 
 // return smt root, witness args
-pub fn create_simple_case(scripts: Vec<ChildScript>, witness_base_index: u8) -> (H256, Bytes) {
+pub fn create_simple_case(
+    scripts: Vec<ChildScript>,
+    witness_base_index: u8,
+) -> (H256, WitnessArgs) {
     let builder = ChildScriptVec::new_builder();
     let child_scripts = builder.extend(scripts).build();
 
@@ -87,11 +90,17 @@ pub fn create_simple_case(scripts: Vec<ChildScript>, witness_base_index: u8) -> 
     let bytes = combine_lock_witness.as_bytes();
     let witness_args = WitnessArgs::new_builder().lock(Some(bytes).pack()).build();
 
-    (root, witness_args.as_bytes())
+    (root, witness_args)
 }
 
 impl From<packed::Script> for ChildScript {
     fn from(value: packed::Script) -> Self {
         ChildScript::new_unchecked(value.as_bytes())
+    }
+}
+
+impl From<ChildScript> for packed::Script {
+    fn from(value: ChildScript) -> Self {
+        packed::Script::new_unchecked(value.as_bytes())
     }
 }
