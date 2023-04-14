@@ -37,7 +37,7 @@
                 "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
                 "hash_type": "data1"
             },
-            "type": {{ def_type child-script-example }}
+            "type": "{{ def_type child-script-example }}"
           },
           "data": "0x{{ data ../../build/release/child-script-example }}"
         },
@@ -85,37 +85,9 @@
     "tx": {
       "version": "0x0",
       "cell_deps": [
-        {
-          "out_point": {
-            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
-            "index": "0x0"
-          },
-          "dep_type": "code"
-        },
-        {
-          "out_point": {
-            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000003",
-            "index": "0x0"
-          },
-          "dep_type": "code"
-        },
-        {
-          "out_point": {
-            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000004",
-            "index": "0x0"
-          },
-          "dep_type": "code"
-        }
       ],
       "header_deps": [],
       "inputs": [
-        {
-          "previous_output": {
-            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000002",
-            "index": "0x0"
-          },
-          "since": "0x0"
-        }
       ],
       "outputs": [
         {

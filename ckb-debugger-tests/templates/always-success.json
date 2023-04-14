@@ -37,7 +37,7 @@
                 "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
                 "hash_type": "data1"
             },
-            "type": {{ def_type always_success }}
+            "type": "{{ def_type always_success }}"
           },
           "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/child-script-always-success }}"
         }
@@ -46,25 +46,9 @@
     },
     "tx": {
       "version": "0x0",
-      "cell_deps": [
-        {
-          "out_point": {
-            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
-            "index": "0x0"
-          },
-          "dep_type": "code"
-        }
-      ],
+      "cell_deps": [ ],
       "header_deps": [],
-      "inputs": [
-        {
-          "previous_output": {
-            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000002",
-            "index": "0x0"
-          },
-          "since": "0x0"
-        }
-      ],
+      "inputs": [],
       "outputs": [
         {
           "capacity": "0x0",

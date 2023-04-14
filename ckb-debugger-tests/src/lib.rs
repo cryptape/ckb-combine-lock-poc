@@ -23,20 +23,38 @@ use molecule::prelude::*;
 use std::{fs::read_to_string, path::PathBuf};
 
 use ckb_debugger_api::embed::Embed;
-use ckb_mock_tx_types::{MockTransaction, ReprMockTransaction};
+use ckb_mock_tx_types::ReprMockTransaction;
 use hash::hash;
 use serde_json::from_str as from_json_str;
 use smt::build_tree;
 use sparse_merkle_tree::H256;
 
-pub fn read_tx_template(file_name: &str) -> Result<MockTransaction, anyhow::Error> {
+pub fn read_tx_template(file_name: &str) -> Result<ReprMockTransaction, anyhow::Error> {
     let mock_tx =
         read_to_string(file_name).with_context(|| format!("Failed to read from {}", file_name))?;
     let mut mock_tx_embed = Embed::new(PathBuf::from(file_name), mock_tx.clone());
     let mock_tx = mock_tx_embed.replace_all();
-    let repr_mock_tx: ReprMockTransaction =
+    let mut repr_mock_tx: ReprMockTransaction =
         from_json_str(&mock_tx).with_context(|| "in from_json_str(&mock_tx)")?;
-    Ok(repr_mock_tx.into())
+    if repr_mock_tx.tx.cell_deps.len() == 0 {
+        eprintln!("repr_mock_tx.tx.cell_deps is empty, auto complete it");
+        repr_mock_tx.tx.cell_deps = repr_mock_tx
+            .mock_info
+            .cell_deps
+            .iter()
+            .map(|c| c.cell_dep.clone())
+            .collect::<Vec<_>>();
+    }
+    if repr_mock_tx.tx.inputs.len() == 0 {
+        eprintln!("repr_mock_tx.tx.inputs is empty, auto complete it");
+        repr_mock_tx.tx.inputs = repr_mock_tx
+            .mock_info
+            .inputs
+            .iter()
+            .map(|c| c.input.clone())
+            .collect::<Vec<_>>();
+    }
+    Ok(repr_mock_tx)
 }
 
 pub fn create_script_from_cell_dep(

@@ -5,7 +5,6 @@ use ckb_debugger_tests::{
     read_tx_template,
 };
 use ckb_jsonrpc_types::JsonBytes;
-use ckb_mock_tx_types::ReprMockTransaction;
 use ckb_types::{bytes::Bytes, packed, prelude::*, H256};
 
 const G_PRIVKEY_BUF: [u8; 32] = [
@@ -18,13 +17,12 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pubkey = private_key.pubkey().expect("pubkey");
     let pubkey_hash = blake160(&pubkey.serialize());
 
-    let tx = read_tx_template("../ckb-debugger-tests/templates/cl-child-script.json")?;
-    let mut repr_tx: ReprMockTransaction = tx.into();
+    let mut repr_tx = read_tx_template("../ckb-debugger-tests/templates/cl-child-script.json")?;
 
     let mut auth = vec![0u8; 21];
     auth[0] = 0; // CKB
     auth[1..].copy_from_slice(&pubkey_hash);
-    let args : Bytes = auth.into();
+    let args: Bytes = auth.into();
     let child_script = create_script_from_cell_dep(&repr_tx, 1, true)?;
     let child_script = child_script.as_builder().args(args.pack()).build();
     let child_script: ChildScript = child_script.into();
