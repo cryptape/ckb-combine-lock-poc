@@ -2,7 +2,6 @@ use ckb_crypto::secp::Privkey;
 use ckb_debugger_tests::generate_sighash_all;
 use ckb_debugger_tests::read_tx_template;
 use ckb_jsonrpc_types::JsonBytes;
-use ckb_mock_tx_types::ReprMockTransaction;
 use ckb_types::{bytes::Bytes, packed::WitnessArgsBuilder, prelude::*, H256};
 
 static G_PRIVKEY_BUF: [u8; 32] = [
@@ -16,9 +15,9 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let args = gen_args(&config);
     // println!("args: {:02X?}", args.to_vec());
 
-    let tx = read_tx_template("../ckb-debugger-tests/templates/child-script-multi-inputs.json")?;
+    let mut tx =
+        read_tx_template("../ckb-debugger-tests/templates/child-script-multi-inputs.json")?;
     let message = generate_sighash_all(&tx, 0)?;
-    let mut repr_tx: ReprMockTransaction = tx.into();
     // assert!(false);
 
     let sig = private_key
@@ -26,7 +25,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("sign")
         .serialize();
 
-    let witness = repr_tx.tx.witnesses.get_mut(0).unwrap();
+    let witness = tx.tx.witnesses.get_mut(0).unwrap();
     *witness = JsonBytes::from_bytes(
         WitnessArgsBuilder::default()
             .lock(Some(Bytes::from(sig.clone())).pack())
@@ -34,7 +33,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
             .as_bytes(),
     );
 
-    let json = serde_json::to_string_pretty(&repr_tx).unwrap();
+    let json = serde_json::to_string_pretty(&tx).unwrap();
     println!("{}", json);
     Ok(())
 }

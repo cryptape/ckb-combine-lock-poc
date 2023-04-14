@@ -24,7 +24,7 @@ use molecule::prelude::*;
 use std::{fs::read_to_string, path::PathBuf};
 
 use ckb_debugger_api::embed::Embed;
-use ckb_mock_tx_types::ReprMockTransaction;
+use ckb_mock_tx_types::{MockTransaction, ReprMockTransaction};
 use hash::hash;
 use serde_json::from_str as from_json_str;
 use smt::build_tree;
@@ -136,15 +136,16 @@ fn get_group(index: usize, repr_tx: &ReprMockTransaction) -> Vec<usize> {
     result
 }
 
-pub fn generate_sighash_all(tx: &MockTransaction, index: usize) -> Result<[u8; 32], anyhow::Error> {
-    let repr_tx: ReprMockTransaction = tx.clone().into();
-
-    let lock_indexs = get_group(index, &repr_tx);
+pub fn generate_sighash_all(
+    tx: &ReprMockTransaction,
+    index: usize,
+) -> Result<[u8; 32], anyhow::Error> {
+    let lock_indexs = get_group(index, &tx);
     if lock_indexs.is_empty() {
         panic!("not get lock index");
     }
 
-    let witness = repr_tx
+    let witness = tx
         .tx
         .witnesses
         .get(lock_indexs[0])
@@ -168,7 +169,9 @@ pub fn generate_sighash_all(tx: &MockTransaction, index: usize) -> Result<[u8; 3
     let mut blake2b = new_blake2b();
     let mut message = [0u8; 32];
 
-    let tx_hash = tx.tx.calc_tx_hash();
+    let mock_tx: MockTransaction = tx.clone().into();
+
+    let tx_hash = mock_tx.tx.calc_tx_hash();
     blake2b.update(&tx_hash.raw_data());
     // println!("--hash: {:02X?}", &tx_hash.raw_data().to_vec());
     let witness_data = witness.as_bytes();
@@ -178,17 +181,17 @@ pub fn generate_sighash_all(tx: &MockTransaction, index: usize) -> Result<[u8; 3
     // group
     if lock_indexs.len() > 1 {
         for i in 1..lock_indexs.len() {
-            let witness = tx.tx.witnesses().get(lock_indexs[i]).unwrap();
+            let witness = mock_tx.tx.witnesses().get(lock_indexs[i]).unwrap();
 
             blake2b.update(&(witness.len() as u64).to_le_bytes());
             blake2b.update(&witness.raw_data());
         }
     }
 
-    let normal_witness_len = std::cmp::max(repr_tx.tx.inputs.len(), repr_tx.tx.outputs.len());
-    if repr_tx.tx.inputs.len() < normal_witness_len {
-        for i in repr_tx.tx.inputs.len()..normal_witness_len {
-            let witness = tx.tx.witnesses().get(i).unwrap();
+    let normal_witness_len = std::cmp::max(tx.tx.inputs.len(), tx.tx.outputs.len());
+    if tx.tx.inputs.len() < normal_witness_len {
+        for i in tx.tx.inputs.len()..normal_witness_len {
+            let witness = mock_tx.tx.witnesses().get(i).unwrap();
 
             blake2b.update(&(witness.len() as u64).to_le_bytes());
             blake2b.update(&witness.raw_data());
