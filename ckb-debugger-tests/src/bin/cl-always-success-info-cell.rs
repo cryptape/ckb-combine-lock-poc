@@ -12,11 +12,10 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let child_script = child_script.as_builder().args([].pack()).build();
     let child_script: ChildScript = child_script.into();
 
-    let (smt_root, witness_args) = create_simple_case(vec![
-        child_script.clone(),
-        child_script.clone(),
-        child_script,
-    ]);
+    let (smt_root, witness_args) = create_simple_case(
+        vec![child_script.clone(), child_script.clone(), child_script],
+        1,
+    );
 
     repr_tx.mock_info.cell_deps[2].data =
         ckb_jsonrpc_types::JsonBytes::from_bytes(smt_root.as_slice().to_vec().into());

@@ -1,20 +1,18 @@
 
 
-all: always-success cl-always-success cl-always-success-info-cell
-
+all: always-success cl-always-success cl-always-success-info-cell cl-child-script
 
 always-success:
-	cargo run --bin always-success > tx.json
-	RUST_LOG=debug ckb-debugger --tx-file=tx.json --script-group-type=lock --cell-index=0 --cell-type=input
+	cargo run --bin always-success | RUST_LOG=debug ckb-debugger --tx-file=- -s lock
 
 cl-always-success:
-	cargo run --bin cl-always-success > tx.json
-	RUST_LOG=debug ckb-debugger --tx-file=tx.json --script-group-type=lock --cell-index=0 --cell-type=input
+	cargo run --bin cl-always-success | RUST_LOG=debug ckb-debugger --tx-file=- -s lock
 
 cl-always-success-info-cell:
-	cargo run --bin cl-always-success-info-cell > tx.json
-	RUST_LOG=debug ckb-debugger --tx-file=tx.json --script-group-type=lock --cell-index=0 --cell-type=input
+	cargo run --bin cl-always-success-info-cell | RUST_LOG=debug ckb-debugger --tx-file=- -s lock
 
 child-script-example-success:
-	cargo run --bin child-script-example-success > tx.json
-	RUST_LOG=debug ckb-debugger --tx-file=tx.json --script-group-type=lock --cell-index=0 --cell-type=input
+	cargo run --bin child-script-example-success | RUST_LOG=debug ckb-debugger --tx-file=- -s lock
+
+cl-child-script:
+	cargo run --bin cl-child-script | RUST_LOG=debug ckb-debugger --tx-file=- -s lock
