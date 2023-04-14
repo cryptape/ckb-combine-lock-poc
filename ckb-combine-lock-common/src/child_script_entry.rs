@@ -193,8 +193,7 @@ fn test_child_script_entry_fmt() {
 
 #[test]
 fn test_child_empty_args() {
-    let data =
-        "11223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF:01:2A13:";
+    let data = "11223344556677889900AABBCCDDEEFF11223344556677889900AABBCCDDEEFF:01:2A13:";
     let data2 = ChildScriptEntry::from_str(data);
     assert!(data2.is_ok());
     let data2 = data2.unwrap();
@@ -209,10 +208,7 @@ fn test_child_empty_args() {
     );
     assert!(data2.hash_type == ScriptHashType::Type);
     assert_eq!(data2.witness_index, 0x132A);
-    assert_eq!(
-        data2.script_args.to_vec().as_slice(),
-        []
-    );
+    assert_eq!(data2.script_args.to_vec().as_slice(), []);
 
     let data3 = data2.to_str().unwrap();
 

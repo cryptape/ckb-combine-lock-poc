@@ -67,14 +67,16 @@ pub fn create_script_from_cell_dep(
 }
 
 // return smt root, witness args
-pub fn create_simple_case(scripts: Vec<ChildScript>) -> (H256, Bytes) {
+pub fn create_simple_case(scripts: Vec<ChildScript>, witness_base_index: u8) -> (H256, Bytes) {
     let builder = ChildScriptVec::new_builder();
     let child_scripts = builder.extend(scripts).build();
 
     let h = hash(child_scripts.as_slice());
     let (root, proof) = build_tree(&Vec::from([h]));
 
-    let index = Uint16::new_builder().nth0(1u8.into()).build();
+    let index = Uint16::new_builder()
+        .nth0(witness_base_index.into())
+        .build();
     let proof: Bytes = proof.into();
     let proof2: BlockchainBytes = proof.pack();
     let combine_lock_witness = CombineLockWitness::new_builder()

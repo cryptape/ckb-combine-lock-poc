@@ -12,11 +12,10 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let child_script = child_script.as_builder().args([].pack()).build();
     let child_script: ChildScript = child_script.into();
 
-    let (smt_root, witness_args) = create_simple_case(vec![
-        child_script.clone(),
-        child_script.clone(),
-        child_script,
-    ]);
+    let (smt_root, witness_args) = create_simple_case(
+        vec![child_script.clone(), child_script.clone(), child_script],
+        1,
+    );
 
     let mut args = vec![0x00u8];
     args.extend(smt_root.as_slice());

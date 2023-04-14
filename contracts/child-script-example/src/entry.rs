@@ -55,13 +55,9 @@ fn load_data<F: Fn(&mut [u8], usize) -> Result<usize, SysError>>(
 }
 
 pub fn inner_main() -> Result<(), Error> {
-    let script = load_script()?;
-    let args: Bytes = script.args().unpack();
-    if args.len() != 21 {
-        return Err(Error::ArgsError);
-    }
-    let mut pub_key = [0u8; 20];
-    pub_key.copy_from_slice(&args[1..]);
+    log!("child-script-example entry");
+    let mut pubkey_hash = [0u8; 20];
+    let auth_id: u8;
 
     // get message
     let message = generate_sighash_all().map_err(|_| Error::GeneratedMsgError)?;
@@ -69,15 +65,33 @@ pub fn inner_main() -> Result<(), Error> {
     let signature = if argv.len() > 0 {
         // as child script in combine lock
         log!("run as child script in combine lock");
+
         let arg0: &CStr = &argv[0];
         let arg0 = arg0.to_str().unwrap();
         let entry = ChildScriptEntry::from_str(arg0).map_err(|_| Error::ArgsError)?;
+        let args = &entry.script_args;
+        if args.len() != 21 {
+            return Err(Error::ArgsError);
+        }
+        pubkey_hash.copy_from_slice(&args[1..]);
+        auth_id = args[0] as u8;
+
         let data = load_data(|buf, offset| {
             syscalls::load_witness(buf, offset, entry.witness_index as usize, Source::Input)
         })?;
         data
     } else {
         // as standalone script
+        log!("run as standalone script");
+
+        let script = load_script()?;
+        let args: Bytes = script.args().unpack();
+        if args.len() != 21 {
+            return Err(Error::ArgsError);
+        }
+        pubkey_hash.copy_from_slice(&args[1..]);
+        auth_id = args[0] as u8;
+
         let witness_args =
             load_witness_args(0, Source::GroupInput).map_err(|_| Error::WitnessError)?;
         witness_args.as_slice()[20..].to_vec()
@@ -110,17 +124,17 @@ pub fn inner_main() -> Result<(), Error> {
         let ckb_auth_validate = ckb_auth_validate.unwrap();
 
         let rc_code = ckb_auth_validate(
-            args[0],
+            auth_id,
             signature.as_ptr(),
             signature.len() as u32,
             message.as_ptr(),
             message.len() as u32,
-            pub_key.as_mut_ptr(),
-            pub_key.len() as u32,
+            pubkey_hash.as_mut_ptr(),
+            pubkey_hash.len() as u32,
         );
-
+        log!("ckb_auth_validate return {}", rc_code);
         if rc_code != 0 {
-            log!("ckb_auth_validate return {}", rc_code);
+            log!("Warning, ckb_auth_validate return error");
             return Err(Error::RunAuthError);
         }
     };

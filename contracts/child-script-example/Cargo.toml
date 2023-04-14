@@ -5,7 +5,7 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
-default = []
+default = ["log"]
 log = ["ckb-combine-lock-common/log"]
 
 [dependencies]
