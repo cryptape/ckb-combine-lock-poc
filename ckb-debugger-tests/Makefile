@@ -1,6 +1,14 @@
 
 
-all: always-success cl-always-success cl-always-success-info-cell cl-child-script child-script-success child-script-multisig-success child-script-multi-inputs
+all: \
+	always-success \
+	cl-always-success \
+	cl-always-success-info-cell \
+	cl-child-script \
+	child-script-success \
+	child-script-multisig-success \
+	child-script-multi-inputs \
+	auth-script-exec-success
 
 
 always-success:
