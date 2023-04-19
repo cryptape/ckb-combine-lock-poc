@@ -3,6 +3,14 @@
 version = 3
 
 [[package]]
+name = "auth-script-test"
+version = "0.1.0"
+dependencies = [
+ "ckb-combine-lock-common",
+ "ckb-std",
+]
+
+[[package]]
 name = "blake2b-rs"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

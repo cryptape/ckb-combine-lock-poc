@@ -23,3 +23,6 @@ child-script-multisig-success:
 
 child-script-multi-inputs:
 	cargo run --bin child-script-multi-inputs | RUST_LOG=debug ckb-debugger --tx-file=- -s lock
+
+auth-script-exec-success:
+	cargo run --bin auth-script-exec-success | RUST_LOG=debug ckb-debugger --tx-file=- -s lock
