@@ -1,7 +1,7 @@
 extern crate alloc;
 
 use crate::{combine_lock_mol::ChildScript, error::Error};
-use alloc::{string::String, vec::Vec};
+use alloc::{format, string::String, vec::Vec};
 use ckb_std::ckb_types::core::ScriptHashType;
 use ckb_std::ckb_types::prelude::*;
 use core::convert::From;
@@ -109,42 +109,14 @@ impl ChildScriptEntry {
             return Err(Error::WrongHex);
         }
 
-        // code_hash(fixed 32bytes) + hashtype + witness_index(max) + args + delimiter(:)
-        let r_len = 64 + 2 + 4 + self.script_args.len() * 2 + 3;
-        let mut data = Vec::<u8>::new();
-        data.resize(r_len, 0);
-
-        let mut offset = 0;
-
-        // code_hash
-        offset = Self::vec_to_str(self.code_hash.as_slice(), &mut data, offset);
-        data[offset] = ':' as u8;
-        offset += 1;
-
-        // hash type
-        data[offset] = '0' as u8;
-        offset += 1;
-        match self.hash_type {
-            ScriptHashType::Data => data[offset] = '0' as u8,
-            ScriptHashType::Type => data[offset] = '1' as u8,
-            ScriptHashType::Data1 => data[offset] = '2' as u8,
-        }
-        data[offset + 1] = ':' as u8;
-        offset += 2;
-
-        // witness index
-        offset = Self::vec_to_str(&self.witness_index.to_le_bytes(), &mut data, offset);
-        data[offset] = ':' as u8;
-        offset += 1;
-
-        // args
-        offset = Self::vec_to_str(&self.script_args, &mut data, offset);
-
-        let r = String::from_utf8(data[..offset].to_vec());
-        match r {
-            Err(_) => return Err(Error::WrongHex),
-            Ok(v) => Ok(v),
-        }
+        let r = format!(
+            "{}:{:02X?}:{}:{}",
+            encode_upper(self.code_hash.as_slice()),
+            self.hash_type as u8,
+            encode_upper(&self.witness_index.to_le_bytes()),
+            encode_upper(self.script_args)
+        );
+        Ok(r)
     }
 
     #[inline]
@@ -153,13 +125,6 @@ impl ChildScriptEntry {
             || (c.ge(&('0')) && c.le(&('9')))
             || (c.ge(&('A')) && c.le(&('F')))
             || (c.ge(&('a')) && c.le(&('f')))
-    }
-    fn vec_to_str(d: &[u8], r: &mut [u8], offset: usize) -> usize {
-        let d = encode_upper(d);
-        let d_byte = d.as_bytes();
-        let d_len = d_byte.len();
-        r[offset..d_len + offset].copy_from_slice(d_byte);
-        d_len + offset
     }
 }
 
@@ -274,25 +239,4 @@ fn test_check_char() {
     assert_eq!(ChildScriptEntry::check_char('f'), true);
     assert_eq!(ChildScriptEntry::check_char('x'), false);
     assert_eq!(ChildScriptEntry::check_char('"'), false);
-}
-
-#[test]
-fn test_vec_to_char() {
-    let data = [0xaa, 0x21, 0x02];
-    let mut buf = Vec::new();
-    buf.resize(data.len() * 2, 0);
-    let r = ChildScriptEntry::vec_to_str(&data, &mut buf, 0);
-    assert_eq!(r, data.len() * 2);
-    let buf = String::from_utf8(buf).unwrap();
-    assert_eq!(buf.as_str(), "AA2102");
-
-    let data = [0xaa, 0x21, 0x02];
-    let mut buf = Vec::new();
-    buf.resize(data.len() * 2 + 2, 0);
-    buf[0] = '0' as u8;
-    buf[1] = 'x' as u8;
-    let r = ChildScriptEntry::vec_to_str(&data, &mut buf, 2);
-    assert_eq!(r, data.len() * 2 + 2);
-    let buf = String::from_utf8(buf).unwrap();
-    assert_eq!(buf.as_str(), "0xAA2102")
 }
