@@ -145,8 +145,10 @@ type CkbAuthValidate = unsafe extern "C" fn(
     pubkey_hash_size: u32,
 ) -> i32;
 
+type DLContext = CKBDLContext<[u8; 512 * 1024]>;
+
 struct DynamicLinkingContext {
-    _context: CKBDLContext<[u8; 256 * 1024]>,
+    _context: DLContext,
     ckb_auth_validate: Symbol<CkbAuthValidate>,
 }
 static mut G_DL_CONTEXT: Option<DynamicLinkingContext> = None;
@@ -163,7 +165,7 @@ impl DynamicLinkingContext {
     }
 
     fn new(code_hash: &[u8; 32], hash_type: ScriptHashType) -> Result<&'static Self, CkbAuthError> {
-        let mut context = unsafe { CKBDLContext::<[u8; 256 * 1024]>::new() };
+        let mut context = unsafe { DLContext::new() };
         let size = size_of_val(&context);
         let offset = 0;
         let lib = context
