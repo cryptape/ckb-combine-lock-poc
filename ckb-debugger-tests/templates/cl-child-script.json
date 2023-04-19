@@ -1,126 +1,84 @@
 {
-    "mock_info": {
-      "inputs": [
-        {
-          "input": {
-            "previous_output": {
-              "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000002",
-              "index": "0x0"
-            },
-            "since": "0x0"
-          },
-          "output": {
-            "capacity": "0x10000000",
-            "lock": {
-              "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
-              "code_hash": "0x{{ ref_type combine_lock }}",
-              "hash_type": "type"
-            },
-            "type": null
-          },
-          "data": "0x"
-        }
-      ],
-      "cell_deps": [
-        {
-          "cell_dep": {
-            "out_point": {
-              "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000005",
-              "index": "0x0"
-            },
-            "dep_type": "code"
-          },
-          "output": {
-            "capacity": "0x10000000",
-            "lock": {
-              "args": "0x",
-              "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-              "hash_type": "data1"
-            },
-            "type": "{{ def_type combine_lock }}"
-          },
-          "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/ckb-combine-lock }}"
-        },  
-        {
-          "cell_dep": {
-            "out_point": {
-              "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
-              "index": "0x0"
-            },
-            "dep_type": "code"
-          },
-          "output": {
-            "capacity": "0x10000000",            
-            "lock": {
-                "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
-                "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-                "hash_type": "data1"
-            },
-            "type": "{{ def_type child-script-example }}"
-          },
-          "data": "0x{{ data ../../build/release/child-script-example }}"
-        },
-        {
-          "cell_dep": {
-            "out_point": {
-              "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000003",
-              "index": "0x0"
-            },
-            "dep_type": "code"
-          },
-          "output": {
-            "capacity": "0x10000000",            
-            "lock": {
-                "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
-                "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-                "hash_type": "data1"
-            },
-            "type": "{{ def_type auth }}"
-          },
-          "data": "0x{{ data ../../tests/test-child-script-example/src/bin/auth }}"
-        },
-        {
-          "cell_dep": {
-            "out_point": {
-              "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000004",
-              "index": "0x0"
-            },
-            "dep_type": "code"
-          },
-          "output": {
-            "capacity": "0x10000000",            
-            "lock": {
-                "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
-                "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-                "hash_type": "data1"
-            },
-            "type": "{{ def_type secp256k1_data }}"
-          },
-          "data": "0x{{ data ../../tests/test-child-script-example/src/bin/secp256k1_data }}"
-        }
-      ],
-      "header_deps": []
-    },
-    "tx": {
-      "version": "0x0",
-      "cell_deps": [],
-      "header_deps": [],
-      "inputs": [],
-      "outputs": [
-        {
-          "capacity": "0x0",
+  "mock_info": {
+    "inputs": [
+      {
+        "output": {
+          "capacity": "0x10000000",
           "lock": {
             "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
-            "code_hash": "0x{{ ref_type child-script-example }}",
+            "code_hash": "0x{{ ref_type combine_lock }}",
             "hash_type": "type"
-          }
+          },
+          "type": null
+        },
+        "data": "0x"
+      }
+    ],
+    "cell_deps": [
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type combine_lock }}"
+        },
+        "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/ckb-combine-lock }}"
+      },
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type child-script-example }}"
+        },
+        "data": "0x{{ data ../../build/release/child-script-example }}"
+      },
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type auth }}"
+        },
+        "data": "0x{{ data ../../tests/test-child-script-example/src/bin/auth }}"
+      },
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type secp256k1_data }}"
+        },
+        "data": "0x{{ data ../../tests/test-child-script-example/src/bin/secp256k1_data }}"
+      }
+    ]
+  },
+  "tx": {
+    "outputs": [
+      {
+        "capacity": "0x0",
+        "lock": {
+          "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
+          "code_hash": "0x{{ ref_type child-script-example }}",
+          "hash_type": "type"
         }
-      ],
-      "witnesses": [
-      ],
-      "outputs_data": [
-        "0x"
-      ]
-    }
+      }
+    ],
+    "witnesses": [],
+    "outputs_data": [
+      "0x"
+    ]
   }
-  
+}
