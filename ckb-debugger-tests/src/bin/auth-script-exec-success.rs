@@ -18,7 +18,7 @@ static G_PRIVKEY_BUF: [u8; 32] = [
 
 lazy_static! {
     pub static ref AUTH_DL: Bytes =
-        Bytes::from(&include_bytes!("../../../tests/test-child-script-example/src/bin/auth")[..]);
+        Bytes::from(&include_bytes!("../../templates/bin/auth")[..]);
 }
 
 fn update_auth_code_hash(tx: &mut ReprMockTransaction) {
