@@ -1,3 +1,4 @@
+use ckb_combine_lock_common::ckb_auth::CkbAuthError;
 use ckb_std::error::SysError;
 
 /// Error
@@ -25,6 +26,19 @@ impl From<SysError> for Error {
             LengthNotEnough(_) => Self::LengthNotEnough,
             Encoding => Self::Encoding,
             Unknown(err_code) => panic!("unexpected sys error {}", err_code),
+        }
+    }
+}
+
+impl From<CkbAuthError> for Error {
+    fn from(value: CkbAuthError) -> Self {
+        use CkbAuthError::*;
+        match value {
+            UnknowAlgorithmID => Self::Encoding,
+            LoadDLError => Self::LoadDLError,
+            LoadDLFuncError => Self::LoadDLError,
+            RunDLError => Self::RunAuthError,
+            _ => panic!("unexpected error"),
         }
     }
 }

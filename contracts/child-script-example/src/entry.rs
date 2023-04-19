@@ -12,6 +12,10 @@ use crate::error::Error;
 use alloc::vec;
 use alloc::vec::Vec;
 
+use ckb_combine_lock_common::ckb_auth::{
+    ckb_auth, AuthAlgorithmIdType, CkbAuthType, CkbEntryType, EntryCategoryType,
+};
+
 use ckb_combine_lock_common::{
     chained_exec::continue_running, child_script_entry::ChildScriptEntry,
     generate_sighash_all::generate_sighash_all, log,
@@ -19,12 +23,10 @@ use ckb_combine_lock_common::{
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, core::ScriptHashType, prelude::*},
-    dynamic_loading_c_impl::{CKBDLContext, Symbol},
     env::argv,
     high_level::{load_script, load_witness_args},
     syscalls::{self, SysError},
 };
-use core::mem::size_of_val;
 
 // use ckb_std::debug;
 
@@ -97,47 +99,18 @@ pub fn inner_main() -> Result<(), Error> {
         witness_args.as_slice()[20..].to_vec()
     };
 
-    // run dl
-    unsafe {
-        let mut context = CKBDLContext::<[u8; 256 * 1024]>::new();
-        let size = size_of_val(&context);
-        let offset = 0;
-
-        let lib = context
-            .load_with_offset(&DL_CODE_HASH, DL_HASH_TYPE, offset, size)
-            .map_err(|_| Error::LoadDLError)?;
-
-        type CkbAuthValidate = unsafe extern "C" fn(
-            auth_algorithm_id: u8,
-            signature: *const u8,
-            signature_size: u32,
-            message: *const u8,
-            message_size: u32,
-            pubkey_hash: *mut u8,
-            pubkey_hash_size: u32,
-        ) -> i32;
-        let ckb_auth_validate: Option<Symbol<CkbAuthValidate>> = lib.get(b"ckb_auth_validate");
-        if ckb_auth_validate.is_none() {
-            return Err(Error::LoadDLError);
-        }
-
-        let ckb_auth_validate = ckb_auth_validate.unwrap();
-
-        let rc_code = ckb_auth_validate(
-            auth_id,
-            signature.as_ptr(),
-            signature.len() as u32,
-            message.as_ptr(),
-            message.len() as u32,
-            pubkey_hash.as_mut_ptr(),
-            pubkey_hash.len() as u32,
-        );
-        log!("ckb_auth_validate return {}", rc_code);
-        if rc_code != 0 {
-            log!("Warning, ckb_auth_validate return error");
-            return Err(Error::RunAuthError);
-        }
+    let id = CkbAuthType {
+        algorithm_id: AuthAlgorithmIdType::try_from(auth_id)?,
+        pubkey_hash: pubkey_hash,
     };
+
+    let entry = CkbEntryType {
+        code_hash: DL_CODE_HASH,
+        hash_type: DL_HASH_TYPE,
+        entry_category: EntryCategoryType::DynamicLinking,
+    };
+
+    ckb_auth(&entry, &id, &signature, &message)?;
 
     Ok(())
 }
