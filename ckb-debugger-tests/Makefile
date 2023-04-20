@@ -1,6 +1,14 @@
 
 
-all: always-success cl-always-success cl-always-success-info-cell cl-child-script child-script-success child-script-multisig-success child-script-multi-inputs
+all: \
+	always-success \
+	cl-always-success \
+	cl-always-success-info-cell \
+	cl-child-script \
+	child-script-success \
+	child-script-multisig-success \
+	child-script-multi-inputs \
+	auth-script-exec-success
 
 
 always-success:
@@ -23,3 +31,6 @@ child-script-multisig-success:
 
 child-script-multi-inputs:
 	cargo run --bin child-script-multi-inputs | RUST_LOG=debug ckb-debugger --tx-file=- -s lock
+
+auth-script-exec-success:
+	cargo run --bin auth-script-exec-success | RUST_LOG=debug ckb-debugger --tx-file=- -s lock

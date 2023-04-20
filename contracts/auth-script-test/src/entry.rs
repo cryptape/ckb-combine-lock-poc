@@ -30,10 +30,6 @@ use ckb_std::{
 
 // use ckb_std::debug;
 
-static DL_CODE_HASH: [u8; 32] = [
-    0xD4, 0x0C, 0xCE, 0x7F, 0xDF, 0xF8, 0x24, 0xF6, 0x31, 0x7B, 0x31, 0x09, 0x94, 0xF5, 0x88, 0x73,
-    0x69, 0xD7, 0xEA, 0x49, 0x93, 0x4D, 0x3D, 0x7A, 0xD7, 0xA2, 0x27, 0xC4, 0xE5, 0x4F, 0xDC, 0xED,
-];
 static DL_HASH_TYPE: ScriptHashType = ScriptHashType::Data1;
 
 pub const BUF_SIZE: usize = 1024;
@@ -57,9 +53,11 @@ fn load_data<F: Fn(&mut [u8], usize) -> Result<usize, SysError>>(
 }
 
 pub fn inner_main() -> Result<(), Error> {
-    log!("child-script-example entry");
+    log!("auth-script-test entry");
     let mut pubkey_hash = [0u8; 20];
     let auth_id: u8;
+    let entry_type: u8;
+    let mut code_hash = [0u8; 32];
 
     // get message
     let message = generate_sighash_all().map_err(|_| Error::GeneratedMsgError)?;
@@ -72,11 +70,13 @@ pub fn inner_main() -> Result<(), Error> {
         let arg0 = arg0.to_str().unwrap();
         let entry = ChildScriptEntry::from_str(arg0).map_err(|_| Error::ArgsError)?;
         let args = &entry.script_args;
-        if args.len() != 21 {
+        if args.len() != 54 {
             return Err(Error::ArgsError);
         }
-        pubkey_hash.copy_from_slice(&args[1..]);
         auth_id = args[0] as u8;
+        entry_type = args[1];
+        pubkey_hash.copy_from_slice(&args[2..22]);
+        code_hash.copy_from_slice(&args[22..]);
 
         let data = load_data(|buf, offset| {
             syscalls::load_witness(buf, offset, entry.witness_index as usize, Source::Input)
@@ -88,11 +88,13 @@ pub fn inner_main() -> Result<(), Error> {
 
         let script = load_script()?;
         let args: Bytes = script.args().unpack();
-        if args.len() != 21 {
+        if args.len() != 54 {
             return Err(Error::ArgsError);
         }
-        pubkey_hash.copy_from_slice(&args[1..]);
+        pubkey_hash.copy_from_slice(&args[2..22]);
         auth_id = args[0] as u8;
+        entry_type = args[1] as u8;
+        code_hash.copy_from_slice(&args[22..]);
 
         let witness_args =
             load_witness_args(0, Source::GroupInput).map_err(|_| Error::WitnessError)?;
@@ -105,9 +107,9 @@ pub fn inner_main() -> Result<(), Error> {
     };
 
     let entry = CkbEntryType {
-        code_hash: DL_CODE_HASH,
+        code_hash,
         hash_type: DL_HASH_TYPE,
-        entry_category: EntryCategoryType::DynamicLinking,
+        entry_category: EntryCategoryType::try_from(entry_type).unwrap(),
     };
 
     ckb_auth(&entry, &id, &signature, &message)?;
