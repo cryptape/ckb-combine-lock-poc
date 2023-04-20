@@ -1,3 +1,4 @@
+pub mod auto_complete;
 #[allow(dead_code)]
 pub mod combine_lock_mol;
 pub mod hash;
@@ -23,6 +24,7 @@ use molecule::bytes::Bytes;
 use molecule::prelude::*;
 use std::{fs::read_to_string, path::PathBuf};
 
+use auto_complete::auto_complete;
 use ckb_debugger_api::embed::Embed;
 use ckb_mock_tx_types::{MockTransaction, ReprMockTransaction};
 use hash::hash;
@@ -33,12 +35,13 @@ use sparse_merkle_tree::H256;
 pub fn read_tx_template(file_name: &str) -> Result<ReprMockTransaction, anyhow::Error> {
     let mock_tx =
         read_to_string(file_name).with_context(|| format!("Failed to read from {}", file_name))?;
+    let mock_tx = auto_complete(&mock_tx)?;
+
     let mut mock_tx_embed = Embed::new(PathBuf::from(file_name), mock_tx.clone());
     let mock_tx = mock_tx_embed.replace_all();
     let mut repr_mock_tx: ReprMockTransaction =
         from_json_str(&mock_tx).with_context(|| "in from_json_str(&mock_tx)")?;
     if repr_mock_tx.tx.cell_deps.len() == 0 {
-        eprintln!("repr_mock_tx.tx.cell_deps is empty, auto complete it");
         repr_mock_tx.tx.cell_deps = repr_mock_tx
             .mock_info
             .cell_deps
@@ -47,7 +50,6 @@ pub fn read_tx_template(file_name: &str) -> Result<ReprMockTransaction, anyhow::
             .collect::<Vec<_>>();
     }
     if repr_mock_tx.tx.inputs.len() == 0 {
-        eprintln!("repr_mock_tx.tx.inputs is empty, auto complete it");
         repr_mock_tx.tx.inputs = repr_mock_tx
             .mock_info
             .inputs

@@ -2,13 +2,6 @@
   "mock_info": {
     "inputs": [
       {
-        "input": {
-          "previous_output": {
-            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000003",
-            "index": "0x0"
-          },
-          "since": "0x0"
-        },
         "output": {
           "capacity": "0x10000000",
           "lock": {
@@ -23,13 +16,6 @@
     ],
     "cell_deps": [
       {
-        "cell_dep": {
-          "out_point": {
-            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
-            "index": "0x0"
-          },
-          "dep_type": "code"
-        },
         "output": {
           "capacity": "0x10000000",
           "lock": {
@@ -42,13 +28,6 @@
         "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/ckb-combine-lock }}"
       },
       {
-        "cell_dep": {
-          "out_point": {
-            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000002",
-            "index": "0x0"
-          },
-          "dep_type": "code"
-        },
         "output": {
           "capacity": "0x10000000",
           "lock": {
@@ -61,13 +40,6 @@
         "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/child-script-always-success }}"
       },
       {
-        "cell_dep": {
-          "out_point": {
-            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000004",
-            "index": "0x0"
-          },
-          "dep_type": "code"
-        },
         "output": {
           "capacity": "0x10000000",
           "lock": {
@@ -79,14 +51,9 @@
         },
         "data": "0x"
       }
-    ],
-    "header_deps": []
+    ]
   },
   "tx": {
-    "version": "0x0",
-    "cell_deps": [ ],
-    "header_deps": [],
-    "inputs": [],
     "outputs": [
       {
         "capacity": "0x0",
