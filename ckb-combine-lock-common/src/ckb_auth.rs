@@ -135,6 +135,7 @@ fn ckb_auth_exec(
     Ok(())
 }
 
+type DLContext = CKBDLContext<[u8; 512 * 1024]>;
 type CkbAuthValidate = unsafe extern "C" fn(
     auth_algorithm_id: u8,
     signature: *const u8,
@@ -145,80 +146,36 @@ type CkbAuthValidate = unsafe extern "C" fn(
     pubkey_hash_size: u32,
 ) -> i32;
 
-type DLContext = CKBDLContext<[u8; 512 * 1024]>;
+static mut G_CKB_DL_CONTEXT: Option<DLContext> = None;
+static mut G_CKB_DL_CONTEXT_USED: usize = 0;
+const EXPORTED_FUNC_NAME: &str = "ckb_auth_validate";
 
-struct DynamicLinkingContext {
-    _context: DLContext,
-    ckb_auth_validate: Symbol<CkbAuthValidate>,
-}
-static mut G_DL_CONTEXT: Option<DynamicLinkingContext> = None;
-
-impl DynamicLinkingContext {
-    fn get() -> Result<&'static Self, CkbAuthError> {
-        unsafe {
-            if G_DL_CONTEXT.is_some() {
-                Ok(G_DL_CONTEXT.as_ref().unwrap())
-            } else {
-                Err(CkbAuthError::DynamicLinkingUninit)
-            }
+fn load_validate_func<T>(
+    code_hash: &[u8; 32],
+    hash_type: ScriptHashType,
+    func_name: &str,
+) -> Result<Symbol<T>, CkbAuthError> {
+    let ctx = unsafe {
+        if G_CKB_DL_CONTEXT.is_none() {
+            G_CKB_DL_CONTEXT = Some(DLContext::new());
         }
+        G_CKB_DL_CONTEXT.as_mut().unwrap()
+    };
+    let size = size_of_val(ctx);
+    let offset = unsafe { G_CKB_DL_CONTEXT_USED };
+    let lib = ctx
+        .load_with_offset(code_hash, hash_type, offset, size)
+        .map_err(|_| CkbAuthError::LoadDLError)?;
+
+    unsafe {
+        G_CKB_DL_CONTEXT_USED += lib.consumed_size();
     }
 
-    fn new(code_hash: &[u8; 32], hash_type: ScriptHashType) -> Result<&'static Self, CkbAuthError> {
-        let mut context = unsafe { DLContext::new() };
-        let size = size_of_val(&context);
-        let offset = 0;
-        let lib = context
-            .load_with_offset(code_hash, hash_type, offset, size)
-            .map_err(|_| CkbAuthError::LoadDLError)?;
-
-        let ckb_auth_validate: Option<Symbol<CkbAuthValidate>> =
-            unsafe { lib.get(b"ckb_auth_validate") };
-        if ckb_auth_validate.is_none() {
-            return Err(CkbAuthError::LoadDLFuncError);
-        }
-
-        let ckb_auth_validate = ckb_auth_validate.unwrap();
-
-        unsafe {
-            G_DL_CONTEXT = Some(Self {
-                _context: context,
-                ckb_auth_validate: ckb_auth_validate,
-            })
-        }
-        Ok(unsafe { G_DL_CONTEXT.as_ref().unwrap() })
+    let func: Option<Symbol<T>> = unsafe { lib.get(func_name.as_bytes()) };
+    if func.is_none() {
+        return Err(CkbAuthError::LoadDLFuncError);
     }
-
-    fn auth_validate(
-        &self,
-        id: &CkbAuthType,
-        signature: &[u8],
-        message: &[u8; 32],
-    ) -> Result<(), CkbAuthError> {
-        let func = *self.ckb_auth_validate;
-
-        let mut pub_key = id.pubkey_hash.clone();
-
-        let rc_code = unsafe {
-            func(
-                id.algorithm_id.clone().into(),
-                signature.as_ptr(),
-                signature.len() as u32,
-                message.as_ptr(),
-                message.len() as u32,
-                pub_key.as_mut_ptr(),
-                pub_key.len() as u32,
-            )
-        };
-
-        match rc_code {
-            0 => Ok(()),
-            _ => {
-                log!("run auth error({}) in dynamic linking", rc_code);
-                Err(CkbAuthError::RunDLError)
-            }
-        }
-    }
+    Ok(func.unwrap())
 }
 
 fn ckb_auth_dl(
@@ -227,15 +184,27 @@ fn ckb_auth_dl(
     signature: &[u8],
     message: &[u8; 32],
 ) -> Result<(), CkbAuthError> {
-    let ctx = match DynamicLinkingContext::get() {
-        Err(e) => match e {
-            CkbAuthError::DynamicLinkingUninit => {
-                DynamicLinkingContext::new(&entry.code_hash, entry.hash_type)?
-            }
-            _ => return Err(e),
-        },
-        Ok(v) => v,
+    let func: Symbol<CkbAuthValidate> =
+        load_validate_func(&entry.code_hash, entry.hash_type, EXPORTED_FUNC_NAME)?;
+
+    let mut pub_key = id.pubkey_hash.clone();
+    let rc_code = unsafe {
+        func(
+            id.algorithm_id.clone().into(),
+            signature.as_ptr(),
+            signature.len() as u32,
+            message.as_ptr(),
+            message.len() as u32,
+            pub_key.as_mut_ptr(),
+            pub_key.len() as u32,
+        )
     };
 
-    ctx.auth_validate(id, signature, message)
+    match rc_code {
+        0 => Ok(()),
+        _ => {
+            log!("run auth error({}) in dynamic linking", rc_code);
+            Err(CkbAuthError::RunDLError)
+        }
+    }
 }
