@@ -6,11 +6,12 @@ use alloc::ffi::NulError;
 use alloc::format;
 use ckb_std::{
     ckb_types::core::ScriptHashType,
-    dynamic_loading_c_impl::{CKBDLContext, Symbol},
+    dynamic_loading_c_impl::{CKBDLContext, Library, Symbol},
     high_level::exec_cell,
     syscalls::SysError,
 };
 // use core::ffi::CStr;
+use alloc::collections::BTreeMap;
 use core::mem::size_of_val;
 use core::mem::transmute;
 use hex::encode;
@@ -146,36 +147,73 @@ type CkbAuthValidate = unsafe extern "C" fn(
     pubkey_hash_size: u32,
 ) -> i32;
 
-static mut G_CKB_DL_CONTEXT: Option<DLContext> = None;
-static mut G_CKB_DL_CONTEXT_USED: usize = 0;
 const EXPORTED_FUNC_NAME: &str = "ckb_auth_validate";
 
-fn load_validate_func<T>(
-    code_hash: &[u8; 32],
-    hash_type: ScriptHashType,
-    func_name: &str,
-) -> Result<Symbol<T>, CkbAuthError> {
-    let ctx = unsafe {
-        if G_CKB_DL_CONTEXT.is_none() {
-            G_CKB_DL_CONTEXT = Some(DLContext::new());
+struct CKBDLLoader {
+    pub context: DLContext,
+    pub context_used: usize,
+    pub loaded_lib: BTreeMap<[u8; 32], Library>,
+}
+
+static mut G_CKB_DL_LOADER: Option<CKBDLLoader> = None;
+impl CKBDLLoader {
+    pub fn get() -> &'static mut Self {
+        unsafe {
+            match G_CKB_DL_LOADER.as_mut() {
+                Some(v) => v,
+                None => {
+                    G_CKB_DL_LOADER = Some(Self::new());
+                    G_CKB_DL_LOADER.as_mut().unwrap()
+                }
+            }
         }
-        G_CKB_DL_CONTEXT.as_mut().unwrap()
-    };
-    let size = size_of_val(ctx);
-    let offset = unsafe { G_CKB_DL_CONTEXT_USED };
-    let lib = ctx
-        .load_with_offset(code_hash, hash_type, offset, size)
-        .map_err(|_| CkbAuthError::LoadDLError)?;
-
-    unsafe {
-        G_CKB_DL_CONTEXT_USED += lib.consumed_size();
     }
 
-    let func: Option<Symbol<T>> = unsafe { lib.get(func_name.as_bytes()) };
-    if func.is_none() {
-        return Err(CkbAuthError::LoadDLFuncError);
+    fn new() -> Self {
+        Self {
+            context: unsafe { DLContext::new() },
+            context_used: 0,
+            loaded_lib: BTreeMap::new(),
+        }
     }
-    Ok(func.unwrap())
+
+    fn get_lib(
+        &mut self,
+        code_hash: &[u8; 32],
+        hash_type: ScriptHashType,
+    ) -> Result<&Library, CkbAuthError> {
+        let has_lib = match self.loaded_lib.get(code_hash) {
+            Some(_) => true,
+            None => false,
+        };
+
+        if !has_lib {
+            log!("loading library");
+            let size = size_of_val(&self.context);
+            let lib = self
+                .context
+                .load_with_offset(code_hash, hash_type, self.context_used, size)
+                .map_err(|_| CkbAuthError::LoadDLError)?;
+            self.context_used += lib.consumed_size();
+            self.loaded_lib.insert(code_hash.clone(), lib);
+        };
+        Ok(self.loaded_lib.get(code_hash).unwrap())
+    }
+
+    pub fn get_validate_func<T>(
+        &mut self,
+        code_hash: &[u8; 32],
+        hash_type: ScriptHashType,
+        func_name: &str,
+    ) -> Result<Symbol<T>, CkbAuthError> {
+        let lib = self.get_lib(code_hash, hash_type)?;
+
+        let func: Option<Symbol<T>> = unsafe { lib.get(func_name.as_bytes()) };
+        if func.is_none() {
+            return Err(CkbAuthError::LoadDLFuncError);
+        }
+        Ok(func.unwrap())
+    }
 }
 
 fn ckb_auth_dl(
@@ -184,8 +222,11 @@ fn ckb_auth_dl(
     signature: &[u8],
     message: &[u8; 32],
 ) -> Result<(), CkbAuthError> {
-    let func: Symbol<CkbAuthValidate> =
-        load_validate_func(&entry.code_hash, entry.hash_type, EXPORTED_FUNC_NAME)?;
+    let func: Symbol<CkbAuthValidate> = CKBDLLoader::get().get_validate_func(
+        &entry.code_hash,
+        entry.hash_type,
+        EXPORTED_FUNC_NAME,
+    )?;
 
     let mut pub_key = id.pubkey_hash.clone();
     let rc_code = unsafe {
