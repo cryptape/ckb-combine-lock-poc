@@ -152,7 +152,7 @@ const EXPORTED_FUNC_NAME: &str = "ckb_auth_validate";
 struct CKBDLLoader {
     pub context: DLContext,
     pub context_used: usize,
-    pub loaded_lib: BTreeMap<[u8; 32], Library>,
+    pub loaded_lib: BTreeMap<[u8; 33], Library>,
 }
 
 static mut G_CKB_DL_LOADER: Option<CKBDLLoader> = None;
@@ -182,7 +182,11 @@ impl CKBDLLoader {
         code_hash: &[u8; 32],
         hash_type: ScriptHashType,
     ) -> Result<&Library, CkbAuthError> {
-        let has_lib = match self.loaded_lib.get(code_hash) {
+        let mut lib_key = [0u8; 33];
+        lib_key[..32].copy_from_slice(code_hash);
+        lib_key[32] = hash_type as u8;
+
+        let has_lib = match self.loaded_lib.get(&lib_key) {
             Some(_) => true,
             None => false,
         };
@@ -195,9 +199,9 @@ impl CKBDLLoader {
                 .load_with_offset(code_hash, hash_type, self.context_used, size)
                 .map_err(|_| CkbAuthError::LoadDLError)?;
             self.context_used += lib.consumed_size();
-            self.loaded_lib.insert(code_hash.clone(), lib);
+            self.loaded_lib.insert(lib_key.clone(), lib);
         };
-        Ok(self.loaded_lib.get(code_hash).unwrap())
+        Ok(self.loaded_lib.get(&lib_key).unwrap())
     }
 
     pub fn get_validate_func<T>(
