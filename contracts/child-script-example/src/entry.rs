@@ -1,4 +1,6 @@
 extern crate alloc;
+use log::info;
+
 // Import from `core` instead of from `std` since we are in no-std mode
 use core::{ffi::CStr, result::Result};
 
@@ -18,7 +20,7 @@ use ckb_combine_lock_common::ckb_auth::{
 
 use ckb_combine_lock_common::{
     chained_exec::continue_running, child_script_entry::ChildScriptEntry,
-    generate_sighash_all::generate_sighash_all, log,
+    generate_sighash_all::generate_sighash_all,
 };
 use ckb_std::{
     ckb_constants::Source,
@@ -57,7 +59,7 @@ fn load_data<F: Fn(&mut [u8], usize) -> Result<usize, SysError>>(
 }
 
 pub fn inner_main() -> Result<(), Error> {
-    log!("child-script-example entry");
+    info!("child-script-example entry");
     let mut pubkey_hash = [0u8; 20];
     let auth_id: u8;
 
@@ -66,7 +68,7 @@ pub fn inner_main() -> Result<(), Error> {
     let argv = argv();
     let signature = if argv.len() > 0 {
         // as child script in combine lock
-        log!("run as child script in combine lock");
+        info!("run as child script in combine lock");
 
         let arg0: &CStr = &argv[0];
         let arg0 = arg0.to_str().unwrap();
@@ -84,7 +86,7 @@ pub fn inner_main() -> Result<(), Error> {
         data
     } else {
         // as standalone script
-        log!("run as standalone script");
+        info!("run as standalone script");
 
         let script = load_script()?;
         let args: Bytes = script.args().unpack();

@@ -1,14 +1,28 @@
-#[macro_export]
-macro_rules! log {
-    ($fmt:literal) => {
-        #[cfg(feature = "log")]
-        ckb_std::syscalls::debug(alloc::format!($fmt));
-    };
-    ($fmt:literal, $($args:expr),+) => {
-        #[cfg(feature = "log")]
-        ckb_std::syscalls::debug(alloc::format!($fmt, $($args), +));
-        // Avoid unused warnings.
-        #[cfg(not(feature = "log"))]
-        core::mem::drop(($(&$args),+));
-    };
+extern crate alloc;
+
+use alloc::format;
+use ckb_std::syscalls;
+use log::{Level, Metadata, Record};
+use log::{LevelFilter, SetLoggerError};
+
+struct SimpleLogger;
+
+impl log::Log for SimpleLogger {
+    fn enabled(&self, metadata: &Metadata) -> bool {
+        metadata.level() <= Level::Info
+    }
+
+    fn log(&self, record: &Record) {
+        if self.enabled(record.metadata()) {
+            syscalls::debug(format!("{} - {}", record.level(), record.args()))
+        }
+    }
+
+    fn flush(&self) {}
+}
+
+static LOGGER: SimpleLogger = SimpleLogger;
+
+pub fn init() -> Result<(), SetLoggerError> {
+    log::set_logger(&LOGGER).map(|()| log::set_max_level(LevelFilter::Info))
 }

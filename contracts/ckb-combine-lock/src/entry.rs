@@ -1,4 +1,6 @@
 use alloc::{ffi::CString, vec::Vec};
+use log::info;
+
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, core::ScriptHashType, prelude::*},
@@ -11,7 +13,6 @@ use crate::error::Error;
 use crate::{blake2b::hash, constant::SMT_VALUE};
 use ckb_combine_lock_common::child_script_entry::ChildScriptEntry;
 use ckb_combine_lock_common::combine_lock_mol::{ChildScriptVec, CombineLockWitness};
-use ckb_combine_lock_common::log;
 use ckb_std::high_level::exec_cell;
 use sparse_merkle_tree::h256::H256;
 use sparse_merkle_tree::SMTBuilder;
@@ -45,7 +46,7 @@ fn exec_child_scripts(witness_base_index: u16, scripts: ChildScriptVec) -> Resul
 
         let s = entry.to_str().map_err(|_| Error::WrongHex)?;
         let s = CString::new(s).map_err(|_| Error::WrongHex)?;
-        log!("exec_child_scripts, argv: {:?}", &s);
+        info!("exec_child_scripts, argv: {:?}", &s);
         argv.push(s);
     }
     let first_script = scripts.get(0).unwrap();
@@ -55,7 +56,7 @@ fn exec_child_scripts(witness_base_index: u16, scripts: ChildScriptVec) -> Resul
     let argv: &[&CStr] = &binding;
 
     let sysret = exec_cell(&first_script.code_hash, first_script.hash_type, 0, 0, argv);
-    log!("sysret: {:?}", sysret);
+    info!("sysret: {:?}", sysret);
     sysret.map_err(|_| Error::ExecError)?;
     unreachable!("unreachable after exec");
 }
@@ -93,7 +94,7 @@ pub fn main() -> Result<(), Error> {
         let array = slice.try_into().map_err(|_| Error::WrongMolecule)?;
         u16::from_le_bytes(array)
     };
-    log!(
+    info!(
         "combine_lock_witness_scripts: {}",
         combine_lock_witness.scripts()
     );

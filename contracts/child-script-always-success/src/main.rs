@@ -15,6 +15,7 @@
 mod entry;
 mod error;
 
+use ckb_combine_lock_common::log;
 use ckb_std::default_alloc;
 
 ckb_std::entry!(program_entry);
@@ -24,6 +25,7 @@ default_alloc!();
 ///
 ///  Both `argc` and `argv` can be omitted.
 fn program_entry() -> i8 {
+    drop(log::init());
     // Call main function and return error code
     match entry::main() {
         Ok(_) => 0,
