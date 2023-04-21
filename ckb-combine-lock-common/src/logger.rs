@@ -14,7 +14,12 @@ impl log::Log for SimpleLogger {
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
-            syscalls::debug(format!("{} - {}", record.level(), record.args()))
+            syscalls::debug(format!(
+                "[{} {}] {}",
+                record.level(),
+                record.target(),
+                record.args()
+            ))
         }
     }
 

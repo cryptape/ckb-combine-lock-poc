@@ -3,6 +3,7 @@ use ckb_std::error::SysError;
 
 /// Error
 #[repr(i8)]
+#[derive(Debug)]
 pub enum Error {
     IndexOutOfBound = 1,
     ItemMissing,

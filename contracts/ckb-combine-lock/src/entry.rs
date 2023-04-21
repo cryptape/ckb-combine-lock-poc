@@ -1,5 +1,5 @@
 use alloc::{ffi::CString, vec::Vec};
-use log::info;
+use log::{info, warn};
 
 use ckb_std::{
     ckb_constants::Source,
@@ -56,7 +56,7 @@ fn exec_child_scripts(witness_base_index: u16, scripts: ChildScriptVec) -> Resul
     let argv: &[&CStr] = &binding;
 
     let sysret = exec_cell(&first_script.code_hash, first_script.hash_type, 0, 0, argv);
-    info!("sysret: {:?}", sysret);
+    warn!("sysret: {:?}", sysret);
     sysret.map_err(|_| Error::ExecError)?;
     unreachable!("unreachable after exec");
 }
