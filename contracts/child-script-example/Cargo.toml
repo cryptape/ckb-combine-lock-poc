@@ -11,3 +11,4 @@ log = ["ckb-combine-lock-common/log"]
 [dependencies]
 ckb-std = { git = "https://github.com/nervosnetwork/ckb-std.git", rev="762a0ab"}
 ckb-combine-lock-common = { path = "../../ckb-combine-lock-common" }
+log = { version = "0.4.17", default-features = false }

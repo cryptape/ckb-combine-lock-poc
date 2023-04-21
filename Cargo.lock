@@ -8,6 +8,7 @@ version = "0.1.0"
 dependencies = [
  "ckb-combine-lock-common",
  "ckb-std",
+ "log",
 ]
 
 [[package]]
@@ -50,6 +51,7 @@ version = "0.1.0"
 dependencies = [
  "ckb-combine-lock-common",
  "ckb-std",
+ "log",
 ]
 
 [[package]]
@@ -58,6 +60,7 @@ version = "0.1.0"
 dependencies = [
  "ckb-combine-lock-common",
  "ckb-std",
+ "log",
 ]
 
 [[package]]
@@ -67,6 +70,7 @@ dependencies = [
  "blake2b-rs",
  "ckb-combine-lock-common",
  "ckb-std",
+ "log",
  "sparse-merkle-tree",
 ]
 
@@ -77,6 +81,7 @@ dependencies = [
  "blake2b-rs",
  "ckb-std",
  "hex",
+ "log",
  "molecule",
 ]
 
@@ -111,6 +116,15 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
+name = "log"
+version = "0.4.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "abb12e687cfb44aa40f41fc3978ef76448f9b6038cad6aef4259d3c095a2382e"
+dependencies = [
+ "cfg-if 1.0.0",
+]
 
 [[package]]
 name = "molecule"

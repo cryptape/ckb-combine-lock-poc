@@ -1,6 +1,5 @@
 extern crate alloc;
 
-use super::log;
 use alloc::ffi::CString;
 use alloc::ffi::NulError;
 use alloc::format;
@@ -10,6 +9,7 @@ use ckb_std::{
     high_level::exec_cell,
     syscalls::SysError,
 };
+use log::info;
 // use core::ffi::CStr;
 use alloc::collections::BTreeMap;
 use core::mem::size_of_val;
@@ -29,14 +29,14 @@ pub enum CkbAuthError {
 
 impl From<SysError> for CkbAuthError {
     fn from(err: SysError) -> Self {
-        log!("exec error: {:?}", err);
+        info!("exec error: {:?}", err);
         Self::ExecError(err)
     }
 }
 
 impl From<NulError> for CkbAuthError {
     fn from(err: NulError) -> Self {
-        log!("Exec encode args failed: {:?}", err);
+        info!("Exec encode args failed: {:?}", err);
         Self::EncodeArgs
     }
 }
@@ -131,7 +131,7 @@ fn ckb_auth_exec(
         encode(id.pubkey_hash)
     ))?;
 
-    // log!("args: {:?}", args);
+    // info!("args: {:?}", args);
     exec_cell(&entry.code_hash, entry.hash_type, 0, 0, &[args.as_c_str()])?;
     Ok(())
 }
@@ -192,7 +192,7 @@ impl CKBDLLoader {
         };
 
         if !has_lib {
-            log!("loading library");
+            info!("loading library");
             let size = size_of_val(&self.context);
             let lib = self
                 .context
@@ -248,7 +248,7 @@ fn ckb_auth_dl(
     match rc_code {
         0 => Ok(()),
         _ => {
-            log!("run auth error({}) in dynamic linking", rc_code);
+            info!("run auth error({}) in dynamic linking", rc_code);
             Err(CkbAuthError::RunDLError)
         }
     }

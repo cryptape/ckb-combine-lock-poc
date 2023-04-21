@@ -17,7 +17,9 @@ mod constant;
 mod entry;
 mod error;
 
+use ckb_combine_lock_common::logger;
 use ckb_std::default_alloc;
+use log::warn;
 
 ckb_std::entry!(program_entry);
 default_alloc!();
@@ -26,9 +28,13 @@ default_alloc!();
 ///
 ///  Both `argc` and `argv` can be omitted.
 fn program_entry() -> i8 {
+    drop(logger::init());
     // Call main function and return error code
     match entry::main() {
         Ok(_) => 0,
-        Err(err) => err as i8,
+        Err(err) => {
+            warn!("script exit with error: {:?}", err);
+            err as i8
+        }
     }
 }

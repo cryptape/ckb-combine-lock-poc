@@ -16,5 +16,5 @@ pub mod child_script_entry;
 pub mod ckb_auth;
 pub mod error;
 pub mod generate_sighash_all;
-pub mod log;
+pub mod logger;
 pub mod primitives;
