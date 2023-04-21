@@ -16,7 +16,7 @@ dev:
 	capsule build --release -- --features log
 
 install:
-	cargo install --rev c6bd322 --git https://github.com/nervosnetwork/ckb-standalone-debugger ckb-debugger
+	cargo install --rev 6bb45f3 --git https://github.com/nervosnetwork/ckb-standalone-debugger ckb-debugger
 	mv ~/.cargo/bin/ckb-debugger ~/.cargo/bin/ckb-debugger-2023
 	wget 'https://github.com/nervosnetwork/capsule/releases/download/v0.9.0/capsule_v0.9.0_x86_64-linux.tar.gz'
 	tar xzvf capsule_v0.9.0_x86_64-linux.tar.gz
