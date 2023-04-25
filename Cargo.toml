@@ -6,6 +6,7 @@ overflow-checks = true
 opt-level = 3
 panic = 'abort'
 strip = true
+lto = true
 
 [profile.dev]
 strip = true
