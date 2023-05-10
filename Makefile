@@ -16,11 +16,9 @@ dev:
 	capsule build --release -- --features log
 
 install:
-	cargo install --locked --rev 02f4656 --git https://github.com/nervosnetwork/ckb-standalone-debugger ckb-debugger
+	cargo install --git https://github.com/nervosnetwork/ckb-standalone-debugger ckb-debugger --branch ckb2023
 	mv ~/.cargo/bin/ckb-debugger ~/.cargo/bin/ckb-debugger-2023
-	wget 'https://github.com/nervosnetwork/capsule/releases/download/v0.9.0/capsule_v0.9.0_x86_64-linux.tar.gz'
-	tar xzvf capsule_v0.9.0_x86_64-linux.tar.gz
-	mv capsule_v0.9.0_x86_64-linux/capsule ~/.cargo/bin
+	wget 'https://github.com/nervosnetwork/capsule/releases/download/v0.10.0/capsule_v0.10.0_x86_64-linux.tar.gz'
+	tar xzvf capsule_v0.10.0_x86_64-linux.tar.gz
+	mv capsule_v0.10.0_x86_64-linux/capsule ~/.cargo/bin
 	cargo install moleculec --git https://github.com/nervosnetwork/molecule.git --rev 1306c29c529ab375e0368ffeb691bd8c7bbf0403
-
-
