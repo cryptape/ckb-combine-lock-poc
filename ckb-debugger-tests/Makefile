@@ -16,6 +16,9 @@ always-success:
 cl-always-success:
 	cargo run --bin cl-always-success |  ${CKB_DEBUGGER} --tx-file=- -s lock
 
+cl-always-success-v2:
+	cargo run --bin cl-always-success-v2 |  ${CKB_DEBUGGER} --tx-file=- -s lock
+
 cl-always-success-info-cell:
 	cargo run --bin cl-always-success-info-cell |  ${CKB_DEBUGGER} --tx-file=- -s lock
 

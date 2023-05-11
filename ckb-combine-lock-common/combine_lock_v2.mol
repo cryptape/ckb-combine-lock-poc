@@ -1,0 +1,26 @@
+import blockchain;
+
+table ChildScript {
+    code_hash:      Byte32,
+    hash_type:      byte,
+    args:           Bytes,
+}
+
+vector ChildScriptVec <byte>;
+
+vector ChildScriptVecVec <ChildScriptVec>;
+
+vector ChildScriptArray <ChildScript>;
+
+table ChildScriptConfig {
+	array: ChildScriptArray,
+    index: ChildScriptVecVec,
+}
+
+option ChildScriptConfigOpt (ChildScriptConfig);
+
+table CombineLockWitness {
+    index: byte,
+    inner_witness: BytesVec,
+    script_config: ChildScriptConfigOpt,
+}

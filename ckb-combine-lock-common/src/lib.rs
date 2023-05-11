@@ -2,6 +2,7 @@
 
 pub mod blake2b;
 pub mod combine_lock_mol;
+pub mod combine_lock_mol_v2;
 pub use molecule;
 pub mod blockchain {
     pub use ckb_std::ckb_types::packed::{

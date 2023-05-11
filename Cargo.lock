@@ -55,6 +55,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "child-script-always-success-v2"
+version = "0.1.0"
+dependencies = [
+ "ckb-std",
+]
+
+[[package]]
 name = "child-script-example"
 version = "0.1.0"
 dependencies = [
@@ -83,6 +90,17 @@ dependencies = [
  "hex",
  "log",
  "molecule",
+]
+
+[[package]]
+name = "ckb-combine-lock-v2"
+version = "0.1.0"
+dependencies = [
+ "blake2b-rs",
+ "ckb-combine-lock-common",
+ "ckb-std",
+ "hex",
+ "log",
 ]
 
 [[package]]

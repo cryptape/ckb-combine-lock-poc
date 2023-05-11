@@ -1,6 +1,8 @@
 pub mod auto_complete;
 #[allow(dead_code)]
 pub mod combine_lock_mol;
+#[allow(dead_code)]
+pub mod combine_lock_mol_v2;
 pub mod hash;
 pub mod smt;
 
