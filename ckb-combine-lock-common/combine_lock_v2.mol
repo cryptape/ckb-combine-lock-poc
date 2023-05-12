@@ -13,7 +13,7 @@ vector ChildScriptVecVec <ChildScriptVec>;
 vector ChildScriptArray <ChildScript>;
 
 table ChildScriptConfig {
-	array: ChildScriptArray,
+    array: ChildScriptArray,
     index: ChildScriptVecVec,
 }
 

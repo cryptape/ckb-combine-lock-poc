@@ -35,10 +35,8 @@ pub fn main() -> Result<(), Error> {
         let child_script_config = combine_lock_witness.script_config().to_opt().unwrap();
         let child_script_config_hash_in_args = &script_args_slice[1..33];
         let child_script_config_hash_by_hash = hash(child_script_config.as_slice());
-        for i in 0..32 {
-            if child_script_config_hash_in_args[i] != child_script_config_hash_by_hash[i] {
-                return Err(Error::WrongScriptConfigHash);
-            }
+        if child_script_config_hash_in_args != child_script_config_hash_by_hash {
+            return Err(Error::WrongScriptConfigHash);
         }
         let child_script_vec = child_script_config.index().get_unchecked(combine_lock_witness_index);
         let child_script_array = child_script_config.array();
