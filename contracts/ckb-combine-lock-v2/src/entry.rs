@@ -38,14 +38,14 @@ pub fn main() -> Result<(), Error> {
         if child_script_config_hash_in_args != child_script_config_hash_by_hash {
             return Err(Error::WrongScriptConfigHash);
         }
-        let child_script_vec = child_script_config.index().get_unchecked(combine_lock_witness_index);
+        let child_script_vec = child_script_config.index().get(combine_lock_witness_index).unwrap();
         let child_script_array = child_script_config.array();
         for child_script_index in child_script_vec.into_iter() {
             let child_script_index = u8::from(child_script_index) as usize;
-            let child_script = child_script_array.get_unchecked(child_script_index);
+            let child_script = child_script_array.get(child_script_index).unwrap();
             let child_script_args = child_script.args().as_slice().to_vec();
             let child_script_args = hex::encode(child_script_args);
-            let child_script_inner_witness = combine_lock_witness_inner_witness.get_unchecked(child_script_index);
+            let child_script_inner_witness = combine_lock_witness_inner_witness.get(child_script_index).unwrap();
             let child_script_inner_witness = hex::encode(child_script_inner_witness.as_slice().to_vec());
             info!(
                 "spawn code_hash={} hash_type={}",
@@ -58,7 +58,7 @@ pub fn main() -> Result<(), Error> {
                     0 => ScriptHashType::Data,
                     1 => ScriptHashType::Type,
                     2 => ScriptHashType::Data1,
-                    _ => panic!("wrong hash type"),
+                    _ => return Err(Error::WrongHashType),
                 },
                 &[
                     CString::new(child_script_args.as_str()).unwrap().as_c_str(),

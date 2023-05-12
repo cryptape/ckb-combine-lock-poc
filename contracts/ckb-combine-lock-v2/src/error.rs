@@ -11,6 +11,7 @@ pub enum Error {
     WrongArgs = 80,
     WrongWitnessFormat,
     WrongScriptConfigHash,
+    WrongHashType,
     UnlockFailed,
 }
 
