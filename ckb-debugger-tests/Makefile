@@ -4,6 +4,7 @@ CKB_DEBUGGER ?= ckb-debugger-2023
 all: \
 	always-success \
 	cl-always-success \
+	cl-always-success-v2 \
 	cl-always-success-info-cell \
 	cl-child-script \
 	child-script-success \

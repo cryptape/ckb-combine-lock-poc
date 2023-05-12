@@ -47,7 +47,11 @@ pub fn main() -> Result<(), Error> {
             let child_script_args = hex::encode(child_script_args);
             let child_script_inner_witness = combine_lock_witness_inner_witness.get_unchecked(child_script_index);
             let child_script_inner_witness = hex::encode(child_script_inner_witness.as_slice().to_vec());
-            info!("spawn {}", child_script.code_hash());
+            info!(
+                "spawn code_hash={} hash_type={}",
+                child_script.code_hash(),
+                child_script.hash_type()
+            );
             let spawn_ret = spawn_cell(
                 child_script.code_hash().as_slice(),
                 match u8::from(child_script.hash_type()) {
@@ -63,6 +67,7 @@ pub fn main() -> Result<(), Error> {
                 8,
                 &mut Vec::new(),
             )?;
+            info!("spawn exit={}", spawn_ret);
             if spawn_ret != 0 {
                 return Err(Error::UnlockFailed);
             }
