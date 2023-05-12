@@ -9,7 +9,7 @@ default = ["log"]
 log = ["ckb-combine-lock-common/log"]
 
 [dependencies]
-ckb-std = { git = "https://github.com/nervosnetwork/ckb-std.git", rev="762a0ab"}
+ckb-std = "0.13.0"
 sparse-merkle-tree = { version ="0.6.1", default-features = false, features = ["smtc"] }
 ckb-combine-lock-common = { path = "../../ckb-combine-lock-common" }
 blake2b-rs = "0.2.0"

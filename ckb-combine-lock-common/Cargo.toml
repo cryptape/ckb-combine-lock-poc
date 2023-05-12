@@ -11,6 +11,6 @@ log = []
 [dependencies]
 blake2b-rs = "0.2.0"
 molecule = { version = "0.7.3", default-features = false }
-ckb-std = { git = "https://github.com/nervosnetwork/ckb-std.git", rev="762a0ab", default-features = false, features = ["allocator","ckb-types"] }
+ckb-std = "0.13.0"
 hex = { version = "0.4.3", default-features = false, features = ["alloc"]}
 log = { version = "0.4.17", default-features = false }
