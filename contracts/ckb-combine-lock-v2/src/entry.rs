@@ -86,8 +86,8 @@ pub fn main() -> Result<(), Error> {
                 8,
                 &mut Vec::new(),
             )?;
-            info!("spawn exit={}", spawn_ret);
             if spawn_ret != 0 {
+                warn!("spawn exit={}", spawn_ret);
                 return Err(Error::UnlockFailed);
             }
         }
