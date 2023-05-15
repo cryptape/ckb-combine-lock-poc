@@ -2,7 +2,6 @@ use crate::blake2b::hash;
 use crate::error::Error;
 use alloc::ffi::CString;
 use alloc::vec::Vec;
-use ckb_combine_lock_common::blockchain::{WitnessArgs, WitnessArgsReader};
 use ckb_combine_lock_common::combine_lock_mol_v2::CombineLockWitness;
 use ckb_std::{
     ckb_constants::Source,
