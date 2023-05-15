@@ -1,4 +1,4 @@
-use ckb_debugger_tests::combine_lock_mol_v2::{
+use ckb_debugger_tests::combine_lock_mol::{
     ChildScript, ChildScriptArray, ChildScriptConfig, ChildScriptConfigOpt, ChildScriptVec,
     ChildScriptVecVec, CombineLockWitness,
 };
@@ -9,8 +9,7 @@ use ckb_types::prelude::Pack;
 use molecule::prelude::{Builder, Entity};
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut repr_tx =
-        read_tx_template("../ckb-debugger-tests/templates/cl-always-success.json")?;
+    let mut repr_tx = read_tx_template("../ckb-debugger-tests/templates/cl-always-success.json")?;
 
     let data = repr_tx.mock_info.cell_deps[1].data.as_bytes();
     let code_hash = hash(data);

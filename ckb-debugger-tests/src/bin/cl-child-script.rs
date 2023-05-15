@@ -1,5 +1,5 @@
 use ckb_crypto::secp::Privkey;
-use ckb_debugger_tests::combine_lock_mol_v2::{
+use ckb_debugger_tests::combine_lock_mol::{
     ChildScript, ChildScriptArray, ChildScriptConfig, ChildScriptConfigOpt, ChildScriptVec,
     ChildScriptVecVec, CombineLockWitness,
 };
