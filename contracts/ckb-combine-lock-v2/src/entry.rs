@@ -10,7 +10,7 @@ use ckb_std::{
     high_level::{load_script, load_witness_args, spawn_cell},
 };
 use core::result::Result;
-use log::info;
+use log::{info, warn};
 
 fn parse_execution_args() -> Result<Bytes, Error> {
     if ckb_std::env::argv().len() == 0 {
@@ -18,7 +18,7 @@ fn parse_execution_args() -> Result<Bytes, Error> {
         return Ok(script.args().unpack());
     }
     if ckb_std::env::argv().len() == 2 {
-        return Ok(ckb_std::env::argv()[0].to_bytes().into());
+        return Ok(Bytes::from(hex::decode(ckb_std::env::argv()[0].to_bytes())?));
     }
     return Err(Error::WrongFormat);
 }
@@ -30,7 +30,7 @@ fn parse_execution_witness_args_lock() -> Result<Bytes, Error> {
         return Ok(execution_witness_args_lock);
     }
     if ckb_std::env::argv().len() == 2 {
-        return Ok(Bytes::from(ckb_std::env::argv()[1].to_bytes()));
+        return Ok(Bytes::from(hex::decode(ckb_std::env::argv()[1].to_bytes())?));
     }
     return Err(Error::WrongFormat);
 }

@@ -31,3 +31,9 @@ impl From<molecule::error::VerificationError> for Error {
         Self::WrongFormat
     }
 }
+
+impl From<hex::FromHexError> for Error {
+    fn from(_: hex::FromHexError) -> Self {
+        Self::WrongFormat
+    }
+}
