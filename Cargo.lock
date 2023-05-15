@@ -103,6 +103,7 @@ dependencies = [
  "ckb-std",
  "hex",
  "log",
+ "molecule",
 ]
 
 [[package]]

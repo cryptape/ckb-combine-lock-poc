@@ -2,6 +2,7 @@ use crate::blake2b::hash;
 use crate::error::Error;
 use alloc::ffi::CString;
 use alloc::vec::Vec;
+use ckb_combine_lock_common::blockchain::{WitnessArgs, WitnessArgsReader};
 use ckb_combine_lock_common::combine_lock_mol_v2::CombineLockWitness;
 use ckb_std::{
     ckb_constants::Source,
@@ -11,29 +12,46 @@ use ckb_std::{
 use core::result::Result;
 use log::info;
 
-fn parse_witness() -> Result<CombineLockWitness, Error> {
-    let args = load_witness_args(0, Source::GroupInput)?;
-    let lock: Bytes = args.lock().to_opt().unwrap().unpack();
-    CombineLockWitness::from_slice(lock.as_ref()).map_err(|_| Error::WrongWitnessFormat)
+fn parse_execution_args() -> Result<Bytes, Error> {
+    if ckb_std::env::argv().len() == 0 {
+        let script = load_script()?;
+        Ok(script.args().unpack())
+    } else {
+        Ok(ckb_std::env::argv()[0].to_bytes().into())
+    }
+}
+
+fn parse_execution_witness_args() -> Result<WitnessArgs, Error> {
+    if ckb_std::env::argv().len() == 0 {
+        Ok(load_witness_args(0, Source::GroupInput)?)
+    } else {
+        let data = ckb_std::env::argv()[1].to_bytes();
+        match WitnessArgsReader::verify(&data, false) {
+            Ok(()) => Ok(WitnessArgs::new_unchecked(data.into())),
+            Err(_err) => Err(Error::Encoding),
+        }
+    }
 }
 
 pub fn main() -> Result<(), Error> {
-    let script = load_script()?;
-    let script_args: Bytes = script.args().unpack();
-    let script_args_slice = script_args.as_ref();
-    if script_args_slice[0] >= 2 {
-        return Err(Error::WrongArgs);
+    let execution_args = parse_execution_args()?;
+    let execution_args_slice = execution_args.as_ref();
+    let execution_witness_args = parse_execution_witness_args()?;
+    let execution_witness_args_lock: Bytes = execution_witness_args.lock().to_opt().ok_or(Error::WrongFormat)?.unpack();
+
+    if execution_args_slice[0] >= 2 {
+        return Err(Error::WrongFormat);
     }
-    if script_args_slice[0] == 0 {
-        if script_args_slice.len() < 1 + 32 {
-            return Err(Error::WrongArgs);
+    if execution_args_slice[0] == 0 {
+        if execution_args_slice.len() < 1 + 32 {
+            return Err(Error::WrongFormat);
         }
-        let combine_lock_witness = parse_witness()?;
+        let combine_lock_witness = CombineLockWitness::from_slice(&execution_witness_args_lock)?;
         let combine_lock_witness_index = u8::from(combine_lock_witness.index()) as usize;
         let combine_lock_witness_inner_witness = combine_lock_witness.inner_witness();
 
         let child_script_config = combine_lock_witness.script_config().to_opt().unwrap();
-        let child_script_config_hash_in_args = &script_args_slice[1..33];
+        let child_script_config_hash_in_args = &execution_args_slice[1..33];
         let child_script_config_hash_by_hash = hash(child_script_config.as_slice());
         if child_script_config_hash_in_args != child_script_config_hash_by_hash {
             return Err(Error::WrongScriptConfigHash);
@@ -73,9 +91,9 @@ pub fn main() -> Result<(), Error> {
             }
         }
     }
-    if script_args_slice[0] == 1 {
-        if script_args_slice.len() < 1 + 32 + 32 {
-            return Err(Error::WrongArgs);
+    if execution_args_slice[0] == 1 {
+        if execution_args_slice.len() < 1 + 32 + 32 {
+            return Err(Error::WrongFormat);
         }
         unimplemented!()
     }
