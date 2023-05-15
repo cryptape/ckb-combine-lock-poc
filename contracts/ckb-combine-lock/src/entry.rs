@@ -32,8 +32,7 @@ fn verify_smt(root: &[u8], key: &[u8], proof: &[u8]) -> Result<(), Error> {
     let builder = SMTBuilder::new();
     let builder = builder.insert(&key, &SMT_VALUE.clone().into()).unwrap();
     let smt = builder.build().unwrap();
-    smt.verify(&root_hash, proof)
-        .map_err(|_| Error::SmtVerifyFailed)
+    smt.verify(&root_hash, proof).map_err(|_| Error::SmtVerifyFailed)
 }
 
 fn exec_child_scripts(witness_base_index: u16, scripts: ChildScriptVec) -> Result<(), Error> {
@@ -94,10 +93,7 @@ pub fn main() -> Result<(), Error> {
         let array = slice.try_into().map_err(|_| Error::WrongMolecule)?;
         u16::from_le_bytes(array)
     };
-    info!(
-        "combine_lock_witness_scripts: {}",
-        combine_lock_witness.scripts()
-    );
+    info!("combine_lock_witness_scripts: {}", combine_lock_witness.scripts());
 
     exec_child_scripts(witness_base_index, combine_lock_witness.scripts())
 }

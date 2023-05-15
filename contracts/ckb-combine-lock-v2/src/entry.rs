@@ -15,22 +15,26 @@ use log::info;
 fn parse_execution_args() -> Result<Bytes, Error> {
     if ckb_std::env::argv().len() == 0 {
         let script = load_script()?;
-        Ok(script.args().unpack())
-    } else {
-        Ok(ckb_std::env::argv()[0].to_bytes().into())
+        return Ok(script.args().unpack());
     }
+    if ckb_std::env::argv().len() == 2 {
+        return Ok(ckb_std::env::argv()[0].to_bytes().into());
+    }
+    return Err(Error::WrongFormat);
 }
 
 fn parse_execution_witness_args() -> Result<WitnessArgs, Error> {
     if ckb_std::env::argv().len() == 0 {
-        Ok(load_witness_args(0, Source::GroupInput)?)
-    } else {
+        return Ok(load_witness_args(0, Source::GroupInput)?);
+    }
+    if ckb_std::env::argv().len() == 2 {
         let data = ckb_std::env::argv()[1].to_bytes();
-        match WitnessArgsReader::verify(&data, false) {
+        return match WitnessArgsReader::verify(&data, false) {
             Ok(()) => Ok(WitnessArgs::new_unchecked(data.into())),
             Err(_err) => Err(Error::Encoding),
-        }
+        };
     }
+    return Err(Error::WrongFormat);
 }
 
 pub fn main() -> Result<(), Error> {
