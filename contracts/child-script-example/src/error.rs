@@ -10,12 +10,10 @@ pub enum Error {
     LengthNotEnough,
     Encoding,
     // Add customized errors here...
-    ArgsError,
-    WitnessError,
+    WrongFormat,
     GeneratedMsgError,
     LoadDLError,
     RunAuthError,
-    ChainedExec,
 }
 
 impl From<SysError> for Error {
@@ -41,5 +39,11 @@ impl From<CkbAuthError> for Error {
             RunDLError => Self::RunAuthError,
             _ => panic!("unexpected error"),
         }
+    }
+}
+
+impl From<hex::FromHexError> for Error {
+    fn from(_: hex::FromHexError) -> Self {
+        Self::WrongFormat
     }
 }
