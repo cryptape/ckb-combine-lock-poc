@@ -2,7 +2,6 @@
 
 pub mod blake2b;
 pub mod combine_lock_mol;
-pub mod combine_lock_mol_v2;
 pub use molecule;
 pub mod blockchain {
     pub use ckb_std::ckb_types::packed::{
@@ -18,4 +17,3 @@ pub mod ckb_auth;
 pub mod error;
 pub mod generate_sighash_all;
 pub mod logger;
-pub mod primitives;

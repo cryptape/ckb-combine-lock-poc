@@ -52,7 +52,10 @@ pub fn main() -> Result<(), Error> {
     info!("child-script-example execution_args = {:?}", execution_args);
     let execution_args_slice = execution_args.as_ref();
     let execution_witness_args_lock = parse_execution_witness_args_lock()?;
-    info!("child-script-example execution_witness_args_lock = {:?}", execution_witness_args_lock);
+    info!(
+        "child-script-example execution_witness_args_lock = {:?}",
+        execution_witness_args_lock
+    );
     if execution_args_slice.len() != 21 {
         return Err(Error::WrongFormat);
     }

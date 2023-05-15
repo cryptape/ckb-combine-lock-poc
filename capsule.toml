@@ -25,7 +25,3 @@ template_type = "Rust"
 [[contracts]]
 name = "auth-script-test"
 template_type = "Rust"
-
-[[contracts]]
-name = "ckb-combine-lock-v2"
-template_type = "Rust"
