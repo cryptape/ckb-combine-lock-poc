@@ -61,10 +61,11 @@ pub fn main() -> Result<(), Error> {
         for child_script_index in child_script_vec.into_iter() {
             let child_script_index = u8::from(child_script_index) as usize;
             let child_script = child_script_array.get(child_script_index).unwrap();
-            let child_script_args = child_script.args().as_slice().to_vec();
-            let child_script_args = hex::encode(child_script_args);
+            let child_script_args: Bytes = child_script.args().unpack();
+            let child_script_args = hex::encode(child_script_args.as_ref());
             let child_script_inner_witness = combine_lock_witness_inner_witness.get(child_script_index).unwrap();
-            let child_script_inner_witness = hex::encode(child_script_inner_witness.as_slice().to_vec());
+            let child_script_inner_witness: Bytes = child_script_inner_witness.unpack();
+            let child_script_inner_witness = hex::encode(child_script_inner_witness.as_ref());
             info!(
                 "spawn code_hash={} hash_type={}",
                 child_script.code_hash(),
