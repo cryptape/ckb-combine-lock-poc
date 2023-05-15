@@ -5,7 +5,6 @@ all: \
 	cl-always-success \
 	cl-child-script \
 	child-script-success \
-	child-script-multisig-success \
 	child-script-multi-inputs \
 	auth-script-exec-success
 
@@ -17,9 +16,6 @@ cl-child-script:
 
 child-script-success:
 	cargo run --bin child-script-success |  ${CKB_DEBUGGER} --tx-file=- -s lock
-
-child-script-multisig-success:
-	cargo run --bin child-script-multisig-success |  ${CKB_DEBUGGER} --tx-file=- -s lock
 
 child-script-multi-inputs:
 	cargo run --bin child-script-multi-inputs |  ${CKB_DEBUGGER} --tx-file=- -s lock
