@@ -55,15 +55,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "child-script-always-success-v2"
-version = "0.1.0"
-dependencies = [
- "ckb-combine-lock-common",
- "ckb-std",
- "log",
-]
-
-[[package]]
 name = "child-script-example"
 version = "0.1.0"
 dependencies = [

@@ -29,7 +29,3 @@ template_type = "Rust"
 [[contracts]]
 name = "ckb-combine-lock-v2"
 template_type = "Rust"
-
-[[contracts]]
-name = "child-script-always-success-v2"
-template_type = "Rust"

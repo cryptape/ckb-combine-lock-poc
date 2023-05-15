@@ -2,14 +2,11 @@ use ckb_std::error::SysError;
 
 /// Error
 #[repr(i8)]
-#[derive(Debug)]
 pub enum Error {
     IndexOutOfBound = 1,
     ItemMissing,
     LengthNotEnough,
     Encoding,
-    //
-    ChainedExec = 80,
 }
 
 impl From<SysError> for Error {
