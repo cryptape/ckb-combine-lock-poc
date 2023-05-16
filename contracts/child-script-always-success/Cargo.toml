@@ -4,12 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[features]
-default = ["log"]
-log = ["ckb-combine-lock-common/log"]
-
 
 [dependencies]
-ckb-std = "0.13.0"
 ckb-combine-lock-common = { path = "../../ckb-combine-lock-common" }
+ckb-std = "0.13"
 log = { version = "0.4.17", default-features = false }

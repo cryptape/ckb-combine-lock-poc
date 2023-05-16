@@ -76,7 +76,9 @@
         }
       }
     ],
-    "witnesses": [],
+    "witnesses": [
+      "0x"
+    ],
     "outputs_data": [
       "0x"
     ]

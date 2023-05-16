@@ -2,8 +2,6 @@ pub mod auto_complete;
 #[allow(dead_code)]
 pub mod combine_lock_mol;
 pub mod hash;
-pub mod smt;
-
 pub mod blockchain {
     pub use ckb_types::packed::{
         Byte, Byte32, Byte32Reader, Byte32Vec, Byte32VecReader, ByteReader, Bytes, BytesOpt,
@@ -13,13 +11,11 @@ pub mod blockchain {
 }
 use anyhow;
 use anyhow::Context;
-use blockchain::Bytes as BlockchainBytes;
-use blockchain::WitnessArgs;
 use ckb_hash::new_blake2b;
 use ckb_types::core::ScriptHashType;
 use ckb_types::packed;
 use ckb_types::prelude::*;
-use combine_lock_mol::{ChildScript, ChildScriptVec, CombineLockWitness, Uint16};
+use combine_lock_mol::ChildScript;
 use molecule::bytes::Bytes;
 use molecule::prelude::*;
 use std::{fs::read_to_string, path::PathBuf};
@@ -29,8 +25,6 @@ use ckb_debugger_api::embed::Embed;
 use ckb_mock_tx_types::{MockTransaction, ReprMockTransaction};
 use hash::hash;
 use serde_json::from_str as from_json_str;
-use smt::build_tree;
-use sparse_merkle_tree::H256;
 
 pub fn read_tx_template(file_name: &str) -> Result<ReprMockTransaction, anyhow::Error> {
     let mock_tx =
@@ -85,33 +79,6 @@ pub fn create_script_from_cell_dep(
         .hash_type(hash_type.into())
         .build();
     Ok(script)
-}
-
-// return smt root, witness args
-pub fn create_simple_case(
-    scripts: Vec<ChildScript>,
-    witness_base_index: u8,
-) -> (H256, WitnessArgs) {
-    let builder = ChildScriptVec::new_builder();
-    let child_scripts = builder.extend(scripts).build();
-
-    let h = hash(child_scripts.as_slice());
-    let (root, proof) = build_tree(&Vec::from([h]));
-
-    let index = Uint16::new_builder()
-        .nth0(witness_base_index.into())
-        .build();
-    let proof: Bytes = proof.into();
-    let proof2: BlockchainBytes = proof.pack();
-    let combine_lock_witness = CombineLockWitness::new_builder()
-        .scripts(child_scripts)
-        .proof(proof2)
-        .witness_base_index(index)
-        .build();
-    let bytes = combine_lock_witness.as_bytes();
-    let witness_args = WitnessArgs::new_builder().lock(Some(bytes).pack()).build();
-
-    (root, witness_args)
 }
 
 impl From<packed::Script> for ChildScript {

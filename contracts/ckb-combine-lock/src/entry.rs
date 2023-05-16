@@ -1,103 +1,102 @@
-use alloc::{ffi::CString, vec::Vec};
-use log::{info, warn};
-
+use crate::blake2b::hash;
+use crate::error::Error;
+use alloc::ffi::CString;
+use alloc::vec::Vec;
+use ckb_combine_lock_common::combine_lock_mol::CombineLockWitness;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, core::ScriptHashType, prelude::*},
-    high_level::{load_cell_data, load_script, load_witness_args, look_for_dep_with_hash2},
+    high_level::{load_script, load_witness_args, spawn_cell},
 };
-use core::{ffi::CStr, result::Result};
+use core::result::Result;
+use log::{info, warn};
 
-use crate::constant::{ARGS_SIZE, SMT_SIZE};
-use crate::error::Error;
-use crate::{blake2b::hash, constant::SMT_VALUE};
-use ckb_combine_lock_common::child_script_entry::ChildScriptEntry;
-use ckb_combine_lock_common::combine_lock_mol::{ChildScriptVec, CombineLockWitness};
-use ckb_std::high_level::exec_cell;
-use sparse_merkle_tree::h256::H256;
-use sparse_merkle_tree::SMTBuilder;
-
-fn parse_witness() -> Result<CombineLockWitness, Error> {
-    let args = load_witness_args(0, Source::GroupInput)?;
-    let lock: Bytes = args.lock().to_opt().unwrap().unpack();
-    CombineLockWitness::from_slice(lock.as_ref()).map_err(|_| Error::WrongWitnessFormat)
-}
-
-fn verify_smt(root: &[u8], key: &[u8], proof: &[u8]) -> Result<(), Error> {
-    let root: [u8; 32] = root.try_into().map_err(|_| Error::SmtVerifyFailed)?;
-    let root_hash: H256 = root.into();
-    let key: [u8; 32] = key.try_into().map_err(|_| Error::SmtVerifyFailed)?;
-    let key: H256 = key.into();
-
-    let builder = SMTBuilder::new();
-    let builder = builder.insert(&key, &SMT_VALUE.clone().into()).unwrap();
-    let smt = builder.build().unwrap();
-    smt.verify(&root_hash, proof)
-        .map_err(|_| Error::SmtVerifyFailed)
-}
-
-fn exec_child_scripts(witness_base_index: u16, scripts: ChildScriptVec) -> Result<(), Error> {
-    let scripts_len = scripts.len();
-    let mut argv: Vec<CString> = Vec::new();
-    for index in 0..scripts_len {
-        let script = scripts.get(index).unwrap();
-        let mut entry: ChildScriptEntry = script.into();
-        entry.witness_index = witness_base_index + (index as u16);
-
-        let s = entry.to_str().map_err(|_| Error::WrongHex)?;
-        let s = CString::new(s).map_err(|_| Error::WrongHex)?;
-        info!("exec_child_scripts, argv: {:?}", &s);
-        argv.push(s);
+fn parse_execution_args() -> Result<Bytes, Error> {
+    if ckb_std::env::argv().len() == 0 {
+        let script = load_script()?;
+        return Ok(script.args().unpack());
     }
-    let first_script = scripts.get(0).unwrap();
-    let first_script: ChildScriptEntry = first_script.into();
+    if ckb_std::env::argv().len() == 2 {
+        return Ok(Bytes::from(hex::decode(ckb_std::env::argv()[0].to_bytes())?));
+    }
+    return Err(Error::WrongFormat);
+}
 
-    let binding = argv.iter().map(|arg| arg.as_c_str()).collect::<Vec<_>>();
-    let argv: &[&CStr] = &binding;
-
-    let sysret = exec_cell(&first_script.code_hash, first_script.hash_type, 0, 0, argv);
-    warn!("sysret: {:?}", sysret);
-    sysret.map_err(|_| Error::ExecError)?;
-    unreachable!("unreachable after exec");
+fn parse_execution_witness_args_lock() -> Result<Bytes, Error> {
+    if ckb_std::env::argv().len() == 0 {
+        let execution_witness_args = load_witness_args(0, Source::GroupInput)?;
+        let execution_witness_args_lock: Bytes = execution_witness_args.lock().to_opt().unwrap().unpack();
+        return Ok(execution_witness_args_lock);
+    }
+    if ckb_std::env::argv().len() == 2 {
+        return Ok(Bytes::from(hex::decode(ckb_std::env::argv()[1].to_bytes())?));
+    }
+    return Err(Error::WrongFormat);
 }
 
 pub fn main() -> Result<(), Error> {
-    let script = load_script()?;
-    let args: Bytes = script.args().unpack();
-    let args_slice = args.as_ref();
-    if args_slice.len() < ARGS_SIZE {
-        return Err(Error::WrongArgs);
+    let execution_args = parse_execution_args()?;
+    let execution_args_slice = execution_args.as_ref();
+    let execution_witness_args_lock = parse_execution_witness_args_lock()?;
+
+    if execution_args_slice[0] >= 2 {
+        return Err(Error::WrongFormat);
     }
-    let info_cell_flag = args_slice[0];
-    let smt_root: Vec<u8> = if info_cell_flag == 1 {
-        let type_id = &args_slice[1..ARGS_SIZE];
-        let index = look_for_dep_with_hash2(type_id, ScriptHashType::Type)?;
-        let cell_data = load_cell_data(index, Source::CellDep)?;
-        if cell_data.len() < SMT_SIZE {
-            return Err(Error::WrongInfoCell);
+    if execution_args_slice[0] == 0 {
+        if execution_args_slice.len() < 1 + 32 {
+            return Err(Error::WrongFormat);
         }
-        Vec::from(&cell_data[0..SMT_SIZE])
-    } else if info_cell_flag == 0 {
-        Vec::from(&args_slice[1..ARGS_SIZE])
-    } else {
-        return Err(Error::WrongArgs);
-    };
-    let combine_lock_witness = parse_witness()?;
-    let child_scripts = combine_lock_witness.scripts();
-    let child_scripts_hash = hash(child_scripts.as_slice());
-    let proof: Bytes = combine_lock_witness.proof().unpack();
-    verify_smt(&smt_root, &child_scripts_hash, proof.as_ref())?;
+        let combine_lock_witness = CombineLockWitness::from_slice(&execution_witness_args_lock)?;
+        let combine_lock_witness_index = combine_lock_witness.index().unpack() as usize;
+        let combine_lock_witness_inner_witness = combine_lock_witness.inner_witness();
 
-    let witness_base_index = {
-        let index = combine_lock_witness.witness_base_index();
-        let slice = index.as_slice();
-        let array = slice.try_into().map_err(|_| Error::WrongMolecule)?;
-        u16::from_le_bytes(array)
-    };
-    info!(
-        "combine_lock_witness_scripts: {}",
-        combine_lock_witness.scripts()
-    );
-
-    exec_child_scripts(witness_base_index, combine_lock_witness.scripts())
+        let child_script_config = combine_lock_witness.script_config().to_opt().unwrap();
+        let child_script_config_hash_in_args = &execution_args_slice[1..33];
+        let child_script_config_hash_by_hash = hash(child_script_config.as_slice());
+        if child_script_config_hash_in_args != child_script_config_hash_by_hash {
+            return Err(Error::WrongScriptConfigHash);
+        }
+        let child_script_vec = child_script_config.index().get(combine_lock_witness_index).unwrap();
+        let child_script_array = child_script_config.array();
+        for child_script_index in child_script_vec.into_iter() {
+            let child_script_index = u8::from(child_script_index) as usize;
+            let child_script = child_script_array.get(child_script_index).unwrap();
+            let child_script_args: Bytes = child_script.args().unpack();
+            let child_script_args = hex::encode(child_script_args.as_ref());
+            let child_script_inner_witness = combine_lock_witness_inner_witness.get(child_script_index).unwrap();
+            let child_script_inner_witness: Bytes = child_script_inner_witness.unpack();
+            let child_script_inner_witness = hex::encode(child_script_inner_witness.as_ref());
+            info!(
+                "spawn code_hash={} hash_type={}",
+                child_script.code_hash(),
+                child_script.hash_type()
+            );
+            let spawn_ret = spawn_cell(
+                child_script.code_hash().as_slice(),
+                match u8::from(child_script.hash_type()) {
+                    0 => ScriptHashType::Data,
+                    1 => ScriptHashType::Type,
+                    2 => ScriptHashType::Data1,
+                    _ => return Err(Error::WrongHashType),
+                },
+                &[
+                    CString::new(child_script_args.as_str()).unwrap().as_c_str(),
+                    CString::new(child_script_inner_witness.as_str()).unwrap().as_c_str(),
+                ],
+                8,
+                &mut Vec::new(),
+            )?;
+            if spawn_ret != 0 {
+                warn!("spawn exit={}", spawn_ret);
+                return Err(Error::UnlockFailed);
+            }
+        }
+    }
+    if execution_args_slice[0] == 1 {
+        if execution_args_slice.len() < 1 + 32 + 32 {
+            return Err(Error::WrongFormat);
+        }
+        unimplemented!()
+    }
+    Ok(())
 }
