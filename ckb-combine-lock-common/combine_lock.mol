@@ -19,8 +19,10 @@ table ChildScriptConfig {
 
 option ChildScriptConfigOpt (ChildScriptConfig);
 
+array Uint16 [byte; 2];
+
 table CombineLockWitness {
-    index: byte,
+    index: Uint16,
     inner_witness: BytesVec,
     script_config: ChildScriptConfigOpt,
 }

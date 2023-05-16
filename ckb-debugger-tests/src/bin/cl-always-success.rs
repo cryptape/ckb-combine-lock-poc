@@ -1,6 +1,6 @@
 use ckb_debugger_tests::combine_lock_mol::{
     ChildScript, ChildScriptArray, ChildScriptConfig, ChildScriptConfigOpt, ChildScriptVec,
-    ChildScriptVecVec, CombineLockWitness,
+    ChildScriptVecVec, CombineLockWitness, Uint16,
 };
 use ckb_debugger_tests::{hash::hash, read_tx_template};
 use ckb_types::core::ScriptHashType;
@@ -41,7 +41,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build();
     let inner_witness = BytesVec::new_builder().push(Bytes::default()).build();
     let combine_lock_witness = CombineLockWitness::new_builder()
-        .index(0.into())
+        .index(Uint16::new_unchecked(0u16.to_le_bytes().to_vec().into()))
         .inner_witness(inner_witness)
         .script_config(child_script_config_opt)
         .build();

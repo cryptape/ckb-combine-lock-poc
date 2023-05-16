@@ -47,7 +47,7 @@ pub fn main() -> Result<(), Error> {
             return Err(Error::WrongFormat);
         }
         let combine_lock_witness = CombineLockWitness::from_slice(&execution_witness_args_lock)?;
-        let combine_lock_witness_index = u8::from(combine_lock_witness.index()) as usize;
+        let combine_lock_witness_index = combine_lock_witness.index().unpack() as usize;
         let combine_lock_witness_inner_witness = combine_lock_witness.inner_witness();
 
         let child_script_config = combine_lock_witness.script_config().to_opt().unwrap();

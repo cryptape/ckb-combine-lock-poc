@@ -1,7 +1,7 @@
 use ckb_crypto::secp::Privkey;
 use ckb_debugger_tests::combine_lock_mol::{
     ChildScript, ChildScriptArray, ChildScriptConfig, ChildScriptConfigOpt, ChildScriptVec,
-    ChildScriptVecVec, CombineLockWitness,
+    ChildScriptVecVec, CombineLockWitness, Uint16,
 };
 use ckb_debugger_tests::generate_sighash_all;
 use ckb_debugger_tests::{
@@ -56,7 +56,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let inner_witness = BytesVec::new_builder().push(vec![0u8; 65].pack()).build();
     let combine_lock_witness = CombineLockWitness::new_builder()
-        .index(0.into())
+        .index(Uint16::new_unchecked(0u16.to_le_bytes().to_vec().into()))
         .inner_witness(inner_witness)
         .script_config(child_script_config_opt.clone())
         .build();
@@ -73,7 +73,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .serialize();
     let inner_witness = BytesVec::new_builder().push(sig.pack()).build();
     let combine_lock_witness = CombineLockWitness::new_builder()
-        .index(0.into())
+        .index(Uint16::new_unchecked(0u16.to_le_bytes().to_vec().into()))
         .inner_witness(inner_witness)
         .script_config(child_script_config_opt)
         .build();
