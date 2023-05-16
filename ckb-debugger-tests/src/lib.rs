@@ -156,10 +156,9 @@ pub fn generate_sighash_all(
             blake2b.update(&witness.raw_data());
         }
     }
-
-    let normal_witness_len = std::cmp::max(tx.tx.inputs.len(), tx.tx.outputs.len());
-    if tx.tx.inputs.len() < normal_witness_len {
-        for i in tx.tx.inputs.len()..normal_witness_len {
+    let witness_len = std::cmp::max(tx.tx.inputs.len(), mock_tx.tx.witnesses().len());
+    if tx.tx.inputs.len() < witness_len {
+        for i in tx.tx.inputs.len()..witness_len {
             let witness = mock_tx.tx.witnesses().get(i).unwrap();
 
             blake2b.update(&(witness.len() as u64).to_le_bytes());
