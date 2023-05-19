@@ -9,6 +9,12 @@ pub enum Error {
 
     WrongHex = 110,
     ChainedExec,
+    InvalidCellDepRef,
+    InvalidDataLength,
+    InvalidCellDepTypeScript,
+    InvalidInputCount,
+    InvalidOutputLockScript,
+    InvalidUpdate,
 }
 
 impl From<SysError> for Error {
