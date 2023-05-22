@@ -100,6 +100,13 @@ fn fetch_child_script_config(
         {
             continue;
         }
+        let args = &config_cell_lock_script.args().raw_data();
+        if args[0] != 1u8 {
+            continue;
+        }
+        if &args[prefix_flag_len..prefix_flag_len + GLOBAL_REGISTRY_ID_LEN] != global_registry_id {
+            continue;
+        }
 
         // the layout of config cell data:
         // | 32 bytes next hash | variable length bytes |
@@ -114,8 +121,7 @@ fn fetch_child_script_config(
         // the layout of lock script args is same as combine lock:
         // | 1 byte flag | 32 bytes global registry ID | 32 bytes child script config hash |
         let total_len = prefix_flag_len + GLOBAL_REGISTRY_ID_LEN + CHILD_SCRIPT_CONFIG_HASH_LEN;
-        let current_hash: [u8; 32] = config_cell_lock_script.args().raw_data()
-            [prefix_flag_len + GLOBAL_REGISTRY_ID_LEN..total_len]
+        let current_hash: [u8; 32] = args[prefix_flag_len + GLOBAL_REGISTRY_ID_LEN..total_len]
             .try_into()
             .unwrap();
         match current_hash.cmp(child_script_config_hash) {
@@ -132,20 +138,24 @@ fn fetch_child_script_config(
                         child_script_config_hash.clone(),
                     ));
                 } else {
-                    warn!("Invalid cell_dep, not in range(too large)");
-                    return Err(Error::InvalidCellDepRef);
+                    // Considering multiple combine locks in one transaction, it
+                    // attaches multiple cell_deps. Search further.
+                    info!("Not match cell_dep, not in range(too large)");
+                    continue;
                 }
             }
             Ordering::Greater => {
-                warn!("Invalid cell_dep, not in range (too small)");
-                return Err(Error::InvalidCellDepRef);
+                // Considering multiple combine locks in one transaction, it
+                // attaches multiple cell_deps. Search further.
+                info!("Not matched cell_dep, not in range (too small)");
+                continue;
             }
         }
     }
     // When a lock script uses global registry, it must attach a cell_dep:
     // 1. cell_dp contains child script config or
     // 2. Proof of config cell not containing child script config
-    warn!("Can't find any cell_dep containing or not containing child script config");
+    warn!("Can't find any corresponding cell_dep or proof not containing child script config");
     Err(Error::InvalidCellDepRef)
 }
 
