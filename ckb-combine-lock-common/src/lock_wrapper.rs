@@ -95,7 +95,9 @@ fn fetch_child_script_config(
         }
         // config cell's lock script should be same as assert/normal cell's lock script
         let config_cell_lock_script = load_cell_lock(index, Source::CellDep)?;
-        if config_cell_lock_script.as_bytes() != current_script.as_bytes() {
+        if config_cell_lock_script.code_hash().as_bytes() != current_script.code_hash().as_bytes()
+            || config_cell_lock_script.hash_type() != current_script.hash_type()
+        {
             continue;
         }
 
@@ -123,8 +125,9 @@ fn fetch_child_script_config(
                 ));
             }
             Ordering::Less => {
+                // current hash < child_script_config_hash < next_hash
                 let next_hash: [u8; 32] = config_cell_data[0..NEXT_HASH_LEN].try_into().unwrap();
-                if &next_hash >= child_script_config_hash {
+                if &next_hash > child_script_config_hash {
                     return Ok(LockWrapperResult::ChildScriptConfigHash(
                         child_script_config_hash.clone(),
                     ));
