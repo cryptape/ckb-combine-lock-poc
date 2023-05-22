@@ -1,5 +1,6 @@
 extern crate alloc;
 
+use crate::error::Error;
 use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
@@ -10,11 +11,11 @@ use ckb_std::{
     syscalls::exit,
 };
 use core::{cmp::Ordering, result::Result};
-
-use crate::error::Error;
+use log::{info, warn};
 
 const GLOBAL_REGISTRY_ID_LEN: usize = 32;
 const CHILD_SCRIPT_CONFIG_HASH_LEN: usize = 32;
+const NEXT_HASH_LEN: usize = 32;
 
 pub enum LockWrapperResult {
     /// molecule serialized ChildScriptConfig.
@@ -28,7 +29,7 @@ pub enum LockWrapperResult {
 
 /// An entry to handle global registry processing. Make it easy for lock scripts
 /// to adopt global registry.
-/// 
+///
 /// * `global_registry_id` - type script hash of a config cell
 /// * `child_script_config_hash` - Hash of child script config. A 2-D
 /// dimensioned array of child scripts. It is usually stored in config cell or
@@ -44,7 +45,7 @@ pub fn lock_wrapper_entry(
     if contain_config_cell(global_registry_id) {
         validate_config_cell(global_registry_id)
     } else {
-        fetch_script(
+        fetch_child_script_config(
             global_registry_id,
             child_script_config_hash,
             prefix_flag_len,
@@ -52,7 +53,7 @@ pub fn lock_wrapper_entry(
     }
 }
 
-/// Check transaction contain config cell.
+/// Check if the transaction contain config cell.
 ///
 /// When it returns true, there are 2 scenarios:
 /// 1. Update config cell by owner (validated by owner)
@@ -73,10 +74,10 @@ fn contain_config_cell(global_registry_id: &[u8; 32]) -> bool {
     return false;
 }
 
-/// fetch scripts to run from config cell in global registry
-/// See LockWrapperResult
+/// fetch child script config from config cell in global registry. See
+/// LockWrapperResult
 ///
-fn fetch_script(
+fn fetch_child_script_config(
     global_registry_id: &[u8; 32],
     child_script_config_hash: &[u8; 32],
     prefix_flag_len: usize,
@@ -101,7 +102,11 @@ fn fetch_script(
         // the layout of config cell data:
         // | 32 bytes next hash | variable length bytes |
         let config_cell_data = load_cell_data(index, Source::CellDep)?;
-        if config_cell_data.len() < 32 {
+        if config_cell_data.len() < NEXT_HASH_LEN {
+            warn!(
+                "Config cell data length is not enough: {}",
+                config_cell_data.len()
+            );
             return Err(Error::InvalidDataLength);
         }
         // the layout of lock script args is same as combine lock:
@@ -114,24 +119,30 @@ fn fetch_script(
         match current_hash.cmp(child_script_config_hash) {
             Ordering::Equal => {
                 return Ok(LockWrapperResult::ChildScriptConfig(
-                    config_cell_data[32..].into(),
+                    config_cell_data[NEXT_HASH_LEN..].into(),
                 ));
             }
             Ordering::Less => {
-                let next_hash: [u8; 32] = config_cell_data[0..32].try_into().unwrap();
+                let next_hash: [u8; 32] = config_cell_data[0..NEXT_HASH_LEN].try_into().unwrap();
                 if &next_hash >= child_script_config_hash {
                     return Ok(LockWrapperResult::ChildScriptConfigHash(
                         child_script_config_hash.clone(),
                     ));
                 } else {
+                    warn!("Invalid cell_dep, not in range(too large)");
                     return Err(Error::InvalidCellDepRef);
                 }
             }
             Ordering::Greater => {
+                warn!("Invalid cell_dep, not in range (too small)");
                 return Err(Error::InvalidCellDepRef);
             }
         }
     }
+    // When a lock script uses global registry, it must attach a cell_dep:
+    // 1. cell_dp contains child script config or
+    // 2. Proof of config cell not containing child script config
+    warn!("Can't find any cell_dep containing or not containing child script config");
     Err(Error::InvalidCellDepRef)
 }
 
@@ -154,6 +165,7 @@ fn validate_config_cell(global_registry_id: &[u8; 32]) -> Result<LockWrapperResu
         .collect();
 
     if inputs_index.len() != 1 {
+        warn!("Invalid input count");
         return Err(Error::InvalidInputCount);
     }
 
@@ -161,21 +173,30 @@ fn validate_config_cell(global_registry_id: &[u8; 32]) -> Result<LockWrapperResu
 
     let output = load_cell(index, Source::Output)?;
     if current_script.as_bytes() != output.lock().as_bytes() {
+        warn!("Invalid output lock script");
         return Err(Error::InvalidOutputLockScript);
     }
 
     let input_data = load_cell_data(index, Source::Input)?;
     let output_data = load_cell_data(index, Source::Output)?;
-    if input_data[32..64] == output_data[32..64] {
-        // IMPORTANT: bypass branch
+    if input_data[NEXT_HASH_LEN..] == output_data[NEXT_HASH_LEN..] {
+        // update next hash
+        // TODO: more strict checking
+        info!("Update next hash. Insert config cell by anyone (bypass)");
         exit(0);
     } else {
-        if input_data[0..32] != output_data[0..32] {
+        // update config cell data
+        if input_data[0..NEXT_HASH_LEN] != output_data[0..NEXT_HASH_LEN] {
+            // strict checking
+            warn!("Next hash can't be updated in this routine");
             return Err(Error::InvalidUpdate);
         }
+        // TODO: check output_data[NEXT_HASH_LEN..] is in format of
+        // ChildScriptConfig
+
         // verify by owner
         Ok(LockWrapperResult::ChildScriptConfig(
-            input_data[32..64].into(),
+            input_data[NEXT_HASH_LEN..].into(),
         ))
     }
 }
