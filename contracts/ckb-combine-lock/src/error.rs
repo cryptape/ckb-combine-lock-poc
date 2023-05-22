@@ -11,6 +11,8 @@ pub enum Error {
     WrongScriptConfigHash,
     WrongHashType,
     UnlockFailed,
+    WrongMoleculeFormat,
+    LockWrapperError,
 }
 
 impl From<SysError> for Error {
@@ -35,5 +37,11 @@ impl From<molecule::error::VerificationError> for Error {
 impl From<hex::FromHexError> for Error {
     fn from(_: hex::FromHexError) -> Self {
         Self::WrongFormat
+    }
+}
+
+impl From<ckb_combine_lock_common::error::Error> for Error {
+    fn from(_: ckb_combine_lock_common::error::Error) -> Self {
+        Self::LockWrapperError
     }
 }

@@ -13,44 +13,59 @@ use core::{cmp::Ordering, result::Result};
 
 use crate::error::Error;
 
+const GLOBAL_REGISTRY_ID_LEN: usize = 32;
+const CHILD_SCRIPT_CONFIG_HASH_LEN: usize = 32;
+
 pub enum LockWrapperResult {
-    // molecule serialized ChildScriptConfig
+    /// molecule serialized ChildScriptConfig.
+    /// With this result, combine lock should use this as child script config.
     ChildScriptConfig(Vec<u8>),
-    // blake2b hash of molecule serialized ChildScriptConfig,
-    // the preimage is in witness
+    /// blake2b hash of molecule serialized ChildScriptConfig. With this result,
+    /// combine lock should use the child script config with this hash is in
+    /// witness.
     ChildScriptConfigHash([u8; 32]),
 }
 
-//
-// config_cell_script_hash: type script hash of a config cell
-// child_script_config_hash: Hash of child script config. A 2-D dimensioned
-// array of child scripts. It is usually stored in config cell or provided in
-// witness. It is ChildScriptConfig type in molecule format.
-//
+/// An entry to handle global registry processing. Make it easy for lock scripts
+/// to adopt global registry.
+/// 
+/// * `global_registry_id` - type script hash of a config cell
+/// * `child_script_config_hash` - Hash of child script config. A 2-D
+/// dimensioned array of child scripts. It is usually stored in config cell or
+/// provided in witness. It is ChildScriptConfig type in molecule format.
+/// * `prefix_flag_len` - Scripts which adopt global registry have different
+/// `args` layout. This variable indicates the length of leading bytes defined
+/// by lock scripts. In combine lock, there is an extra leading 1 byte flag.
 pub fn lock_wrapper_entry(
-    config_cell_script_hash: &[u8; 32],
+    global_registry_id: &[u8; 32],
     child_script_config_hash: &[u8; 32],
+    prefix_flag_len: usize,
 ) -> Result<LockWrapperResult, Error> {
-    if contain_config_cell(config_cell_script_hash) {
-        validate_config_cell(config_cell_script_hash)
+    if contain_config_cell(global_registry_id) {
+        validate_config_cell(global_registry_id)
     } else {
-        fetch_script(config_cell_script_hash, child_script_config_hash)
+        fetch_script(
+            global_registry_id,
+            child_script_config_hash,
+            prefix_flag_len,
+        )
     }
 }
 
-// Check transaction contain config cell.
-// When it returns true, there are 2 scenarios:
-// 1. Update config cell by owner (validated by owner)
-// 2. Insert config cell by anyone (bypass)
-// When it returns false, there are also 2:
-// 1. Config cell contains child scripts. Run them.
-// 2. Config cell doesn't contain. Run scripts provided in witness. It returns hash only.
-fn contain_config_cell(config_cell_script_hash: &[u8; 32]) -> bool {
+/// Check transaction contain config cell.
+///
+/// When it returns true, there are 2 scenarios:
+/// 1. Update config cell by owner (validated by owner)
+/// 2. Insert config cell by anyone (bypass)
+/// When it returns false, there are also 2:
+/// 1. Config cell contains child scripts. Run them.
+/// 2. Config cell doesn't contain. Run scripts provided in witness. It returns hash only.
+fn contain_config_cell(global_registry_id: &[u8; 32]) -> bool {
     let inputs_type_hashes = QueryIter::new(load_cell_type_hash, Source::GroupInput);
 
     for i in inputs_type_hashes {
         if let Some(ref hash) = i {
-            if hash == config_cell_script_hash {
+            if hash == global_registry_id {
                 return true;
             }
         }
@@ -58,62 +73,69 @@ fn contain_config_cell(config_cell_script_hash: &[u8; 32]) -> bool {
     return false;
 }
 
-// fetch scripts to run from config cell in global registry
-// See LockWrapperResult
+/// fetch scripts to run from config cell in global registry
+/// See LockWrapperResult
+///
 fn fetch_script(
-    config_cell_script_hash: &[u8; 32],
+    global_registry_id: &[u8; 32],
     child_script_config_hash: &[u8; 32],
+    prefix_flag_len: usize,
 ) -> Result<LockWrapperResult, Error> {
     let current_script = load_script()?;
 
-    // TODO: allow any position
-    let index = 0;
-    let cell_dep_type_hash = load_cell_type_hash(index, Source::CellDep)?;
-    if cell_dep_type_hash.is_none() {
-        return Err(Error::InvalidCellDepTypeScript);
-    }
+    let dep_type_hashes = QueryIter::new(load_cell_type_hash, Source::CellDep);
+    // Considering the case when there are multiple combine locks in one transaction.
+    for (index, hash) in dep_type_hashes.enumerate() {
+        if hash.is_none() {
+            continue;
+        }
+        if &hash.unwrap() != global_registry_id {
+            continue;
+        }
+        // config cell's lock script should be same as assert/normal cell's lock script
+        let config_cell_lock_script = load_cell_lock(index, Source::CellDep)?;
+        if config_cell_lock_script.as_bytes() != current_script.as_bytes() {
+            continue;
+        }
 
-    if &cell_dep_type_hash.unwrap() != config_cell_script_hash {
-        return Err(Error::InvalidCellDepTypeScript);
-    }
-
-    // config cell's lock script should be same as assert/normal cell's lock script
-    let config_cell_lock_script = load_cell_lock(index, Source::CellDep)?;
-    if config_cell_lock_script.as_bytes() != current_script.as_bytes() {
-        return Err(Error::InvalidCellDepRef);
-    }
-
-    // TODO: allow any position
-    let config_cell_data = load_cell_data(index, Source::CellDep)?;
-    if config_cell_data.len() <= 32 {
-        return Err(Error::InvalidDataLength);
-    }
-
-    // the layout of lock script args is same as combine lock
-    let current_hash: [u8; 32] = config_cell_lock_script.args().raw_data()[33..65]
-        .try_into()
-        .unwrap();
-    match current_hash.cmp(child_script_config_hash) {
-        Ordering::Equal => Ok(LockWrapperResult::ChildScriptConfig(
-            config_cell_data[32..].into(),
-        )),
-        Ordering::Less => {
-            let next_hash: [u8; 32] = config_cell_data[0..32].try_into().unwrap();
-            if &next_hash >= child_script_config_hash {
-                Ok(LockWrapperResult::ChildScriptConfigHash(
-                    child_script_config_hash.clone(),
-                ))
-            } else {
+        // the layout of config cell data:
+        // | 32 bytes next hash | variable length bytes |
+        let config_cell_data = load_cell_data(index, Source::CellDep)?;
+        if config_cell_data.len() < 32 {
+            return Err(Error::InvalidDataLength);
+        }
+        // the layout of lock script args is same as combine lock:
+        // | 1 byte flag | 32 bytes global registry ID | 32 bytes child script config hash |
+        let total_len = prefix_flag_len + GLOBAL_REGISTRY_ID_LEN + CHILD_SCRIPT_CONFIG_HASH_LEN;
+        let current_hash: [u8; 32] = config_cell_lock_script.args().raw_data()
+            [prefix_flag_len + GLOBAL_REGISTRY_ID_LEN..total_len]
+            .try_into()
+            .unwrap();
+        match current_hash.cmp(child_script_config_hash) {
+            Ordering::Equal => {
+                return Ok(LockWrapperResult::ChildScriptConfig(
+                    config_cell_data[32..].into(),
+                ));
+            }
+            Ordering::Less => {
+                let next_hash: [u8; 32] = config_cell_data[0..32].try_into().unwrap();
+                if &next_hash >= child_script_config_hash {
+                    return Ok(LockWrapperResult::ChildScriptConfigHash(
+                        child_script_config_hash.clone(),
+                    ));
+                } else {
+                    return Err(Error::InvalidCellDepRef);
+                }
+            }
+            Ordering::Greater => {
                 return Err(Error::InvalidCellDepRef);
             }
         }
-        Ordering::Greater => {
-            return Err(Error::InvalidCellDepRef);
-        }
     }
+    Err(Error::InvalidCellDepRef)
 }
 
-fn validate_config_cell(config_cell_script_hash: &[u8; 32]) -> Result<LockWrapperResult, Error> {
+fn validate_config_cell(global_registry_id: &[u8; 32]) -> Result<LockWrapperResult, Error> {
     let current_script = load_script()?;
     let inputs_type_hashes = QueryIter::new(load_cell_type_hash, Source::Input);
 
@@ -121,7 +143,7 @@ fn validate_config_cell(config_cell_script_hash: &[u8; 32]) -> Result<LockWrappe
         .enumerate()
         .filter_map(|(index, i)| match i {
             Some(ref hash) => {
-                if hash == config_cell_script_hash {
+                if hash == global_registry_id {
                     Some(index)
                 } else {
                     None
