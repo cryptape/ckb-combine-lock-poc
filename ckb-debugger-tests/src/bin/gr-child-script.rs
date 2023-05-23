@@ -3,14 +3,13 @@ use ckb_debugger_tests::combine_lock_mol::{
     ChildScript, ChildScriptArray, ChildScriptConfig, ChildScriptConfigOpt, ChildScriptVec,
     ChildScriptVecVec, CombineLockWitness, Uint16,
 };
-use ckb_debugger_tests::generate_sighash_all;
+use ckb_debugger_tests::{create_script_from_cell_dep, generate_sighash_all};
 use ckb_debugger_tests::{
     hash::{blake160, hash},
     read_tx_template,
 };
 use ckb_jsonrpc_types::JsonBytes;
-use ckb_types::core::ScriptHashType;
-use ckb_types::packed::{Byte32, BytesVec, Script, WitnessArgs};
+use ckb_types::packed::{BytesVec, Script, WitnessArgs};
 use ckb_types::prelude::Pack;
 use ckb_types::H256;
 use log::info;
@@ -43,13 +42,10 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     auth[0] = 0; // CKB
     auth[1..].copy_from_slice(&child_script_pubkey_hash);
 
-    let chile_script_data = repr_tx.mock_info.cell_deps[1].data.as_bytes();
-    let child_script_code_hash = hash(chile_script_data);
-    let child_script = ChildScript::new_builder()
-        .code_hash(Byte32::from_slice(&child_script_code_hash).unwrap())
-        .hash_type(ScriptHashType::Data1.into())
-        .args(auth.as_slice().pack())
-        .build();
+    let child_script = create_script_from_cell_dep(&repr_tx, 1, false)?;
+    let child_script: ChildScript = child_script.into();
+    let child_script = child_script.as_builder().args(auth.pack()).build();
+
     let child_script_array = ChildScriptArray::new_builder().push(child_script).build();
     let child_script_vec = ChildScriptVec::new_builder().push(0.into()).build();
     let child_script_vec_vec = ChildScriptVecVec::new_builder()
@@ -93,7 +89,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         // this cell_dep is a proof that this child script config doesn't exist
         // in config cell
         let l = args.len();
-        for i in l-8..l {
+        for i in l - 8..l {
             args[i] = 0;
         }
         repr_tx

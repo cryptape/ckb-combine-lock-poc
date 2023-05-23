@@ -60,13 +60,15 @@ pub fn create_script_from_cell_dep(
     use_type: bool,
 ) -> Result<packed::Script, anyhow::Error> {
     assert!(index < tx.mock_info.cell_deps.len());
+    let data = tx.mock_info.cell_deps[index].data.as_bytes();
+    // the minimum binary size(always_success) is 512 bytes
+    assert!(data.len() > 256);
     let code_hash = if use_type {
         let cell_dep = &tx.mock_info.cell_deps[index];
         let script = cell_dep.output.type_.clone().unwrap();
         let script: packed::Script = script.into();
         hash(script.as_slice())
     } else {
-        let data = tx.mock_info.cell_deps[index].data.as_bytes();
         hash(data)
     };
     let hash_type = if use_type {
