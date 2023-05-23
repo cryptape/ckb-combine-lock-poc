@@ -17,8 +17,7 @@ static G_PRIVKEY_BUF: [u8; 32] = [
 ];
 
 lazy_static! {
-    pub static ref AUTH_DL: Bytes =
-        Bytes::from(&include_bytes!("../../templates/bin/auth")[..]);
+    pub static ref AUTH_DL: Bytes = Bytes::from(&include_bytes!("../../templates/bin/auth")[..]);
 }
 
 fn update_auth_code_hash(tx: &mut ReprMockTransaction) {
@@ -30,7 +29,6 @@ fn update_auth_code_hash(tx: &mut ReprMockTransaction) {
         input.output.lock.args = JsonBytes::from_vec(buf);
     }
 }
-
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let private_key = Privkey::from(H256::from(G_PRIVKEY_BUF));

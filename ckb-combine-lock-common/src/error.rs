@@ -1,6 +1,7 @@
 use ckb_std::error::SysError;
 
 #[derive(Debug)]
+#[repr(i8)]
 pub enum Error {
     IndexOutOfBound = 1,
     ItemMissing,
@@ -9,6 +10,12 @@ pub enum Error {
 
     WrongHex = 110,
     ChainedExec,
+    InvalidCellDepRef,
+    InvalidDataLength,
+    InvalidCellDepTypeScript,
+    InvalidInputCount,
+    InvalidOutputLockScript,
+    InvalidUpdate,
 }
 
 impl From<SysError> for Error {
