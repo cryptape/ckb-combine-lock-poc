@@ -2,17 +2,17 @@
 use ckb_debugger_tests::{
     create_child_script_config, create_witness_args, hash::hash, read_tx_template,
 };
-use ckb_types::packed::Bytes;
 use ckb_types::prelude::Pack;
+use molecule::bytes::Bytes;
 use molecule::prelude::Entity;
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut repr_tx =
         read_tx_template("../ckb-debugger-tests/templates/cl-always-success-3i3c.json")?;
 
-    let child_script_config_0 = create_child_script_config(&repr_tx, &[1, 2, 3], &[&[0, 1, 2]])?;
-    let child_script_config_1 = create_child_script_config(&repr_tx, &[1, 2], &[&[0, 1, 1, 1]])?;
-    let child_script_config_2 = create_child_script_config(&repr_tx, &[1], &[&[0, 0, 0, 0, 0]])?;
+    let child_script_config_0 = create_child_script_config(&repr_tx, &[1, 2, 3], &[Bytes::default(), Bytes::default(), Bytes::default()], &[&[0, 1, 2]])?;
+    let child_script_config_1 = create_child_script_config(&repr_tx, &[1, 2], &[Bytes::default(), Bytes::default()], &[&[0, 1, 1, 1]])?;
+    let child_script_config_2 = create_child_script_config(&repr_tx, &[1], &[Bytes::default()], &[&[0, 0, 0, 0, 0]])?;
 
     let mut args_0 = vec![0x00u8];
     args_0.extend(hash(child_script_config_0.as_slice()));

@@ -100,11 +100,13 @@ impl From<ChildScript> for packed::Script {
 pub fn create_child_script_config(
     repr_tx: &ReprMockTransaction,
     cell_dep_index: &[usize],
+    args: &[Bytes],
     vec_vec: &[&[u8]],
 ) -> Result<ChildScriptConfig, anyhow::Error> {
     let mut child_script_array_builder = ChildScriptArray::new_builder();
-    for &i in cell_dep_index {
-        let child_script = create_script_from_cell_dep(&repr_tx, i, false)?;
+    for i in 0..cell_dep_index.len() {
+        let mut child_script = create_script_from_cell_dep(&repr_tx, cell_dep_index[i], false)?;
+        child_script = child_script.as_builder().args(args[i].pack()).build();
         child_script_array_builder = child_script_array_builder.push(child_script.into());
     }
     let child_script_array = child_script_array_builder.build();
@@ -128,15 +130,14 @@ pub fn create_child_script_config(
 pub fn create_witness_args(
     child_script_config: &ChildScriptConfig,
     index: u16,
-    inner_witness: &[packed::Bytes],
+    inner_witness: &[Bytes],
 ) -> Result<packed::WitnessArgs, anyhow::Error> {
     let child_script_config_opt = ChildScriptConfigOpt::new_builder()
         .set(Some(child_script_config.clone()))
         .build();
     let mut inner_witness_builder = packed::BytesVec::new_builder();
     for i in inner_witness {
-
-        inner_witness_builder = inner_witness_builder.push(i.clone())
+        inner_witness_builder = inner_witness_builder.push(i.clone().pack())
     }
     let inner_witness = inner_witness_builder.build();
     let combine_lock_witness = CombineLockWitness::new_builder()

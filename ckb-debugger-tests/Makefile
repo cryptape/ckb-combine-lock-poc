@@ -7,6 +7,7 @@ CKB_DEBUGGER ?= ckb-debugger-2023
 all: \
 	cl-always-success \
 	cl-always-success-3i3c \
+	cl-cl-always-success \
 	cl-child-script \
 	gr-child-script \
 	gr-child-script-no-config-cell\
@@ -21,6 +22,9 @@ cl-always-success-3i3c:
 	cargo run --bin cl-always-success-3i3c |  ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=0
 	cargo run --bin cl-always-success-3i3c |  ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=1
 	cargo run --bin cl-always-success-3i3c |  ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=2
+
+cl-cl-always-success:
+	cargo run --bin cl-cl-always-success |  ${CKB_DEBUGGER} --tx-file=- -s lock
 
 cl-child-script:
 	cargo run --bin cl-child-script |  ${CKB_DEBUGGER} --tx-file=- -s lock
