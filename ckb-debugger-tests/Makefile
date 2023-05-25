@@ -16,6 +16,9 @@ all: \
 cl-always-success:
 	cargo run --bin cl-always-success |  ${CKB_DEBUGGER} --tx-file=- -s lock
 
+cl-always-success-3-childs:
+	cargo run --bin cl-always-success-3-childs |  ${CKB_DEBUGGER} --tx-file=- -s lock
+
 cl-child-script:
 	cargo run --bin cl-child-script |  ${CKB_DEBUGGER} --tx-file=- -s lock
 

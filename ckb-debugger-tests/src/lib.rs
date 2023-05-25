@@ -11,20 +11,22 @@ pub mod blockchain {
 }
 use anyhow;
 use anyhow::Context;
+use auto_complete::auto_complete;
+use ckb_debugger_api::embed::Embed;
 use ckb_hash::new_blake2b;
+use ckb_mock_tx_types::{MockTransaction, ReprMockTransaction};
 use ckb_types::core::ScriptHashType;
 use ckb_types::packed;
 use ckb_types::prelude::*;
-use combine_lock_mol::ChildScript;
+use combine_lock_mol::{
+    ChildScript, ChildScriptArray, ChildScriptConfig, ChildScriptConfigOpt, ChildScriptVec,
+    ChildScriptVecVec, CombineLockWitness, Uint16,
+};
+use hash::hash;
 use molecule::bytes::Bytes;
 use molecule::prelude::*;
-use std::{fs::read_to_string, path::PathBuf};
-
-use auto_complete::auto_complete;
-use ckb_debugger_api::embed::Embed;
-use ckb_mock_tx_types::{MockTransaction, ReprMockTransaction};
-use hash::hash;
 use serde_json::from_str as from_json_str;
+use std::{fs::read_to_string, path::PathBuf};
 
 pub fn read_tx_template(file_name: &str) -> Result<ReprMockTransaction, anyhow::Error> {
     let mock_tx =
@@ -93,6 +95,59 @@ impl From<ChildScript> for packed::Script {
     fn from(value: ChildScript) -> Self {
         packed::Script::new_unchecked(value.as_bytes())
     }
+}
+
+pub fn create_child_script_config(
+    repr_tx: &ReprMockTransaction,
+    cell_dep_index: &[usize],
+    vec_vec: &[&[u8]],
+) -> Result<ChildScriptConfig, anyhow::Error> {
+    let mut child_script_array_builder = ChildScriptArray::new_builder();
+    for &i in cell_dep_index {
+        let child_script = create_script_from_cell_dep(&repr_tx, i, false)?;
+        child_script_array_builder = child_script_array_builder.push(child_script.into());
+    }
+    let child_script_array = child_script_array_builder.build();
+    let mut child_script_vec_vec_builder = ChildScriptVecVec::new_builder();
+    for &i in vec_vec {
+        let mut child_script_vec_builder = ChildScriptVec::new_builder();
+        for &j in i {
+            child_script_vec_builder = child_script_vec_builder.push(j.into());
+        }
+        let child_script_vec = child_script_vec_builder.build();
+        child_script_vec_vec_builder = child_script_vec_vec_builder.push(child_script_vec);
+    }
+    let child_script_vec_vec = child_script_vec_vec_builder.build();
+    let child_script_config = ChildScriptConfig::new_builder()
+        .array(child_script_array)
+        .index(child_script_vec_vec)
+        .build();
+    Ok(child_script_config)
+}
+
+pub fn create_witness_args(
+    child_script_config: &ChildScriptConfig,
+    index: u16,
+    inner_witness: &[packed::Bytes],
+) -> Result<packed::WitnessArgs, anyhow::Error> {
+    let child_script_config_opt = ChildScriptConfigOpt::new_builder()
+        .set(Some(child_script_config.clone()))
+        .build();
+    let mut inner_witness_builder = packed::BytesVec::new_builder();
+    for i in inner_witness {
+
+        inner_witness_builder = inner_witness_builder.push(i.clone())
+    }
+    let inner_witness = inner_witness_builder.build();
+    let combine_lock_witness = CombineLockWitness::new_builder()
+        .index(Uint16::new_unchecked(index.to_le_bytes().to_vec().into()))
+        .inner_witness(inner_witness)
+        .script_config(child_script_config_opt)
+        .build();
+    let witness_args = packed::WitnessArgs::new_builder()
+        .lock(Some(combine_lock_witness.as_bytes()).pack())
+        .build();
+    Ok(witness_args)
 }
 
 // Now, only support lock script
