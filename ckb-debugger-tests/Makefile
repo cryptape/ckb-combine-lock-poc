@@ -6,6 +6,7 @@ CKB_DEBUGGER ?= ckb-debugger-2023
 ## gr: combine lock with global registry
 all: \
 	cl-always-success \
+	cl-always-success-3i3c \
 	cl-child-script \
 	gr-child-script \
 	gr-child-script-no-config-cell\
@@ -15,6 +16,11 @@ all: \
 
 cl-always-success:
 	cargo run --bin cl-always-success |  ${CKB_DEBUGGER} --tx-file=- -s lock
+
+cl-always-success-3i3c:
+	cargo run --bin cl-always-success-3i3c |  ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=0
+	cargo run --bin cl-always-success-3i3c |  ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=1
+	cargo run --bin cl-always-success-3i3c |  ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=2
 
 cl-child-script:
 	cargo run --bin cl-child-script |  ${CKB_DEBUGGER} --tx-file=- -s lock
