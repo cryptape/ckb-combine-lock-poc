@@ -13,17 +13,21 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let child_script_config_0 = create_child_script_config(
         &repr_tx,
         &[1, 2, 3],
-        &[Bytes::default(), Bytes::default(), Bytes::default()],
+        &[(); 3].map(|_| Bytes::default()),
         &[&[0, 1, 2]],
     )?;
     let child_script_config_1 = create_child_script_config(
         &repr_tx,
         &[1, 2],
-        &[Bytes::default(), Bytes::default()],
+        &[(); 2].map(|_| Bytes::default()),
         &[&[0, 1, 1, 1]],
     )?;
-    let child_script_config_2 =
-        create_child_script_config(&repr_tx, &[1], &[Bytes::default()], &[&[0, 0, 0, 0, 0]])?;
+    let child_script_config_2 = create_child_script_config(
+        &repr_tx,
+        &[1],
+        &[(); 1].map(|_| Bytes::default()),
+        &[&[0, 0, 0, 0, 0]],
+    )?;
 
     let mut args_0 = vec![0x00u8];
     args_0.extend(hash(child_script_config_0.as_slice()));
@@ -38,16 +42,20 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let witness_args_0 = create_witness_args(
         &child_script_config_0,
         0,
-        &[Bytes::default(), Bytes::default(), Bytes::default()],
+        &[(); 3].map(|_| Bytes::default()),
     )?;
     repr_tx.tx.witnesses[0] = ckb_jsonrpc_types::JsonBytes::from(witness_args_0.as_bytes().pack());
     let witness_args_1 = create_witness_args(
         &child_script_config_1,
         0,
-        &[Bytes::default(), Bytes::default()],
+        &[(); 4].map(|_| Bytes::default()),
     )?;
     repr_tx.tx.witnesses[1] = ckb_jsonrpc_types::JsonBytes::from(witness_args_1.as_bytes().pack());
-    let witness_args_2 = create_witness_args(&child_script_config_2, 0, &[Bytes::default()])?;
+    let witness_args_2 = create_witness_args(
+        &child_script_config_2,
+        0,
+        &[(); 5].map(|_| Bytes::default()),
+    )?;
     repr_tx.tx.witnesses[2] = ckb_jsonrpc_types::JsonBytes::from(witness_args_2.as_bytes().pack());
 
     let json = serde_json::to_string_pretty(&repr_tx).unwrap();
