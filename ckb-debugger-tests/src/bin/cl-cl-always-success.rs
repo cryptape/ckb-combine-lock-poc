@@ -11,14 +11,14 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         read_tx_template("../ckb-debugger-tests/templates/cl-cl-always-success.json")?;
 
     let sub_child_script_config =
-        create_child_script_config(&repr_tx, &[2], &[Bytes::default()], &[&[0]])?;
+        create_child_script_config(&repr_tx, &[1], &[Bytes::default()], &[&[0]])?;
     let mut sub_args = vec![0x00u8];
     sub_args.extend(hash(sub_child_script_config.as_slice()));
     let sub_witness_args = create_witness_args(&sub_child_script_config, 0, &[Bytes::default()])?;
     let sub_witness_args_lock: Bytes = sub_witness_args.lock().to_opt().unwrap().unpack();
 
     let child_script_config =
-        create_child_script_config(&repr_tx, &[1], &[Bytes::from(sub_args)], &[&[0]])?;
+        create_child_script_config(&repr_tx, &[0], &[Bytes::from(sub_args)], &[&[0]])?;
     let mut args = vec![0x00u8];
     args.extend(hash(child_script_config.as_slice()));
     repr_tx.mock_info.inputs[0].output.lock.args = ckb_jsonrpc_types::JsonBytes::from_vec(args);

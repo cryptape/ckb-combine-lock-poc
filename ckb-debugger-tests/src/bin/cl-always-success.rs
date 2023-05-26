@@ -39,9 +39,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let child_script_config_opt = ChildScriptConfigOpt::new_builder()
         .set(Some(child_script_config))
         .build();
-    let inner_witness = BytesVec::new_builder()
-        .push(Bytes::default())
-        .build();
+    let inner_witness = BytesVec::new_builder().push(Bytes::default()).build();
     let combine_lock_witness = CombineLockWitness::new_builder()
         .index(Uint16::new_unchecked(0u16.to_le_bytes().to_vec().into()))
         .inner_witness(inner_witness)
