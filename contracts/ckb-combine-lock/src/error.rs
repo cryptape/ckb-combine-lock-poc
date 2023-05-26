@@ -10,6 +10,7 @@ pub enum Error {
     WrongFormat = 80,
     WrongScriptConfigHash,
     WrongHashType,
+    ChildScriptArrayIndexOutOfBounds,
     UnlockFailed,
     WrongMoleculeFormat,
     LockWrapperError,

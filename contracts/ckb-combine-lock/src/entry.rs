@@ -62,7 +62,7 @@ fn validate(res: LockWrapperResult) -> Result<(), Error> {
     let child_script_array = child_script_config.array();
     for i in 0..child_script_vec.len() {
         let child_script_index = u8::from(child_script_vec.get(i).unwrap()) as usize;
-        let child_script = child_script_array.get(child_script_index).unwrap();
+        let child_script = child_script_array.get(child_script_index).ok_or(Error::ChildScriptArrayIndexOutOfBounds)?;
         let child_script_args: Bytes = child_script.args().unpack();
         let child_script_args = hex::encode(child_script_args.as_ref());
         let child_script_inner_witness = inner_witness.get(i).unwrap();
