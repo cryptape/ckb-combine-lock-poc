@@ -9,6 +9,7 @@ mol:
 	${MOLC} --language rust --schema-file ckb-combine-lock-common/combine_lock.mol | rustfmt > ckb-combine-lock-common/src/combine_lock_mol.rs
 	cp ckb-combine-lock-common/src/combine_lock_mol.rs ckb-debugger-tests/src
 ci:
+	cd tests/global-registry && cargo test && cd ../..
 	capsule build --release
 	make -C ckb-debugger-tests all
 
