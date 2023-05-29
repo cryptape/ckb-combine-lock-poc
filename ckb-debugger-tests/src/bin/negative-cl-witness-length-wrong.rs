@@ -8,8 +8,12 @@ use molecule::prelude::Entity;
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut repr_tx = read_tx_template("../ckb-debugger-tests/templates/cl-always-success.json")?;
 
-    let child_script_config =
-        create_child_script_config(&repr_tx, &[1], &[(); 1].map(|_| Bytes::default()), &[&[0, 0]])?;
+    let child_script_config = create_child_script_config(
+        &repr_tx,
+        &[1],
+        &[(); 1].map(|_| Bytes::default()),
+        &[&[0, 0]],
+    )?;
 
     let mut args = vec![0x00u8];
     args.extend(hash(child_script_config.as_slice()));
