@@ -11,6 +11,7 @@ pub enum Error {
     WrongScriptConfigHash,
     WrongHashType,
     ChildScriptArrayIndexOutOfBounds,
+    CombineLockWitnessIndexOutOfBounds,
     UnlockFailed,
     WrongMoleculeFormat,
     LockWrapperError,

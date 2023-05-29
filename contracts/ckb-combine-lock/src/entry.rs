@@ -58,7 +58,8 @@ fn validate(res: LockWrapperResult) -> Result<(), Error> {
         }
     };
 
-    let child_script_vec = child_script_config.index().get(witness_index).unwrap();
+    let child_script_vec =
+        child_script_config.index().get(witness_index).ok_or(Error::CombineLockWitnessIndexOutOfBounds)?;
     let child_script_array = child_script_config.array();
     for i in 0..child_script_vec.len() {
         let child_script_index = u8::from(child_script_vec.get(i).unwrap()) as usize;
