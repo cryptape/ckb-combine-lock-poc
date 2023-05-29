@@ -25,3 +25,7 @@ template_type = "Rust"
 [[contracts]]
 name = "auth-script-test"
 template_type = "Rust"
+
+[[contracts]]
+name = "child-script-always-failure"
+template_type = "Rust"

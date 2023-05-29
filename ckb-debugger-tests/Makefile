@@ -14,6 +14,7 @@ all: \
 	child-script-success \
 	child-script-multi-inputs \
 	auth-script-exec-success \
+	negative-cl-always-failure \
 	negative-cl-index-error \
 	negative-cl-vec-index-error
 
@@ -45,6 +46,9 @@ child-script-multi-inputs:
 
 auth-script-exec-success:
 	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
+
+negative-cl-always-failure:
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 85"
 
 negative-cl-index-error:
 	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 84"
