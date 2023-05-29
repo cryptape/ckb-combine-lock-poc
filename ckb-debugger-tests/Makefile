@@ -16,6 +16,7 @@ all: \
 	auth-script-exec-success \
 	negative-cl-always-failure \
 	negative-cl-child-script-config-hash-error \
+	negative-cl-child-script-sig-error \
 	negative-cl-index-error \
 	negative-cl-vec-index-error \
 	negative-cl-witness-length-wrong
@@ -54,6 +55,9 @@ negative-cl-always-failure:
 
 negative-cl-child-script-config-hash-error:
 	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 81"
+
+negative-cl-child-script-sig-error:
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 85"
 
 negative-cl-index-error:
 	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 84"
