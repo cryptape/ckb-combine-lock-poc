@@ -12,22 +12,25 @@ use ckb_jsonrpc_types::JsonBytes;
 use ckb_types::packed::{BytesVec, Script, WitnessArgs};
 use ckb_types::prelude::Pack;
 use ckb_types::H256;
+use clap::Parser;
 use log::info;
 use molecule::prelude::{Builder, Entity};
-use std::env;
 
 const G_PRIVKEY_BUF: [u8; 32] = [
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
 ];
 
+#[derive(Parser)]
+struct Args {
+    #[arg(long)]
+    has_config_cell: bool,
+}
+
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     drop(env_logger::init());
-    let has_config_cell = {
-        let args = env::args().into_iter().collect::<Vec<_>>();
-        args.len() >= 2 && args[1] == "has-config-cell"
-    };
-    if has_config_cell {
+    let clap_args = Args::parse();
+    if clap_args.has_config_cell {
         info!("has config cell");
     } else {
         info!("no config cell");
@@ -74,7 +77,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // set script args
     repr_tx.mock_info.inputs[0].output.lock.args = JsonBytes::from_vec(args.clone());
-    if has_config_cell {
+    if clap_args.has_config_cell {
         // copy it to config cell. They share same lock scripts.
         // last cell_dep is the config cell.
         repr_tx
@@ -108,15 +111,11 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     config_cell_data.extend(child_script_config.as_slice());
     repr_tx.mock_info.cell_deps.last_mut().unwrap().data = JsonBytes::from_vec(config_cell_data);
 
-    let child_script_config_opt = ChildScriptConfigOpt::new_builder()
-        .set(Some(child_script_config))
-        .build();
-
     let inner_witness = BytesVec::new_builder().push(vec![0u8; 65].pack()).build();
-    let config: ChildScriptConfigOpt = if has_config_cell {
-        ChildScriptConfigOpt::default()
+    let config: ChildScriptConfigOpt = if clap_args.has_config_cell {
+        None.pack()
     } else {
-        child_script_config_opt.clone().into()
+        Some(child_script_config).pack()
     };
     let combine_lock_witness = CombineLockWitness::new_builder()
         .index(Uint16::new_unchecked(0u16.to_le_bytes().to_vec().into()))

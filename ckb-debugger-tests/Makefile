@@ -30,7 +30,7 @@ cl-child-script:
 	cargo run --bin cl-child-script |  ${CKB_DEBUGGER} --tx-file=- -s lock
 
 gr-child-script:
-	cargo run --bin gr-child-script has-config-cell |  ${CKB_DEBUGGER} --tx-file=- -s lock
+	cargo run --bin gr-child-script -- --has-config-cell |  ${CKB_DEBUGGER} --tx-file=- -s lock
 
 gr-child-script-no-config-cell:
 	cargo run --bin gr-child-script |  ${CKB_DEBUGGER} --tx-file=- -s lock
