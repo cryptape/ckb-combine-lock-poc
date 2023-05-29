@@ -118,7 +118,7 @@ pub fn main() -> Result<(), Error> {
         }
         let global_registry_id = &args_slice[1..33].try_into().unwrap();
         let child_script_config_hash = &args_slice[33..65].try_into().unwrap();
-        let res = lock_wrapper_entry(global_registry_id, child_script_config_hash, 1)?;
+        let res = lock_wrapper_entry(global_registry_id, child_script_config_hash)?;
         return validate(res);
     }
     unreachable!();

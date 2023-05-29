@@ -8,7 +8,7 @@ pub enum Error {
     LengthNotEnough,
     Encoding,
 
-    WrongHex = 110,
+    WrongHex = 20,
     ChainedExec,
     InvalidCellDepRef,
     InvalidDataLength,
@@ -16,6 +16,16 @@ pub enum Error {
     InvalidInputCount,
     InvalidOutputLockScript,
     InvalidUpdate,
+    WrongGlobalRegistry,
+    OutputTypeForbidden,
+    InvalidLinkedList,
+    UpdateFailed,
+
+    // transforming
+    OverlapPair,
+    DanglingPair,
+
+    Unknown,
 }
 
 impl From<SysError> for Error {

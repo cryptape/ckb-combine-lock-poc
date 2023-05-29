@@ -1,4 +1,5 @@
 #![no_std]
+extern crate alloc;
 
 pub mod blake2b;
 pub mod combine_lock_mol;
@@ -19,3 +20,5 @@ pub mod generate_sighash_all;
 pub mod lock_wrapper;
 pub mod logger;
 pub mod primitives;
+pub mod transforming;
+pub mod utils;

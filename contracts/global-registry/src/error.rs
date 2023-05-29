@@ -1,4 +1,5 @@
 use ckb_std::error::SysError;
+use log::warn;
 
 /// Error
 #[repr(i8)]
@@ -9,15 +10,11 @@ pub enum Error {
     LengthNotEnough,
     Encoding,
     // Add customized errors here...
-    InvalidInitHash,
-    OverlapPair,
-    DanglingPair,
+    InvalidInitHash = 50,
+    TransformingError,
     OutputTypeForbidden,
     InvalidLinkedList,
-    UpdateCapacity,
-    UpdateLock,
-    UpdateType,
-    UpdateData,
+    UpdateFailed,
     LockScriptNotExisting,
     LockScriptDup,
     NotMatchingLockScript,
@@ -33,5 +30,12 @@ impl From<SysError> for Error {
             Encoding => Self::Encoding,
             Unknown(err_code) => panic!("unexpected sys error {}", err_code),
         }
+    }
+}
+
+impl From<ckb_combine_lock_common::error::Error> for Error {
+    fn from(err: ckb_combine_lock_common::error::Error) -> Self {
+        warn!("An error reported from ckb_combine_lock_common: {:?}", err);
+        Self::TransformingError
     }
 }
