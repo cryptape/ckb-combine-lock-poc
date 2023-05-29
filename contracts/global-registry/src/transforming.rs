@@ -2,15 +2,17 @@ use super::error::Error;
 use alloc::vec::Vec;
 
 #[derive(Clone, Default)]
-pub struct HashPair {
+pub struct Cell {
+    pub index: usize,
     pub current_hash: [u8; 32],
     pub next_hash: [u8; 32],
 }
 
-impl HashPair {
-    pub fn new(current_hash: [u8; 32], next_hash: [u8; 32]) -> Self {
+impl Cell {
+    pub fn new(index: usize, current_hash: [u8; 32], next_hash: [u8; 32]) -> Self {
         assert!(current_hash < next_hash);
         Self {
+            index,
             current_hash,
             next_hash,
         }
@@ -31,11 +33,11 @@ impl HashPair {
     }
 }
 
-/// CL = Combine Lock, CC = Config Cell
+/// AC = Asset Cell, CC = Config Cell
 /// Some transforming below. Left on input and right on output.
-/// insert 1 config cell: CL + CC -> CC + CC
-/// insert 2 config cells: CL + CL + CC -> CC + CC + CC
-/// insert N config cells: CL + ... + CL + CC -> CC + CC + ... + CC
+/// insert 1 config cell: AC + CC -> CC + CC
+/// insert 2 config cells: AC + AC + CC -> CC + CC + CC
+/// insert N config cells: AC + ... + AC + CC -> CC + CC + ... + CC
 /// update config cell: CC -> CC
 /// Import notes:
 /// 1. Updating config cell is actually inserting 0 config cell
@@ -43,18 +45,18 @@ impl HashPair {
 /// 3. There can be many config cells on right
 /// 4. There are many transforming in one transaction.
 pub struct TransformingStatus {
-    pub input: HashPair,
-    pub outputs: Vec<HashPair>,
+    pub input: Cell,
+    pub outputs: Vec<Cell>,
 }
 
 impl TransformingStatus {
-    pub fn new(input: HashPair) -> Self {
+    pub fn new(input: Cell) -> Self {
         Self {
             input,
             outputs: Vec::new(),
         }
     }
-    pub fn try_push(&mut self, pair: &HashPair) -> bool {
+    pub fn try_push(&mut self, pair: &Cell) -> bool {
         if pair.in_range(&self.input) {
             self.outputs.push(pair.clone());
             return true;
@@ -81,6 +83,9 @@ impl TransformingStatus {
         }
         true
     }
+    pub fn is_inserting(&self) -> bool {
+        self.outputs.len() > 1
+    }
 }
 
 pub struct BatchTransformingStatus {
@@ -93,7 +98,7 @@ impl BatchTransformingStatus {
             transforming: Default::default(),
         }
     }
-    pub fn set_input(&mut self, input: HashPair) -> Result<(), Error> {
+    pub fn set_input(&mut self, input: Cell) -> Result<(), Error> {
         for s in &self.transforming {
             if !s.input.no_overlap(&input) {
                 return Err(Error::OverlapPair);
@@ -102,7 +107,7 @@ impl BatchTransformingStatus {
         self.transforming.push(TransformingStatus::new(input));
         Ok(())
     }
-    pub fn set_output(&mut self, output: HashPair) -> Result<(), Error> {
+    pub fn set_output(&mut self, output: Cell) -> Result<(), Error> {
         for s in &mut self.transforming {
             if s.try_push(&output) {
                 return Ok(());

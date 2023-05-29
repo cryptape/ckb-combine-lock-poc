@@ -2,6 +2,7 @@ use ckb_std::error::SysError;
 
 /// Error
 #[repr(i8)]
+#[derive(Debug)]
 pub enum Error {
     IndexOutOfBound = 1,
     ItemMissing,
@@ -11,6 +12,15 @@ pub enum Error {
     InvalidInitHash,
     OverlapPair,
     DanglingPair,
+    OutputTypeForbidden,
+    InvalidLinkedList,
+    UpdateCapacity,
+    UpdateLock,
+    UpdateType,
+    UpdateData,
+    LockScriptNotExisting,
+    LockScriptDup,
+    NotMatchingLockScript,
 }
 
 impl From<SysError> for Error {

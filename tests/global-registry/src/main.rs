@@ -6,19 +6,17 @@ mod error;
 #[path = "../../../contracts/global-registry/src/transforming.rs"]
 mod transforming;
 
-use transforming::{BatchTransformingStatus, HashPair};
+use transforming::{BatchTransformingStatus, Cell};
 
 fn test(inputs: &[(u8, u8)], outputs: &[(u8, u8)], result: bool) {
     let mut batch = BatchTransformingStatus::new();
 
     for i in inputs {
-        batch
-            .set_input(HashPair::new([i.0; 32], [i.1; 32]))
-            .unwrap();
+        batch.set_input(Cell::new(0, [i.0; 32], [i.1; 32])).unwrap();
     }
     for o in outputs {
         batch
-            .set_output(HashPair::new([o.0; 32], [o.1; 32]))
+            .set_output(Cell::new(0, [o.0; 32], [o.1; 32]))
             .unwrap();
     }
     assert_eq!(batch.validate(), result);
@@ -60,7 +58,7 @@ fn test_batch() {
 #[test]
 #[should_panic]
 fn test_wrong_pair() {
-    let _ = HashPair::new([1; 32], [0; 32]);
+    let _ = Cell::new(0, [1; 32], [0; 32]);
 }
 
 #[test]
@@ -71,14 +69,14 @@ fn test_output_is_empty() {
 #[test]
 fn test_dangling_pair() {
     let mut batch = BatchTransformingStatus::new();
-    let input = HashPair::new([4; 32], [6; 32]);
+    let input = Cell::new(0, [4; 32], [6; 32]);
     batch.set_input(input.clone()).unwrap();
 
-    let output = HashPair::new([5; 32], [7; 32]);
+    let output = Cell::new(0, [5; 32], [7; 32]);
     let result = batch.set_output(output);
     assert!(result.is_err());
 
-    let output = HashPair::new([3; 32], [5; 32]);
+    let output = Cell::new(0, [3; 32], [5; 32]);
     let result = batch.set_output(output);
     assert!(result.is_err());
 }
@@ -86,15 +84,15 @@ fn test_dangling_pair() {
 #[test]
 fn test_input_overlap() {
     let mut batch = BatchTransformingStatus::new();
-    let input = HashPair::new([0; 32], [1; 32]);
+    let input = Cell::new(0, [0; 32], [1; 32]);
     batch.set_input(input.clone()).unwrap();
     let result = batch.set_input(input.clone());
     assert!(result.is_err());
 
     let mut batch = BatchTransformingStatus::new();
-    let input = HashPair::new([0; 32], [3; 32]);
+    let input = Cell::new(0, [0; 32], [3; 32]);
     batch.set_input(input).unwrap();
-    let input = HashPair::new([2; 32], [4; 32]);
+    let input = Cell::new(0, [2; 32], [4; 32]);
     let result = batch.set_input(input);
     assert!(result.is_err());
 }
