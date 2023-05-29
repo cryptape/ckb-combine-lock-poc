@@ -13,21 +13,23 @@ all: \
 	gr-child-script-no-config-cell\
 	child-script-success \
 	child-script-multi-inputs \
-	auth-script-exec-success
+	auth-script-exec-success \
+	negative-cl-index-error \
+	negative-cl-vec-index-error
 
 cl-always-success:
-	cargo run --bin cl-always-success | ${CKB_DEBUGGER} --tx-file=- -s lock
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
 
 cl-always-success-3i3c:
-	cargo run --bin cl-always-success-3i3c | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=0
-	cargo run --bin cl-always-success-3i3c | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=1
-	cargo run --bin cl-always-success-3i3c | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=2
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=0
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=1
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=2
 
 cl-cl-always-success:
-	cargo run --bin cl-cl-always-success | ${CKB_DEBUGGER} --tx-file=- -s lock
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
 
 cl-child-script:
-	cargo run --bin cl-child-script | ${CKB_DEBUGGER} --tx-file=- -s lock
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
 
 gr-child-script:
 	cargo run --bin gr-child-script has-config-cell | ${CKB_DEBUGGER} --tx-file=- -s lock
@@ -36,13 +38,16 @@ gr-child-script-no-config-cell:
 	cargo run --bin gr-child-script | ${CKB_DEBUGGER} --tx-file=- -s lock
 
 child-script-success:
-	cargo run --bin child-script-success | ${CKB_DEBUGGER} --tx-file=- -s lock
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
 
 child-script-multi-inputs:
-	cargo run --bin child-script-multi-inputs | ${CKB_DEBUGGER} --tx-file=- -s lock
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
 
 auth-script-exec-success:
-	cargo run --bin auth-script-exec-success | ${CKB_DEBUGGER} --tx-file=- -s lock
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
+
+negative-cl-index-error:
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 84"
 
 negative-cl-vec-index-error:
-	cargo run --bin negative-cl-vec-index-error | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 83"
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 83"
