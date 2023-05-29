@@ -16,7 +16,8 @@ all: \
 	auth-script-exec-success \
 	negative-cl-always-failure \
 	negative-cl-index-error \
-	negative-cl-vec-index-error
+	negative-cl-vec-index-error \
+	negative-cl-witness-length-wrong
 
 cl-always-success:
 	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
@@ -55,3 +56,6 @@ negative-cl-index-error:
 
 negative-cl-vec-index-error:
 	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 83"
+
+negative-cl-witness-length-wrong:
+	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 88"

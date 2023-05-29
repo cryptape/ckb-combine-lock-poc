@@ -15,6 +15,7 @@ pub enum Error {
     UnlockFailed,
     WrongMoleculeFormat,
     LockWrapperError,
+    InnerWitnessIndexOutOfBounds,
 }
 
 impl From<SysError> for Error {
