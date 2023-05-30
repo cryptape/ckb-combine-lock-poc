@@ -19,7 +19,7 @@ pub enum Error {
     WrongGlobalRegistry,
     OutputTypeForbidden,
     InvalidLinkedList,
-    UpdateFailed,
+    Changed,
 
     // transforming
     OverlapPair,

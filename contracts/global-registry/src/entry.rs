@@ -7,8 +7,7 @@ use ckb_std::{
     ckb_constants::Source,
     ckb_types::prelude::*,
     high_level::{
-        load_cell_lock_hash, load_cell_type_hash, load_input, load_script, load_script_hash,
-        QueryIter,
+        load_cell_lock, load_cell_type_hash, load_input, load_script, load_script_hash, QueryIter,
     },
     syscalls::{self, SysError},
 };
@@ -103,12 +102,13 @@ fn validate_linked_list() -> Result<(), Error> {
             }
             // Check remaining AC -> CC transforming
             for cc in &trans.outputs[1..] {
-                // Any inserted config cell’s current hash can be found in input
-                // cell lock script hash. There is only one such input cell.
+                // Any inserted config cell lock script can be found in input too.
+                // There is only one such input cell.
+                let output_lock = load_cell_lock(cc.index, Source::Output)?;
                 let mut existing = false;
-                let iter = QueryIter::new(load_cell_lock_hash, Source::Input);
-                for hash in iter {
-                    if hash == cc.current_hash {
+                let iter = QueryIter::new(load_cell_lock, Source::Input);
+                for lock in iter {
+                    if lock.as_bytes() == output_lock.as_bytes() {
                         // duplicated
                         if existing {
                             return Err(Error::LockScriptDup);
@@ -119,14 +119,6 @@ fn validate_linked_list() -> Result<(), Error> {
                 if !existing {
                     return Err(Error::LockScriptNotExisting);
                 }
-                // lock script doesn't change
-                let output_lock_hash = load_cell_lock_hash(cc.index, Source::Output)?;
-                if output_lock_hash != cc.current_hash {
-                    return Err(Error::NotMatchingLockScript);
-                }
-                // type script doesn't change, since
-                // load_cell_type_hash(cc.index, Source::Output)?; must be
-                // current_script_hash
             }
         } else {
             assert!(trans.outputs.len() == 1);

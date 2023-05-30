@@ -17,7 +17,6 @@ pub enum Error {
     UpdateFailed,
     LockScriptNotExisting,
     LockScriptDup,
-    NotMatchingLockScript,
 }
 
 impl From<SysError> for Error {

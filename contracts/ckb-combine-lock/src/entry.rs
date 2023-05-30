@@ -47,9 +47,14 @@ fn validate(res: LockWrapperResult) -> Result<(), Error> {
 
     let child_script_config = match res {
         LockWrapperResult::ChildScriptConfig(child_script_config_bytes) => {
+            info!("LockWrapperResult::ChildScriptConfig {:?}", child_script_config_bytes);
             ChildScriptConfig::from_slice(&child_script_config_bytes).map_err(|_| Error::WrongMoleculeFormat)?
         }
         LockWrapperResult::ChildScriptConfigHash(child_script_config_hash) => {
+            info!(
+                "LockWrapperResult::ChildScriptConfigHash {:?}",
+                child_script_config_hash
+            );
             let child_script_config = witness.script_config().to_opt().unwrap();
             if child_script_config_hash != hash(child_script_config.as_slice()) {
                 return Err(Error::WrongScriptConfigHash);
