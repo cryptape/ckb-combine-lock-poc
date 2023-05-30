@@ -1,5 +1,6 @@
 use crate::error::Error;
 use ckb_combine_lock_common::{
+    blake2b::new_blake2b,
     transforming::{self, BatchTransformingStatus},
     utils::{config_cell_unchanged, get_current_hash, get_next_hash},
 };
@@ -24,7 +25,9 @@ pub fn main() -> Result<(), Error> {
 // check if we are initializing the global registry
 fn is_init() -> bool {
     let mut buf = [0u8; 0];
-    // load cell to a zero-length buffer must be failed, we are using this tricky way to check if input group is empty, which means we are initializing the global registry
+    // load cell to a zero-length buffer must be failed, we are using this
+    // tricky way to check if input group is empty, which means we are
+    // initializing the global registry
     match syscalls::load_cell(&mut buf, 0, 0, Source::GroupInput).unwrap_err() {
         SysError::LengthNotEnough(_) => false,
         SysError::IndexOutOfBound => true,
@@ -32,15 +35,14 @@ fn is_init() -> bool {
     }
 }
 
-// check if the init hash is correct, which is the hash of the first input and the index of the first output with the same type script
+// check if the init hash is correct, which is the hash of the first input and
+// the index of the first output with the same type script
 fn validate_init_hash() -> Result<(), Error> {
     let current_script = load_script()?;
     let first_input = load_input(0, Source::Input)?;
     let first_output_index = load_first_output_index()?;
     let mut hash = [0; 32];
-    let mut blake2b = blake2b_rs::Blake2bBuilder::new(32)
-        .personal(b"ckb-default-hash")
-        .build();
+    let mut blake2b = new_blake2b();
     blake2b.update(first_input.as_slice());
     blake2b.update(&first_output_index.to_le_bytes());
     blake2b.finalize(&mut hash);

@@ -9,11 +9,13 @@ pub enum Error {
     Encoding,
     // Add customized errors here...
     WrongFormat = 80,
+    // error reported from ckb_combine_lock_common
+    // mainly from LockWrapper
+    CommonError,
     WrongScriptConfigHash,
     WrongHashType,
     UnlockFailed,
     WrongMoleculeFormat,
-    LockWrapperError,
 }
 
 impl From<SysError> for Error {
@@ -46,6 +48,6 @@ impl From<hex::FromHexError> for Error {
 impl From<ckb_combine_lock_common::error::Error> for Error {
     fn from(err: ckb_combine_lock_common::error::Error) -> Self {
         warn!("An error reported from ckb_combine_lock_common: {:?}", err);
-        Self::LockWrapperError
+        Self::CommonError
     }
 }
