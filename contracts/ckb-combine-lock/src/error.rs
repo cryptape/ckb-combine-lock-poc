@@ -9,13 +9,16 @@ pub enum Error {
     Encoding,
     // Add customized errors here...
     WrongFormat = 80,
+    WrongScriptConfigHash,
+    WrongHashType,
+    ChildScriptArrayIndexOutOfBounds,
+    CombineLockWitnessIndexOutOfBounds,
+    UnlockFailed,
+    WrongMoleculeFormat,
+    InnerWitnessIndexOutOfBounds,
     // error reported from ckb_combine_lock_common
     // mainly from LockWrapper
     CommonError,
-    WrongScriptConfigHash,
-    WrongHashType,
-    UnlockFailed,
-    WrongMoleculeFormat,
 }
 
 impl From<SysError> for Error {
