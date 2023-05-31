@@ -2,7 +2,9 @@ use crate::error::Error;
 use ckb_combine_lock_common::{
     blake2b::new_blake2b,
     transforming::{self, BatchTransformingStatus},
-    utils::{config_cell_unchanged, get_current_hash, get_next_hash},
+    utils::{
+        config_cell_unchanged, get_current_hash, get_next_hash, lock_unchanged, type_unchanged,
+    },
 };
 use ckb_std::{
     ckb_constants::Source,
@@ -124,7 +126,10 @@ fn validate_linked_list() -> Result<(), Error> {
             }
         } else {
             assert!(trans.outputs.len() == 1);
-            if !config_cell_unchanged(trans.input.index, trans.outputs[0].index) {
+            if !lock_unchanged(trans.input.index, trans.outputs[0].index) {
+                return Err(Error::UpdateFailed);
+            }
+            if !type_unchanged(trans.input.index, trans.outputs[0].index) {
                 return Err(Error::UpdateFailed);
             }
         }

@@ -8,7 +8,6 @@
 #![cfg_attr(not(test), no_main)]
 
 // define modules
-mod blake2b;
 mod entry;
 mod error;
 use ckb_combine_lock_common::logger;
