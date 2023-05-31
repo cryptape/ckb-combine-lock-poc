@@ -1,0 +1,145 @@
+{
+  "mock_info": {
+    "inputs": [
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x",
+            "code_hash": "0x{{ ref_type combine_lock }}",
+            "hash_type": "type"
+          }
+        },
+        "data": "0x"
+      },
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x",
+            "code_hash": "0x{{ ref_type combine_lock }}",
+            "hash_type": "type"
+          },
+          "type": {
+            "args": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "code_hash": "0x{{ ref_type global-registry }}",
+            "hash_type": "type"
+          }
+        },
+        "data": "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000"
+      }
+    ],
+    "cell_deps": [
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type global-registry }}"
+        },
+        "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/global-registry }}"
+      },
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type combine_lock }}"
+        },
+        "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/ckb-combine-lock }}"
+      },
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type child-script-example }}"
+        },
+        "data": "0x{{ data ../../build/release/child-script-example }}"
+      },
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type auth }}"
+        },
+        "data": "0x{{ data ../templates/bin/auth }}"
+      },
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x00AE9DF3447C404A645BC48BEA4B7643B95AC5C3AE",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type secp256k1_data }}"
+        },
+        "data": "0x{{ data ../templates/bin/secp256k1_data }}"
+      },
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x",
+            "code_hash": "0x{{ ref_type combine_lock }}",
+            "hash_type": "type"
+          },
+          "type": "{{ def_type config_cell }}"
+        },
+        "data": "0x"
+      }
+    ]
+  },
+  "tx": {
+    "outputs": [
+      {
+        "capacity": "0x0",
+        "lock": {
+          "args": "0x",
+          "code_hash": "0x{{ ref_type combine_lock }}",
+          "hash_type": "type"
+        },
+        "type": {
+          "args": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "code_hash": "0x{{ ref_type global-registry }}",
+          "hash_type": "type"
+        }
+      },
+      {
+        "capacity": "0x10000000",
+        "lock": {
+          "args": "0x",
+          "code_hash": "0x{{ ref_type combine_lock }}",
+          "hash_type": "type"
+        },
+        "type": {
+          "args": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "code_hash": "0x{{ ref_type global-registry }}",
+          "hash_type": "type"
+        }
+    }
+    ],
+    "witnesses": [
+      "0x",
+      "0x"
+    ],
+    "outputs_data": [
+      "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+      "0x"
+    ]
+  }
+}

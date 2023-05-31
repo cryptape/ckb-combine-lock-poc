@@ -1,21 +1,22 @@
 extern crate alloc;
 
-use crate::error::Error;
+use crate::{
+    error::Error,
+    transforming::{self, BatchTransformingStatus},
+    utils::{
+        config_cell_unchanged, get_child_script_config_hash, get_current_hash,
+        get_global_registry_id, get_next_hash, NEXT_HASH_LEN,
+    },
+};
 use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::prelude::*,
-    high_level::{
-        load_cell, load_cell_data, load_cell_lock, load_cell_type_hash, load_script, QueryIter,
-    },
+    high_level::{load_cell_data, load_cell_lock, load_cell_type_hash, load_script, QueryIter},
     syscalls::exit,
 };
 use core::{cmp::Ordering, result::Result};
 use log::{info, warn};
-
-const GLOBAL_REGISTRY_ID_LEN: usize = 32;
-const CHILD_SCRIPT_CONFIG_HASH_LEN: usize = 32;
-const NEXT_HASH_LEN: usize = 32;
 
 pub enum LockWrapperResult {
     /// molecule serialized ChildScriptConfig.
@@ -40,16 +41,11 @@ pub enum LockWrapperResult {
 pub fn lock_wrapper_entry(
     global_registry_id: &[u8; 32],
     child_script_config_hash: &[u8; 32],
-    prefix_flag_len: usize,
 ) -> Result<LockWrapperResult, Error> {
     if contain_config_cell(global_registry_id) {
         validate_config_cell(global_registry_id)
     } else {
-        fetch_child_script_config(
-            global_registry_id,
-            child_script_config_hash,
-            prefix_flag_len,
-        )
+        fetch_child_script_config(global_registry_id, child_script_config_hash)
     }
 }
 
@@ -62,7 +58,7 @@ pub fn lock_wrapper_entry(
 /// 1. Config cell contains child scripts. Run them.
 /// 2. Config cell doesn't contain. Run scripts provided in witness. It returns hash only.
 fn contain_config_cell(global_registry_id: &[u8; 32]) -> bool {
-    let inputs_type_hashes = QueryIter::new(load_cell_type_hash, Source::GroupInput);
+    let inputs_type_hashes = QueryIter::new(load_cell_type_hash, Source::Input);
 
     for i in inputs_type_hashes {
         if let Some(ref hash) = i {
@@ -80,7 +76,6 @@ fn contain_config_cell(global_registry_id: &[u8; 32]) -> bool {
 fn fetch_child_script_config(
     global_registry_id: &[u8; 32],
     child_script_config_hash: &[u8; 32],
-    prefix_flag_len: usize,
 ) -> Result<LockWrapperResult, Error> {
     let current_script = load_script()?;
 
@@ -104,7 +99,7 @@ fn fetch_child_script_config(
         if args[0] != 1u8 {
             continue;
         }
-        if &args[prefix_flag_len..prefix_flag_len + GLOBAL_REGISTRY_ID_LEN] != global_registry_id {
+        if &get_global_registry_id(args) != global_registry_id {
             continue;
         }
 
@@ -120,10 +115,7 @@ fn fetch_child_script_config(
         }
         // the layout of lock script args is same as combine lock:
         // | 1 byte flag | 32 bytes global registry ID | 32 bytes child script config hash |
-        let total_len = prefix_flag_len + GLOBAL_REGISTRY_ID_LEN + CHILD_SCRIPT_CONFIG_HASH_LEN;
-        let current_hash: [u8; 32] = args[prefix_flag_len + GLOBAL_REGISTRY_ID_LEN..total_len]
-            .try_into()
-            .unwrap();
+        let current_hash: [u8; 32] = get_child_script_config_hash(args).try_into().unwrap();
         match current_hash.cmp(child_script_config_hash) {
             Ordering::Equal => {
                 return Ok(LockWrapperResult::ChildScriptConfig(
@@ -161,55 +153,82 @@ fn fetch_child_script_config(
 
 fn validate_config_cell(global_registry_id: &[u8; 32]) -> Result<LockWrapperResult, Error> {
     let current_script = load_script()?;
-    let inputs_type_hashes = QueryIter::new(load_cell_type_hash, Source::Input);
 
-    let inputs_index: Vec<usize> = inputs_type_hashes
-        .enumerate()
-        .filter_map(|(index, i)| match i {
-            Some(ref hash) => {
-                if hash == global_registry_id {
-                    Some(index)
-                } else {
-                    None
-                }
-            }
-            None => None,
-        })
-        .collect();
+    let mut batch_transforming = BatchTransformingStatus::new();
 
-    if inputs_index.len() != 1 {
-        warn!("Invalid input count");
-        return Err(Error::InvalidInputCount);
-    }
-
-    let index = inputs_index[0];
-
-    let output = load_cell(index, Source::Output)?;
-    if current_script.as_bytes() != output.lock().as_bytes() {
-        warn!("Invalid output lock script");
-        return Err(Error::InvalidOutputLockScript);
-    }
-
-    let input_data = load_cell_data(index, Source::Input)?;
-    let output_data = load_cell_data(index, Source::Output)?;
-    if input_data[NEXT_HASH_LEN..] == output_data[NEXT_HASH_LEN..] {
-        // update next hash
-        // TODO: more strict checking
-        info!("Update next hash. Insert config cell by anyone (bypass)");
-        exit(0);
-    } else {
-        // update config cell data
-        if input_data[0..NEXT_HASH_LEN] != output_data[0..NEXT_HASH_LEN] {
-            // strict checking
-            warn!("Next hash can't be updated in this routine");
-            return Err(Error::InvalidUpdate);
+    let iter = QueryIter::new(load_cell_type_hash, Source::Input);
+    for (i, hash) in iter.enumerate() {
+        if hash == Some(*global_registry_id) {
+            let current_hash = get_current_hash(i, Source::Input).unwrap();
+            let next_hash = get_next_hash(i, Source::Input).unwrap();
+            let cell = transforming::Cell::new(i, current_hash, next_hash);
+            info!("set_input = {}", cell);
+            batch_transforming.set_input(cell)?;
         }
-        // TODO: check output_data[NEXT_HASH_LEN..] is in format of
-        // ChildScriptConfig
-
-        // verify by owner
-        Ok(LockWrapperResult::ChildScriptConfig(
-            input_data[NEXT_HASH_LEN..].into(),
-        ))
     }
+    let iter = QueryIter::new(load_cell_type_hash, Source::Output);
+    for (i, hash) in iter.enumerate() {
+        if hash == Some(*global_registry_id) {
+            let current_hash = get_current_hash(i, Source::Output).unwrap();
+            let next_hash = get_next_hash(i, Source::Output).unwrap();
+            let cell = transforming::Cell::new(i, current_hash, next_hash);
+            info!("set_output = {}", cell);
+            batch_transforming.set_output(cell)?;
+        } else {
+            //
+            // sUDT mint issue: avoid minting sUDT without signature
+            //
+            if hash.is_some() {
+                return Err(Error::OutputTypeForbidden);
+            }
+            // it's safe to have no other type script
+        }
+    }
+    if !batch_transforming.validate() {
+        warn!("batch transforming failed");
+        for tr in batch_transforming.transforming {
+            warn!("input = {}", tr.input);
+            for o in tr.outputs {
+                warn!("output = {}", o);
+            }
+        }
+        return Err(Error::InvalidLinkedList);
+    }
+    // go through all transforming and check more
+    for trans in &batch_transforming.transforming {
+        if trans.is_inserting() {
+            // let's search the inserted assert cells. Assume we have following
+            // transforming(AC = Asset Cell, CC = Config Cell):
+            //
+            // AC + ... + AC + CC(0) -> CC(0) + CC(1) + ... + CC(N)
+            //
+            // All ACs are converted into CC(1), ..., CC(N)
+            assert!(trans.outputs.len() > 1);
+
+            // this is the CC(0) which should be unchanged
+            if !config_cell_unchanged(trans.input.index, trans.outputs[0].index) {
+                return Err(Error::Changed);
+            }
+            let script = load_cell_lock(trans.input.index, Source::Input)?;
+            if current_script.as_bytes() == script.as_bytes() {
+                // it can be safely by passed
+                warn!("by pass routine!");
+                exit(0);
+            } else {
+                // if it's not CC(0), the current script must be an AC.
+                let hash = get_child_script_config_hash(&current_script.args().raw_data());
+                return Ok(LockWrapperResult::ChildScriptConfigHash(hash));
+            }
+        } else {
+            // updating, the ChildScriptConfig should in data
+            let script = load_cell_lock(trans.input.index, Source::Input)?;
+            if current_script.as_bytes() == script.as_bytes() {
+                let input_data = load_cell_data(0, Source::GroupInput)?;
+                return Ok(LockWrapperResult::ChildScriptConfig(
+                    input_data[NEXT_HASH_LEN..].into(),
+                ));
+            }
+        }
+    }
+    Err(Error::Unknown)
 }

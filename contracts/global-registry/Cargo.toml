@@ -1,0 +1,14 @@
+[package]
+name = "global-registry"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+blake2b-rs = "0.2.0"
+ckb-combine-lock-common = { path = "../../ckb-combine-lock-common" }
+ckb-std = { version = "0.13", features = ["ckb2023"] }
+hex = { version = "0.4", default-features = false, features = ["alloc"] }
+log = { version = "0.4.17", default-features = false }
+molecule = { version = "0.7.3", default-features = false }

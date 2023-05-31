@@ -1,4 +1,5 @@
 use ckb_std::error::SysError;
+use log::warn;
 /// Error
 #[repr(i8)]
 pub enum Error {
@@ -14,8 +15,10 @@ pub enum Error {
     CombineLockWitnessIndexOutOfBounds,
     UnlockFailed,
     WrongMoleculeFormat,
-    LockWrapperError,
     InnerWitnessIndexOutOfBounds,
+    // error reported from ckb_combine_lock_common
+    // mainly from LockWrapper
+    CommonError,
 }
 
 impl From<SysError> for Error {
@@ -32,19 +35,22 @@ impl From<SysError> for Error {
 }
 
 impl From<molecule::error::VerificationError> for Error {
-    fn from(_: molecule::error::VerificationError) -> Self {
+    fn from(err: molecule::error::VerificationError) -> Self {
+        warn!("An error reported from VerificationError: {:?}", err);
         Self::WrongFormat
     }
 }
 
 impl From<hex::FromHexError> for Error {
-    fn from(_: hex::FromHexError) -> Self {
+    fn from(err: hex::FromHexError) -> Self {
+        warn!("An error reported from FromHexError: {:?}", err);
         Self::WrongFormat
     }
 }
 
 impl From<ckb_combine_lock_common::error::Error> for Error {
-    fn from(_: ckb_combine_lock_common::error::Error) -> Self {
-        Self::LockWrapperError
+    fn from(err: ckb_combine_lock_common::error::Error) -> Self {
+        warn!("An error reported from ckb_combine_lock_common: {:?}", err);
+        Self::CommonError
     }
 }

@@ -9,6 +9,8 @@ pub mod blockchain {
         WitnessArgsBuilder, WitnessArgsReader,
     };
 }
+pub mod mol_utils;
+
 use anyhow;
 use anyhow::Context;
 use auto_complete::auto_complete;

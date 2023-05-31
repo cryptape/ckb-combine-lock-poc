@@ -1,31 +1,24 @@
 use ckb_std::error::SysError;
+use log::warn;
 
-#[derive(Debug)]
+/// Error
 #[repr(i8)]
+#[derive(Debug)]
 pub enum Error {
     IndexOutOfBound = 1,
     ItemMissing,
     LengthNotEnough,
     Encoding,
-
-    WrongHex = 20,
-    ChainedExec,
-    InvalidCellDepRef,
-    InvalidDataLength,
-    InvalidCellDepTypeScript,
-    InvalidInputCount,
-    InvalidOutputLockScript,
-    InvalidUpdate,
-    WrongGlobalRegistry,
+    // Add customized errors here...
+    InvalidInitHash = 50,
+    // error reported from ckb_combine_lock_common
+    // mainly from Transforming
+    CommonError,
     OutputTypeForbidden,
     InvalidLinkedList,
-    Changed,
-
-    // transforming
-    OverlapPair,
-    DanglingPair,
-
-    Unknown,
+    UpdateFailed,
+    LockScriptNotExisting,
+    LockScriptDup,
 }
 
 impl From<SysError> for Error {
@@ -38,5 +31,12 @@ impl From<SysError> for Error {
             Encoding => Self::Encoding,
             Unknown(err_code) => panic!("unexpected sys error {}", err_code),
         }
+    }
+}
+
+impl From<ckb_combine_lock_common::error::Error> for Error {
+    fn from(err: ckb_combine_lock_common::error::Error) -> Self {
+        warn!("An error reported from ckb_combine_lock_common: {:?}", err);
+        Self::CommonError
     }
 }

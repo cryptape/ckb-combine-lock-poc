@@ -116,6 +116,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b365fabc795046672053e29c954733ec3b05e4be654ab130fe8f1f94d7051f35"
 
 [[package]]
+name = "global-registry"
+version = "0.1.0"
+dependencies = [
+ "blake2b-rs",
+ "ckb-combine-lock-common",
+ "ckb-std",
+ "hex",
+ "log",
+ "molecule",
+]
+
+[[package]]
 name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

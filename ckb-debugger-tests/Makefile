@@ -5,6 +5,7 @@ CKB_DEBUGGER ?= ckb-debugger-2023
 ## cl: combine lock
 ## gr: combine lock with global registry
 all: \
+	gr-insert\
 	cl-always-success \
 	cl-always-success-3i3c \
 	cl-cl-always-success \
@@ -37,10 +38,15 @@ cl-child-script:
 	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
 
 gr-child-script:
-	cargo run --bin gr-child-script has-config-cell | ${CKB_DEBUGGER} --tx-file=- -s lock
+	cargo run --bin gr-child-script -- --has-config-cell |  ${CKB_DEBUGGER} --tx-file=- -s lock
 
 gr-child-script-no-config-cell:
 	cargo run --bin gr-child-script | ${CKB_DEBUGGER} --tx-file=- -s lock
+
+gr-insert:
+	cargo run --bin gr-insert | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=1 --cell-type input
+	cargo run --bin gr-insert | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=1
+	cargo run --bin gr-insert | ${CKB_DEBUGGER} --tx-file=- -s lock
 
 child-script-success:
 	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
@@ -70,4 +76,4 @@ negative-cl-vec-index-error:
 	cargo run --bin negative -- cl-vec-index-error | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 83"
 
 negative-cl-witness-length-wrong:
-	cargo run --bin negative -- cl-witness-length-wrong | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 88"
+	cargo run --bin negative -- cl-witness-length-wrong | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 87"

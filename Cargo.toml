@@ -1,5 +1,5 @@
 [workspace]
-members = ["contracts/ckb-combine-lock", "contracts/child-script-example", "contracts/child-script-always-success", "contracts/auth-script-test", "contracts/child-script-always-failure"]
+members = ["contracts/ckb-combine-lock", "contracts/child-script-example", "contracts/child-script-always-success", "contracts/auth-script-test", "contracts/child-script-always-failure", "contracts/global-registry"]
 
 [profile.release]
 overflow-checks = true
@@ -7,9 +7,11 @@ opt-level = 3
 panic = 'abort'
 strip = true
 lto = true
+debug-assertions = true
 
 [profile.dev]
 strip = true
 opt-level = 1
 debug = false
 panic = 'abort'
+debug-assertions = true

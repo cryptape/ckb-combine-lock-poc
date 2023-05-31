@@ -1,7 +1,7 @@
-use crate::blake2b::hash;
 use crate::error::Error;
 use alloc::ffi::CString;
 use alloc::vec::Vec;
+use ckb_combine_lock_common::blake2b::hash;
 use ckb_combine_lock_common::combine_lock_mol::{ChildScriptConfig, CombineLockWitness};
 use ckb_combine_lock_common::lock_wrapper::{lock_wrapper_entry, LockWrapperResult};
 
@@ -47,9 +47,14 @@ fn validate(res: LockWrapperResult) -> Result<(), Error> {
 
     let child_script_config = match res {
         LockWrapperResult::ChildScriptConfig(child_script_config_bytes) => {
+            info!("LockWrapperResult::ChildScriptConfig {:?}", child_script_config_bytes);
             ChildScriptConfig::from_slice(&child_script_config_bytes).map_err(|_| Error::WrongMoleculeFormat)?
         }
         LockWrapperResult::ChildScriptConfigHash(child_script_config_hash) => {
+            info!(
+                "LockWrapperResult::ChildScriptConfigHash {:?}",
+                child_script_config_hash
+            );
             let child_script_config = witness.script_config().to_opt().unwrap();
             if child_script_config_hash != hash(child_script_config.as_slice()) {
                 return Err(Error::WrongScriptConfigHash);
@@ -119,7 +124,7 @@ pub fn main() -> Result<(), Error> {
         }
         let global_registry_id = &args_slice[1..33].try_into().unwrap();
         let child_script_config_hash = &args_slice[33..65].try_into().unwrap();
-        let res = lock_wrapper_entry(global_registry_id, child_script_config_hash, 1)?;
+        let res = lock_wrapper_entry(global_registry_id, child_script_config_hash)?;
         return validate(res);
     }
     unreachable!();
