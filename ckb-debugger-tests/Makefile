@@ -43,6 +43,9 @@ gr-child-script:
 gr-child-script-no-config-cell:
 	cargo run --bin gr-child-script | ${CKB_DEBUGGER} --tx-file=- -s lock
 
+gr-init:
+	cargo run --bin gr-init | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type output
+
 gr-insert:
 	cargo run --bin gr-insert | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=1 --cell-type input
 	cargo run --bin gr-insert | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=1
