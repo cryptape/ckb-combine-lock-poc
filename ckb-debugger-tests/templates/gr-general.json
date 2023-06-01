@@ -1,0 +1,48 @@
+{
+  "mock_info": {
+    "inputs": [],
+    "cell_deps": [
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type global-registry }}"
+        },
+        "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/global-registry }}"
+      },
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type combine_lock }}"
+        },
+        "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/ckb-combine-lock }}"
+      },
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type always_success }}"
+        },
+        "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/child-script-always-success }}"
+      }
+    ]
+  },
+  "tx": {
+    "outputs": [],
+    "witnesses": [],
+    "outputs_data": []
+  }
+}

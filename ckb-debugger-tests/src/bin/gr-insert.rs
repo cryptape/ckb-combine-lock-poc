@@ -1,5 +1,5 @@
 use ckb_crypto::secp::Privkey;
-use ckb_debugger_tests::combine_lock_mol::{CombineLockWitness, Uint16, ChildScriptConfigOpt};
+use ckb_debugger_tests::combine_lock_mol::{ChildScriptConfigOpt, CombineLockWitness, Uint16};
 use ckb_debugger_tests::{create_child_script_config, generate_sighash_all};
 use ckb_debugger_tests::{
     hash::{blake160, hash},
@@ -62,15 +62,15 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     repr_tx.tx.outputs[1].lock.args = JsonBytes::from_vec(args2);
 
     let mut cell_data = vec![0xFF; 32]; // next hash
-    // actually, we should put the new ChildScriptConfig. For testing purpose,
-    // we just put arbitrary data
-    cell_data.extend([1, 1]); 
+                                        // actually, we should put the new ChildScriptConfig. For testing purpose,
+                                        // we just put arbitrary data
+    cell_data.extend([1, 1]);
     repr_tx.tx.outputs_data[0] = JsonBytes::from_vec(cell_data);
 
     let mut cell_data2 = current_hash.to_vec();
     // actually, we should put the ChildScriptConfig. For testing purpose, we
     // just put arbitrary data
-    cell_data2.extend([0, 0]); 
+    cell_data2.extend([0, 0]);
     repr_tx.tx.outputs_data[1] = JsonBytes::from_vec(cell_data2);
 
     // signing part
