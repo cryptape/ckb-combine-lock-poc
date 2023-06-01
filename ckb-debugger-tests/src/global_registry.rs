@@ -5,9 +5,12 @@ use ckb_hash::blake2b_256;
 use ckb_jsonrpc_types::{CellInput, CellOutput, JsonBytes, OutPoint, Script};
 use ckb_mock_tx_types::{ReprMockInput, ReprMockTransaction};
 use ckb_types::packed;
-use molecule::prelude::Entity;
+use molecule::{bytes::Bytes, prelude::Entity};
 
-use crate::{combine_lock_mol::ChildScriptConfig, create_script_from_cell_dep, read_tx_template};
+use crate::{
+    combine_lock_mol::ChildScriptConfig, create_child_script_config, create_script_from_cell_dep,
+    create_witness_args, read_tx_template,
+};
 
 // simplify: use only always success, repeat with `SimpleChildScriptConfig`
 // times. note, same count means same child script config hash.
@@ -189,7 +192,113 @@ impl Transaction {
         self.tx.tx.outputs.push(output);
         self.tx.tx.outputs_data.push(JsonBytes::from_vec(data));
     }
-    pub fn generate(&self) -> Result<(), anyhow::Error> {
+    fn create_config(&self, config: SimpleChildScriptConfig) -> ChildScriptConfig {
+        let cell_dep_index = vec![self.always_success_index];
+        let args = vec![Bytes::new()];
+        let vec = vec![0u8; config];
+        let vec_vec = vec![vec.as_slice()];
+        create_child_script_config(&self.tx, &cell_dep_index, &args, vec_vec.as_slice()).unwrap()
+    }
+    fn append_witness(&mut self, config: SimpleChildScriptConfig) {
+        let inner_witness = vec![Bytes::new(); config];
+        let config = self.create_config(config);
+        let args = create_witness_args(&config, 0, &inner_witness).unwrap();
+        self.tx
+            .tx
+            .witnesses
+            .push(JsonBytes::from_bytes(args.as_bytes()));
+    }
+    pub fn generate(&mut self) -> Result<(), anyhow::Error> {
+        // input asset cells
+        let mut input_hashes = vec![];
+        for trans in &self.transforming {
+            let hashes: Vec<[u8; 32]> = trans
+                .input_asset_cells
+                .iter()
+                .map(|c| blake2b_256(self.create_config(c.config).as_slice()))
+                .collect::<Vec<_>>();
+            input_hashes.extend(hashes);
+        }
+        for hash in input_hashes {
+            self.append_input_asset_cell(hash);
+            self.tx
+                .tx
+                .outputs_data
+                .push(JsonBytes::from_bytes(Bytes::new()));
+        }
+        // input config cells
+        let mut inputs = vec![];
+        for trans in &self.transforming {
+            let hashes: Vec<([u8; 32], [u8; 32], Option<ChildScriptConfig>)> = trans
+                .input_config_cells
+                .iter()
+                .map(|c| {
+                    let (hash, data) = match c.type_ {
+                        ConfigCellType::Fake(h) => (h, None),
+                        ConfigCellType::Real(config) => {
+                            let c = self.create_config(config);
+                            (blake2b_256(c.as_slice()), Some(c))
+                        }
+                    };
+                    (hash, c.next_hash, data)
+                })
+                .collect::<Vec<_>>();
+            inputs.extend(hashes);
+        }
+        for i in inputs {
+            if let Some(config) = i.2 {
+                self.append_input_config_cell(config, i.1);
+            } else {
+                self.append_fake_input_config_cell(i.0, i.1);
+            }
+        }
+        // output config cells
+        let mut outputs = vec![];
+        for trans in &self.transforming {
+            let hashes: Vec<([u8; 32], [u8; 32], Option<ChildScriptConfig>)> = trans
+                .output_config_cells
+                .iter()
+                .map(|c| {
+                    let (hash, data) = match c.type_ {
+                        ConfigCellType::Fake(h) => (h, None),
+                        ConfigCellType::Real(config) => {
+                            let c = self.create_config(config);
+                            (blake2b_256(c.as_slice()), Some(c))
+                        }
+                    };
+                    (hash, c.next_hash, data)
+                })
+                .collect::<Vec<_>>();
+            outputs.extend(hashes);
+        }
+        for i in outputs {
+            if let Some(config) = i.2 {
+                self.append_output_config_cell(config, i.1);
+            } else {
+                self.append_fake_output_config_cell(i.0, i.1);
+            }
+        }
+
+        // auto fill
+        if self.tx.tx.cell_deps.len() == 0 {
+            self.tx.tx.cell_deps = self
+                .tx
+                .mock_info
+                .cell_deps
+                .iter()
+                .map(|c| c.cell_dep.clone())
+                .collect::<Vec<_>>();
+        }
+        if self.tx.tx.inputs.len() == 0 {
+            self.tx.tx.inputs = self
+                .tx
+                .mock_info
+                .inputs
+                .iter()
+                .map(|c| c.input.clone())
+                .collect::<Vec<_>>();
+        }
+
         Ok(())
     }
 }
