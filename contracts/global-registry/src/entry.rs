@@ -15,6 +15,7 @@ use ckb_std::{
     syscalls::{self, SysError},
 };
 use core::{ops::Deref, result::Result};
+use log::warn;
 
 pub fn main() -> Result<(), Error> {
     if is_init() {
@@ -52,6 +53,11 @@ fn validate_init_hash() -> Result<(), Error> {
     if current_script.args().raw_data().deref() == hash {
         Ok(())
     } else {
+        warn!(
+            "hash_in_args={:02x?} hash_by_calc={:02x?}",
+            current_script.args().raw_data().deref(),
+            hash
+        );
         Err(Error::InvalidInitHash)
     }
 }
