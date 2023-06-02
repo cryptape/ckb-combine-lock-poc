@@ -10,12 +10,14 @@
 mod entry;
 mod error;
 
+use ckb_combine_lock_common::logger;
 use ckb_std::default_alloc;
 ckb_std::entry!(program_entry);
 default_alloc!();
 
 /// program entry
 pub fn program_entry() -> i8 {
+    drop(logger::init());
     // Call main function and return error code
     match entry::main() {
         Ok(_) => 0,

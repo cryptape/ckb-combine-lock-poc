@@ -5,6 +5,10 @@ CKB_DEBUGGER ?= ckb-debugger-2023
 ## cl: combine lock
 ## gr: combine lock with global registry
 all: \
+	gr-general-insert\
+	gr-general-batch-insert\
+	gr-general-batch-transforming\
+	gr-general-update\
 	gr-insert\
 	cl-always-success \
 	cl-always-success-3i3c \
@@ -47,6 +51,26 @@ gr-insert:
 	cargo run --bin gr-insert | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=1 --cell-type input
 	cargo run --bin gr-insert | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=1
 	cargo run --bin gr-insert | ${CKB_DEBUGGER} --tx-file=- -s lock
+
+gr-general-insert:
+	cargo run --bin gr-general -- --insert | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type input
+	cargo run --bin gr-general -- --insert | ${CKB_DEBUGGER} --tx-file=- -s lock
+	cargo run --bin gr-general -- --insert | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=1
+
+gr-general-batch-insert:
+	cargo run --bin gr-general -- --batch-insert | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type input
+	cargo run --bin gr-general -- --batch-insert | ${CKB_DEBUGGER} --tx-file=- -s lock
+	cargo run --bin gr-general -- --batch-insert | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=1
+
+gr-general-batch-transforming:
+	cargo run --bin gr-general -- --batch-transforming | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type input
+	cargo run --bin gr-general -- --batch-transforming | ${CKB_DEBUGGER} --tx-file=- -s lock
+	cargo run --bin gr-general -- --batch-transforming | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=1
+	cargo run --bin gr-general -- --batch-transforming | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=2
+
+gr-general-update:
+	cargo run --bin gr-general -- --update | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=0
+	cargo run --bin gr-general -- --update | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type input
 
 child-script-success:
 	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock

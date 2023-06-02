@@ -16,10 +16,12 @@ use crate::{
 // times. note, same count means same child script config hash.
 type SimpleChildScriptConfig = usize;
 
+#[derive(Clone)]
 pub struct AssetCell {
     pub config: SimpleChildScriptConfig,
 }
 
+#[derive(Clone)]
 pub enum ConfigCellType {
     Fake([u8; 32]),
     Real(SimpleChildScriptConfig),
@@ -36,17 +38,16 @@ pub struct Transforming {
     pub output_config_cells: Vec<ConfigCell>,
 }
 
-pub struct Transaction {
+pub struct BatchTransforming {
     pub template_file_name: String,
     // some predefined cell template in json file. represented as cell_dep index
     pub global_registry_index: usize,
     pub always_success_index: usize,
     pub combine_lock_index: usize,
-
     pub transforming: Vec<Transforming>,
+    pub tx: ReprMockTransaction,
 
     // private part
-    tx: ReprMockTransaction,
     global_registry_script: Script,
     always_success_script: Script,
     combine_lock_script: Script,
@@ -54,8 +55,10 @@ pub struct Transaction {
 }
 
 pub fn create_input(lock: Script, type_: Option<Script>, data: JsonBytes) -> ReprMockInput {
+    let r: packed::Script = lock.clone().into();
+    let random = blake2b_256(r.as_slice());
     let dummy_outpoint = OutPoint {
-        tx_hash: [0u8; 32].into(),
+        tx_hash: random.into(),
         index: 0.into(),
     };
     let input = CellInput {
@@ -63,7 +66,7 @@ pub fn create_input(lock: Script, type_: Option<Script>, data: JsonBytes) -> Rep
         previous_output: dummy_outpoint,
     };
     let output = CellOutput {
-        capacity: 10000.into(),
+        capacity: 9000.into(),
         lock,
         type_,
     };
@@ -83,8 +86,8 @@ pub fn create_output(lock: Script, type_: Option<Script>) -> CellOutput {
     }
 }
 
-impl Transaction {
-    fn new(
+impl BatchTransforming {
+    pub fn new(
         template_file_name: &str,
         always_success_index: usize,
         global_registry_index: usize,
@@ -131,7 +134,7 @@ impl Transaction {
         lock
     }
 
-    // this is a fake config cell. Can used as input config cell for inserting
+    // this is a fake config cell. Can be used as input config cell for inserting
     fn append_fake_input_config_cell(
         &mut self,
         fake_current_hash: [u8; 32],
@@ -199,6 +202,10 @@ impl Transaction {
         let vec_vec = vec![vec.as_slice()];
         create_child_script_config(&self.tx, &cell_dep_index, &args, vec_vec.as_slice()).unwrap()
     }
+    pub fn create_next_hash(&self, config: SimpleChildScriptConfig) -> [u8; 32] {
+        let config = self.create_config(config);
+        blake2b_256(config.as_slice())
+    }
     fn append_witness(&mut self, config: SimpleChildScriptConfig) {
         let inner_witness = vec![Bytes::new(); config];
         let config = self.create_config(config);
@@ -208,24 +215,13 @@ impl Transaction {
             .witnesses
             .push(JsonBytes::from_bytes(args.as_bytes()));
     }
+    fn append_fake_witness(&mut self) {
+        self.tx
+            .tx
+            .witnesses
+            .push(JsonBytes::from_bytes(Bytes::new()));
+    }
     pub fn generate(&mut self) -> Result<(), anyhow::Error> {
-        // input asset cells
-        let mut input_hashes = vec![];
-        for trans in &self.transforming {
-            let hashes: Vec<[u8; 32]> = trans
-                .input_asset_cells
-                .iter()
-                .map(|c| blake2b_256(self.create_config(c.config).as_slice()))
-                .collect::<Vec<_>>();
-            input_hashes.extend(hashes);
-        }
-        for hash in input_hashes {
-            self.append_input_asset_cell(hash);
-            self.tx
-                .tx
-                .outputs_data
-                .push(JsonBytes::from_bytes(Bytes::new()));
-        }
         // input config cells
         let mut inputs = vec![];
         for trans in &self.transforming {
@@ -252,6 +248,48 @@ impl Transaction {
                 self.append_fake_input_config_cell(i.0, i.1);
             }
         }
+        // witness
+        let mut types = vec![];
+        for trans in &self.transforming {
+            for i in &trans.input_config_cells {
+                types.push(i.type_.clone());
+            }
+        }
+        for t in types {
+            match t {
+                ConfigCellType::Fake(_) => {
+                    self.append_fake_witness();
+                }
+                ConfigCellType::Real(c) => {
+                    self.append_witness(c);
+                }
+            }
+        }
+
+        // input asset cells
+        let mut input_hashes = vec![];
+        for trans in &self.transforming {
+            let hashes: Vec<[u8; 32]> = trans
+                .input_asset_cells
+                .iter()
+                .map(|c| blake2b_256(self.create_config(c.config).as_slice()))
+                .collect::<Vec<_>>();
+            input_hashes.extend(hashes);
+        }
+        for hash in input_hashes {
+            self.append_input_asset_cell(hash);
+        }
+        // witness
+        let mut assets = vec![];
+        for trans in &self.transforming {
+            for i in &trans.input_asset_cells {
+                assets.push(i.config);
+            }
+        }
+        for c in assets {
+            self.append_witness(c);
+        }
+
         // output config cells
         let mut outputs = vec![];
         for trans in &self.transforming {
@@ -301,4 +339,14 @@ impl Transaction {
 
         Ok(())
     }
+}
+
+pub fn find_middle(a: [u8; 32], b: [u8; 32]) -> [u8; 32] {
+    let mut result = [0; 32];
+    for i in 0..32 {
+        let x = a[i] as u16;
+        let y = b[i] as u16;
+        result[i] = ((x + y) / 2) as u8;
+    }
+    result
 }
