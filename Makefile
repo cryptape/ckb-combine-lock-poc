@@ -11,7 +11,7 @@ mol:
 ci:
 	cd tests/global-registry && cargo test && cd ../..
 	capsule build --release
-	make -C ckb-debugger-tests all
+	make -j10 -C ckb-debugger-tests all
 
 dev:
 	capsule build --release -- --features log
