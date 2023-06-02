@@ -9,6 +9,7 @@ pub mod blockchain {
         WitnessArgsBuilder, WitnessArgsReader,
     };
 }
+pub mod global_registry;
 pub mod mol_utils;
 
 use anyhow;

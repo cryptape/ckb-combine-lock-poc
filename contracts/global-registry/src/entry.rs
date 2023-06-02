@@ -15,7 +15,7 @@ use ckb_std::{
     syscalls::{self, SysError},
 };
 use core::{ops::Deref, result::Result};
-use log::warn;
+use log::{info, warn};
 
 pub fn main() -> Result<(), Error> {
     if is_init() {
@@ -41,6 +41,7 @@ fn is_init() -> bool {
 // check if the init hash is correct, which is the hash of the first input and
 // the index of the first output with the same type script
 fn validate_init_hash() -> Result<(), Error> {
+    info!("global registry initializing");
     let current_script = load_script()?;
     let first_input = load_input(0, Source::Input)?;
     let first_output_index = load_first_output_index()?;
@@ -98,6 +99,7 @@ fn validate_linked_list() -> Result<(), Error> {
     // go through all transforming and check more
     for trans in &batch_transforming.transforming {
         if trans.is_inserting() {
+            info!("verify transforming: insert");
             // let's search the inserted assert cells. Assume we have following
             // transforming(AC = Asset Cell, CC = Config Cell):
             //
@@ -131,6 +133,7 @@ fn validate_linked_list() -> Result<(), Error> {
                 }
             }
         } else {
+            info!("verify transforming: update");
             assert!(trans.outputs.len() == 1);
             if !lock_unchanged(trans.input.index, trans.outputs[0].index) {
                 return Err(Error::UpdateFailed);
