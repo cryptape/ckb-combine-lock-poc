@@ -3,14 +3,16 @@ use ckb_combine_lock_common::{
     blake2b::new_blake2b,
     transforming::{self, BatchTransformingStatus},
     utils::{
-        config_cell_unchanged, get_current_hash, get_next_hash, lock_unchanged, type_unchanged,
+        config_cell_unchanged, get_child_script_config_hash, get_current_hash, get_next_hash,
+        lock_unchanged, type_unchanged,
     },
 };
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::prelude::*,
     high_level::{
-        load_cell_lock, load_cell_type_hash, load_input, load_script, load_script_hash, QueryIter,
+        load_cell_data, load_cell_lock, load_cell_type_hash, load_input, load_script,
+        load_script_hash, QueryIter,
     },
     syscalls::{self, SysError},
 };
@@ -19,7 +21,8 @@ use log::{info, warn};
 
 pub fn main() -> Result<(), Error> {
     if is_init() {
-        validate_init_hash()
+        validate_init_hash()?;
+        validate_init_values()
     } else {
         validate_linked_list()
     }
@@ -61,6 +64,27 @@ fn validate_init_hash() -> Result<(), Error> {
         );
         Err(Error::InvalidInitHash)
     }
+}
+
+// When global registry is initializing, we need to set a hash pair (current
+// hash, next hash) to contain all possible hashes.
+fn validate_init_values() -> Result<(), Error> {
+    let script = load_cell_lock(0, Source::GroupOutput)?;
+    let args = script.args();
+    let slice = args.raw_data();
+    let current_hash = get_child_script_config_hash(&slice);
+    if current_hash != [0u8; 32] {
+        return Err(Error::InvalidInitValues);
+    }
+    let data = load_cell_data(0, Source::GroupOutput)?;
+    if data.len() < 32 {
+        return Err(Error::InvalidInitValues);
+    }
+    let next_hash = &data[0..32];
+    if next_hash != &[0xFF; 32] {
+        return Err(Error::InvalidInitValues);
+    }
+    Ok(())
 }
 
 fn validate_linked_list() -> Result<(), Error> {
