@@ -9,7 +9,9 @@ all: \
 	gr-general-batch-insert\
 	gr-general-batch-transforming\
 	gr-general-update\
+	gr-init \
 	gr-insert\
+	gr-update \
 	cl-always-success \
 	cl-always-success-3i3c \
 	cl-cl-always-success \
@@ -47,6 +49,9 @@ gr-child-script:
 gr-child-script-no-config-cell:
 	cargo run --bin gr-child-script | ${CKB_DEBUGGER} --tx-file=- -s lock
 
+gr-init:
+	cargo run --bin gr-init | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type output
+
 gr-insert:
 	cargo run --bin gr-insert | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=1 --cell-type input
 	cargo run --bin gr-insert | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=1
@@ -71,6 +76,11 @@ gr-general-batch-transforming:
 gr-general-update:
 	cargo run --bin gr-general -- --update | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=0
 	cargo run --bin gr-general -- --update | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type input
+
+gr-update:
+	cargo run --bin gr-update | ${CKB_DEBUGGER} --tx-file=- -s lock
+	cargo run --bin gr-update | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type input
+	cargo run --bin gr-update | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type output
 
 child-script-success:
 	cargo run --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
