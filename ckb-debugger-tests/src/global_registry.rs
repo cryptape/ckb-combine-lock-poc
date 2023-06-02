@@ -12,8 +12,9 @@ use crate::{
     create_witness_args, read_tx_template,
 };
 
-// simplify: use only always success, repeat with `SimpleChildScriptConfig`
-// times. note, same count means same child script config hash.
+// Use always success script. Repeat with `SimpleChildScriptConfig` times. Note,
+// same count means same child script config hash. It's quite important that
+// in global registry, every config cell has unique child script config hash.
 type SimpleChildScriptConfig = usize;
 
 #[derive(Clone)]
@@ -21,6 +22,10 @@ pub struct AssetCell {
     pub config: SimpleChildScriptConfig,
 }
 
+//
+// the next hash is derived from child script config. It's uncontrollable. So we
+// need fake next hash to test some cases.
+//
 #[derive(Clone)]
 pub enum ConfigCellType {
     Fake([u8; 32]),
