@@ -9,6 +9,8 @@ all: \
 	gr-general-batch-insert\
 	gr-general-batch-transforming\
 	gr-general-update\
+	gr-general-insert-fail-gap\
+	gr-general-insert-fail-modify\
 	gr-init \
 	gr-insert\
 	gr-update \
@@ -76,6 +78,14 @@ gr-general-batch-transforming:
 gr-general-update:
 	cargo run --$(BUILD) --bin gr-general -- --update | ${CKB_DEBUGGER} --tx-file=- -s lock --cell-index=0
 	cargo run --$(BUILD) --bin gr-general -- --update | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type input
+
+gr-general-insert-fail-modify:
+	cargo run --$(BUILD) --bin gr-general -- --insert-fail-modify | \
+	${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type input | grep "Run result: 54"
+
+gr-general-insert-fail-gap:
+	cargo run --$(BUILD) --bin gr-general -- --insert-fail-gap | \
+	${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type input | grep "Run result: 53"
 
 gr-update:
 	cargo run --$(BUILD) --bin gr-update | ${CKB_DEBUGGER} --tx-file=- -s lock
