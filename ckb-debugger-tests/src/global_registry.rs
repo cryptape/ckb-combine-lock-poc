@@ -207,7 +207,8 @@ impl BatchTransforming {
         let vec_vec = vec![vec.as_slice()];
         create_child_script_config(&self.tx, &cell_dep_index, &args, vec_vec.as_slice()).unwrap()
     }
-    pub fn create_next_hash(&self, config: SimpleChildScriptConfig) -> [u8; 32] {
+    // current hash or next hash
+    pub fn create_hash(&self, config: SimpleChildScriptConfig) -> [u8; 32] {
         let config = self.create_config(config);
         blake2b_256(config.as_slice())
     }
@@ -353,5 +354,24 @@ pub fn find_middle(a: [u8; 32], b: [u8; 32]) -> [u8; 32] {
         let y = b[i] as u16;
         result[i] = ((x + y) / 2) as u8;
     }
+    result
+}
+
+pub fn find_smaller(a: &[u8; 32]) -> [u8; 32] {
+    let mut part = u128::from_be_bytes(a[16..32].try_into().unwrap());
+    assert!(part != 0);
+    part -= 1;
+    let part = part.to_be_bytes();
+    let mut result = a.clone();
+    result[16..32].copy_from_slice(&part);
+    result
+}
+
+pub fn find_larger(a: &[u8; 32]) -> [u8; 32] {
+    let mut part = u128::from_be_bytes(a[16..32].try_into().unwrap());
+    part += 1;
+    let part = part.to_be_bytes();
+    let mut result = a.clone();
+    result[16..32].copy_from_slice(&part);
     result
 }
