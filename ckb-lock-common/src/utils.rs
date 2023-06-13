@@ -1,5 +1,5 @@
 use crate::{error::Error, transforming::Cell};
-use alloc::fmt;
+use alloc::{fmt, vec::Vec};
 use ckb_std::{
     ckb_constants::Source,
     high_level::{load_cell_capacity, load_cell_data, load_cell_lock, load_cell_type},
@@ -7,20 +7,17 @@ use ckb_std::{
 use molecule::prelude::Entity;
 
 pub const GLOBAL_REGISTRY_ID_LEN: usize = 32;
-pub const CHILD_SCRIPT_CONFIG_HASH_LEN: usize = 32;
+pub const WRAPPED_SCRIPT_HASH_LEN: usize = 32;
 pub const NEXT_HASH_LEN: usize = 32;
-pub const PREFIX_FLAG_LEN: usize = 1;
 
 pub fn get_global_registry_id(args: &[u8]) -> [u8; 32] {
-    let id: [u8; 32] = args[PREFIX_FLAG_LEN..PREFIX_FLAG_LEN + GLOBAL_REGISTRY_ID_LEN]
-        .try_into()
-        .unwrap();
+    let id: [u8; 32] = args[0..GLOBAL_REGISTRY_ID_LEN].try_into().unwrap();
     id
 }
 
-pub fn get_child_script_config_hash(args: &[u8]) -> [u8; 32] {
-    let hash: [u8; 32] = args[PREFIX_FLAG_LEN + GLOBAL_REGISTRY_ID_LEN
-        ..PREFIX_FLAG_LEN + GLOBAL_REGISTRY_ID_LEN + CHILD_SCRIPT_CONFIG_HASH_LEN]
+pub fn get_wrapped_script_hash(args: &[u8]) -> [u8; 32] {
+    let hash: [u8; 32] = args
+        [GLOBAL_REGISTRY_ID_LEN..GLOBAL_REGISTRY_ID_LEN + WRAPPED_SCRIPT_HASH_LEN]
         .try_into()
         .unwrap();
     hash
@@ -28,8 +25,8 @@ pub fn get_child_script_config_hash(args: &[u8]) -> [u8; 32] {
 
 pub fn get_current_hash(index: usize, source: Source) -> Result<[u8; 32], Error> {
     let lock = load_cell_lock(index, source)?;
-    let hash: [u8; 32] = lock.args().raw_data()[PREFIX_FLAG_LEN + GLOBAL_REGISTRY_ID_LEN
-        ..PREFIX_FLAG_LEN + GLOBAL_REGISTRY_ID_LEN + CHILD_SCRIPT_CONFIG_HASH_LEN]
+    let hash: [u8; 32] = lock.args().raw_data()
+        [GLOBAL_REGISTRY_ID_LEN..GLOBAL_REGISTRY_ID_LEN + WRAPPED_SCRIPT_HASH_LEN]
         .try_into()
         .unwrap();
     Ok(hash)
@@ -39,6 +36,12 @@ pub fn get_next_hash(index: usize, source: Source) -> Result<[u8; 32], Error> {
     let data = load_cell_data(index, source)?;
     let hash: [u8; 32] = data[0..NEXT_HASH_LEN].try_into().unwrap();
     Ok(hash)
+}
+
+pub fn get_config_cell_data(index: usize, source: Source) -> Result<Vec<u8>, Error> {
+    let data = load_cell_data(index, source)?;
+    let config_cell_data: Vec<u8> = data[NEXT_HASH_LEN..].to_vec();
+    Ok(config_cell_data)
 }
 
 pub fn capacity_unchanged(input_index: usize, output_index: usize) -> bool {

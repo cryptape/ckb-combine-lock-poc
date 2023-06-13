@@ -23,7 +23,7 @@ pub fn continue_running(argv: &'static [Arg]) -> Result<(), Error> {
         .iter()
         .map(|s| s.deref())
         .collect::<Vec<&CStr>>();
-    exec_cell(&next_entry.code_hash, next_entry.hash_type, 0, 0, &new_argv)
+    exec_cell(&next_entry.code_hash, next_entry.hash_type, &new_argv)
         .map_err(|_| Error::ChainedExec)?;
     unreachable!("unreachable after exec");
 }

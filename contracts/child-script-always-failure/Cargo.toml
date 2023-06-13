@@ -6,4 +6,4 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ckb-std = "0.13"
+ckb-std = { git = "https://github.com/nervosnetwork/ckb-std.git", rev = "17c6af8", features = ["ckb2023"] }

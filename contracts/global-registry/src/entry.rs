@@ -3,7 +3,7 @@ use ckb_lock_common::{
     blake2b::new_blake2b,
     transforming::{self, BatchTransformingStatus},
     utils::{
-        config_cell_unchanged, get_child_script_config_hash, get_current_hash, get_next_hash,
+        config_cell_unchanged, get_current_hash, get_next_hash, get_wrapped_script_hash,
         lock_unchanged, type_unchanged,
     },
 };
@@ -72,7 +72,7 @@ fn validate_init_values() -> Result<(), Error> {
     let script = load_cell_lock(0, Source::GroupOutput)?;
     let args = script.args();
     let slice = args.raw_data();
-    let current_hash = get_child_script_config_hash(&slice);
+    let current_hash = get_wrapped_script_hash(&slice);
     if current_hash != [0u8; 32] {
         return Err(Error::InvalidInitValues);
     }

@@ -4,8 +4,8 @@ use crate::{
     error::Error,
     transforming::{self, BatchTransformingStatus},
     utils::{
-        config_cell_unchanged, get_child_script_config_hash, get_current_hash,
-        get_global_registry_id, get_next_hash, NEXT_HASH_LEN,
+        config_cell_unchanged, get_current_hash, get_global_registry_id, get_next_hash,
+        get_wrapped_script_hash, NEXT_HASH_LEN,
     },
 };
 use alloc::vec::Vec;
@@ -115,7 +115,7 @@ fn fetch_child_script_config(
         }
         // the layout of lock script args is same as combine lock:
         // | 1 byte flag | 32 bytes global registry ID | 32 bytes child script config hash |
-        let current_hash: [u8; 32] = get_child_script_config_hash(args).try_into().unwrap();
+        let current_hash: [u8; 32] = get_wrapped_script_hash(args).try_into().unwrap();
         match current_hash.cmp(child_script_config_hash) {
             Ordering::Equal => {
                 return Ok(LockWrapperResult::ChildScriptConfig(
@@ -216,7 +216,7 @@ fn validate_config_cell(global_registry_id: &[u8; 32]) -> Result<LockWrapperResu
                 exit(0);
             } else {
                 // if it's not CC(0), the current script must be an AC.
-                let hash = get_child_script_config_hash(&current_script.args().raw_data());
+                let hash = get_wrapped_script_hash(&current_script.args().raw_data());
                 return Ok(LockWrapperResult::ChildScriptConfigHash(hash));
             }
         } else {

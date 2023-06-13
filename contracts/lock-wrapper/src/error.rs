@@ -11,6 +11,14 @@ pub enum Error {
     Encoding,
 
     CommonError = 110,
+    InvalidWrappedScriptHash,
+    InvalidDataLength,
+    Changed,
+    InvalidLinkedList,
+    OutputTypeForbidden,
+    InvalidCellDepRef,
+    WrongFormat,
+    Unknown,
 }
 
 impl From<SysError> for Error {
@@ -30,5 +38,12 @@ impl From<ckb_lock_common::error::Error> for Error {
     fn from(err: ckb_lock_common::error::Error) -> Self {
         warn!("An error reported from ckb_lock_common: {:?}", err);
         Self::CommonError
+    }
+}
+
+impl From<molecule::error::VerificationError> for Error {
+    fn from(err: molecule::error::VerificationError) -> Self {
+        warn!("An error reported from VerificationError: {:?}", err);
+        Self::WrongFormat
     }
 }

@@ -132,7 +132,7 @@ fn ckb_auth_exec(
     ))?;
 
     // info!("args: {:?}", args);
-    exec_cell(&entry.code_hash, entry.hash_type, 0, 0, &[args.as_c_str()])?;
+    exec_cell(&entry.code_hash, entry.hash_type, &[args.as_c_str()])?;
     Ok(())
 }
 
