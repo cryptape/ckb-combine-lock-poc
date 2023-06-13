@@ -33,3 +33,8 @@ template_type = "Rust"
 [[contracts]]
 name = "child-script-always-failure"
 template_type = "Rust"
+
+[[contracts]]
+name = "lock-wrapper"
+template_type = "Rust"
+

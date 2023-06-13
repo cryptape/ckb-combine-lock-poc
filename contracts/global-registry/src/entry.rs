@@ -1,5 +1,5 @@
 use crate::error::Error;
-use ckb_combine_lock_common::{
+use ckb_lock_common::{
     blake2b::new_blake2b,
     transforming::{self, BatchTransformingStatus},
     utils::{

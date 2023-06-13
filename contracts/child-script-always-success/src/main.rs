@@ -21,7 +21,7 @@ ckb_std::entry!(program_entry);
 #[cfg(not(test))]
 default_alloc!();
 
-use ckb_combine_lock_common::logger;
+use ckb_lock_common::logger;
 
 /// program entry
 pub fn program_entry() -> i8 {

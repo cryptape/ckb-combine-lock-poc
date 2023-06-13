@@ -11,7 +11,7 @@ pub enum Error {
     Encoding,
     // Add customized errors here...
     InvalidInitHash = 50,
-    // error reported from ckb_combine_lock_common
+    // error reported from ckb_lock_common
     // mainly from Transforming
     CommonError,
     OutputTypeForbidden,
@@ -35,9 +35,9 @@ impl From<SysError> for Error {
     }
 }
 
-impl From<ckb_combine_lock_common::error::Error> for Error {
-    fn from(err: ckb_combine_lock_common::error::Error) -> Self {
-        warn!("An error reported from ckb_combine_lock_common: {:?}", err);
+impl From<ckb_lock_common::error::Error> for Error {
+    fn from(err: ckb_lock_common::error::Error) -> Self {
+        warn!("An error reported from ckb_lock_common: {:?}", err);
         Self::CommonError
     }
 }

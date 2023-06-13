@@ -6,7 +6,7 @@ version = 3
 name = "auth-script-test"
 version = "0.1.0"
 dependencies = [
- "ckb-combine-lock-common",
+ "ckb-lock-common",
  "ckb-std",
  "log",
 ]
@@ -50,7 +50,7 @@ dependencies = [
 name = "child-script-always-success"
 version = "0.1.0"
 dependencies = [
- "ckb-combine-lock-common",
+ "ckb-lock-common",
  "ckb-std",
  "log",
 ]
@@ -59,7 +59,7 @@ dependencies = [
 name = "child-script-example"
 version = "0.1.0"
 dependencies = [
- "ckb-combine-lock-common",
+ "ckb-lock-common",
  "ckb-std",
  "hex",
  "log",
@@ -70,7 +70,7 @@ name = "ckb-combine-lock"
 version = "0.1.0"
 dependencies = [
  "blake2b-rs",
- "ckb-combine-lock-common",
+ "ckb-lock-common",
  "ckb-std",
  "hex",
  "log",
@@ -78,7 +78,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ckb-combine-lock-common"
+name = "ckb-lock-common"
 version = "0.1.0"
 dependencies = [
  "blake2b-rs",
@@ -120,7 +120,7 @@ name = "global-registry"
 version = "0.1.0"
 dependencies = [
  "blake2b-rs",
- "ckb-combine-lock-common",
+ "ckb-lock-common",
  "ckb-std",
  "hex",
  "log",
@@ -132,6 +132,18 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
+name = "lock-wrapper"
+version = "0.1.0"
+dependencies = [
+ "blake2b-rs",
+ "ckb-lock-common",
+ "ckb-std",
+ "hex",
+ "log",
+ "molecule",
+]
 
 [[package]]
 name = "log"

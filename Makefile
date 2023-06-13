@@ -6,8 +6,11 @@ all:
 	capsule build --release
 
 mol:
-	${MOLC} --language rust --schema-file ckb-combine-lock-common/combine_lock.mol | rustfmt > ckb-combine-lock-common/src/combine_lock_mol.rs
-	cp ckb-combine-lock-common/src/combine_lock_mol.rs ckb-debugger-tests/src
+	${MOLC} --language rust --schema-file ckb-lock-common/combine_lock.mol | rustfmt > ckb-lock-common/src/combine_lock_mol.rs
+	cp ckb-lock-common/src/combine_lock_mol.rs ckb-debugger-tests/src
+	${MOLC} --language rust --schema-file ckb-lock-common/lock_wrapper.mol | rustfmt > ckb-lock-common/src/lock_wrapper_mol.rs
+	cp ckb-lock-common/src/lock_wrapper_mol.rs ckb-debugger-tests/src
+
 ci:
 	cd tests/global-registry && cargo test && cd ../..
 	capsule build --release

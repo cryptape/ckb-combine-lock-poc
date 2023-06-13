@@ -13,11 +13,11 @@ use crate::error::Error;
 use alloc::vec;
 use alloc::vec::Vec;
 
-use ckb_combine_lock_common::ckb_auth::{
+use ckb_lock_common::ckb_auth::{
     ckb_auth, AuthAlgorithmIdType, CkbAuthType, CkbEntryType, EntryCategoryType,
 };
 
-use ckb_combine_lock_common::{
+use ckb_lock_common::{
     chained_exec::continue_running, child_script_entry::ChildScriptEntry,
     generate_sighash_all::generate_sighash_all,
 };
