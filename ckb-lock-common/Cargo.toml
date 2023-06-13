@@ -1,5 +1,5 @@
 [package]
-name = "ckb-combine-lock-common"
+name = "ckb-lock-common"
 version = "0.1.0"
 edition = "2021"
 

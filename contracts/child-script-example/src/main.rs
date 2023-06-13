@@ -20,7 +20,7 @@ default_alloc!();
 mod entry;
 mod error;
 
-use ckb_combine_lock_common::logger;
+use ckb_lock_common::logger;
 use log::warn;
 
 /// program entry

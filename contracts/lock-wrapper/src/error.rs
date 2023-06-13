@@ -1,24 +1,16 @@
 use ckb_std::error::SysError;
 use log::warn;
+
 /// Error
 #[repr(i8)]
+#[derive(Debug)]
 pub enum Error {
     IndexOutOfBound = 1,
     ItemMissing,
     LengthNotEnough,
     Encoding,
-    // Add customized errors here...
-    WrongFormat = 80,
-    WrongScriptConfigHash,
-    WrongHashType,
-    ChildScriptArrayIndexOutOfBounds,
-    CombineLockWitnessIndexOutOfBounds,
-    UnlockFailed,
-    WrongMoleculeFormat,
-    InnerWitnessIndexOutOfBounds,
-    // error reported from ckb_lock_common
-    // mainly from LockWrapper
-    CommonError,
+
+    CommonError = 110,
 }
 
 impl From<SysError> for Error {
@@ -31,20 +23,6 @@ impl From<SysError> for Error {
             Encoding => Self::Encoding,
             Unknown(err_code) => panic!("unexpected sys error {}", err_code),
         }
-    }
-}
-
-impl From<molecule::error::VerificationError> for Error {
-    fn from(err: molecule::error::VerificationError) -> Self {
-        warn!("An error reported from VerificationError: {:?}", err);
-        Self::WrongFormat
-    }
-}
-
-impl From<hex::FromHexError> for Error {
-    fn from(err: hex::FromHexError) -> Self {
-        warn!("An error reported from FromHexError: {:?}", err);
-        Self::WrongFormat
     }
 }
 

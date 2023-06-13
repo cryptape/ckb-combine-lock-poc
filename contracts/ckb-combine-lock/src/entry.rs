@@ -1,9 +1,9 @@
 use crate::error::Error;
 use alloc::ffi::CString;
 use alloc::vec::Vec;
-use ckb_combine_lock_common::blake2b::hash;
-use ckb_combine_lock_common::combine_lock_mol::{ChildScriptConfig, CombineLockWitness};
-use ckb_combine_lock_common::lock_wrapper::{lock_wrapper_entry, LockWrapperResult};
+use ckb_lock_common::blake2b::hash;
+use ckb_lock_common::combine_lock_mol::{ChildScriptConfig, CombineLockWitness};
+use ckb_lock_common::lock_wrapper::{lock_wrapper_entry, LockWrapperResult};
 
 use ckb_std::{
     ckb_constants::Source,

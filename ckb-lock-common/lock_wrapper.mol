@@ -1,0 +1,13 @@
+import blockchain;
+
+table ConfigCellData {
+    wrapped_script: Script,
+    script_config: Bytes,
+}
+
+option ConfigCellDataOpt (ConfigCellData);
+
+table LockWrapperWitness {
+    wrapped_script: ScriptOpt,
+    wrapped_witness: Bytes,
+}

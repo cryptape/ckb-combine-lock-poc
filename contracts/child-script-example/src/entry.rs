@@ -1,9 +1,9 @@
 extern crate alloc;
 use crate::error::Error;
-use ckb_combine_lock_common::ckb_auth::{
+use ckb_lock_common::ckb_auth::{
     ckb_auth, AuthAlgorithmIdType, CkbAuthType, CkbEntryType, EntryCategoryType,
 };
-use ckb_combine_lock_common::generate_sighash_all::generate_sighash_all;
+use ckb_lock_common::generate_sighash_all::generate_sighash_all;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, core::ScriptHashType, prelude::*},

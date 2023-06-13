@@ -3,7 +3,7 @@
 extern crate alloc;
 
 mod error;
-#[path = "../../../ckb-combine-lock-common/src/transforming.rs"]
+#[path = "../../../ckb-lock-common/src/transforming.rs"]
 mod transforming;
 
 use transforming::{BatchTransformingStatus, Cell};

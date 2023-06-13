@@ -10,7 +10,7 @@
 // define modules
 mod entry;
 mod error;
-use ckb_combine_lock_common::logger;
+use ckb_lock_common::logger;
 
 #[cfg(test)]
 extern crate alloc;

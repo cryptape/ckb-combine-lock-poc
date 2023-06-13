@@ -1,4 +1,4 @@
-use ckb_combine_lock_common::ckb_auth::CkbAuthError;
+use ckb_lock_common::ckb_auth::CkbAuthError;
 use ckb_std::error::SysError;
 
 /// Error
