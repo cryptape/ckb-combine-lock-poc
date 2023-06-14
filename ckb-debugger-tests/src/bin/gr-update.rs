@@ -26,7 +26,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     input_data.extend_from_slice(&vec![0xbb; 32]);
     let mut output_data = input_data.clone();
     let child_script_config =
-        create_child_script_config(&repr_tx, &[0], &[Bytes::default()], &[&[0]])?;
+        create_child_script_config(&repr_tx, &[0], &[Bytes::default()], &[&[0]], false)?;
     input_data.extend_from_slice(child_script_config.as_slice());
     repr_tx.mock_info.inputs[0].data = JsonBytes::from_vec(input_data);
 
@@ -35,6 +35,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         &[0],
         &[Bytes::default(), Bytes::default()],
         &[&[0, 0]],
+        false,
     )?;
     output_data.extend_from_slice(child_script_config.as_slice());
     repr_tx.tx.outputs_data[0] = JsonBytes::from_vec(output_data);

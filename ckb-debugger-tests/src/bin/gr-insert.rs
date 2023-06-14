@@ -34,7 +34,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     auth[0] = 0; // CKB
     auth[1..].copy_from_slice(&child_script_pubkey_hash);
 
-    let child_script_config = create_child_script_config(&repr_tx, &[2], &[auth.into()], &[&[0]])?;
+    let child_script_config = create_child_script_config(&repr_tx, &[2], &[auth.into()], &[&[0]], false)?;
 
     // the second input cell's type script is global registry
     let global_registry_id = {

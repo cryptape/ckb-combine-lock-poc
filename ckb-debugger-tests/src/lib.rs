@@ -105,10 +105,11 @@ pub fn create_child_script_config(
     cell_dep_index: &[usize],
     args: &[Bytes],
     vec_vec: &[&[u8]],
+    use_type: bool,
 ) -> Result<ChildScriptConfig, anyhow::Error> {
     let mut child_script_array_builder = ChildScriptArray::new_builder();
     for i in 0..cell_dep_index.len() {
-        let mut child_script = create_script_from_cell_dep(&repr_tx, cell_dep_index[i], false)?;
+        let mut child_script = create_script_from_cell_dep(&repr_tx, cell_dep_index[i], use_type)?;
         child_script = child_script.as_builder().args(args[i].pack()).build();
         child_script_array_builder = child_script_array_builder.push(child_script.into());
     }
