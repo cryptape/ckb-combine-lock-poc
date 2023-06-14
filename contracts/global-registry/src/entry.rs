@@ -111,6 +111,7 @@ fn validate_linked_list() -> Result<(), Error> {
             // sUDT mint issue: avoid minting sUDT without signature
             //
             if hash.is_some() {
+                warn!("output type script is not allowed");
                 return Err(Error::OutputTypeForbidden);
             }
             // it's safe to have no other type script
@@ -118,6 +119,12 @@ fn validate_linked_list() -> Result<(), Error> {
     }
 
     if !batch_transforming.validate() {
+        for trans in batch_transforming.transforming {
+            warn!("trans.input = {:?}", trans.input);
+            for output in trans.outputs {
+                warn!("trans.output = {:?}", output);
+            }
+        }
         return Err(Error::InvalidLinkedList);
     }
     // go through all transforming and check more

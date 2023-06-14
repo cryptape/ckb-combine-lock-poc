@@ -1,10 +1,8 @@
 extern crate alloc;
 use crate::error::Error;
-
-use alloc::vec::Vec;
 use ckb_lock_common::{
     blake2b::hash,
-    lock_wrapper_mol::{ConfigCellDataReader, LockWrapperWitnessReader, ConfigCellDataOptReader},
+    lock_wrapper_mol::{ConfigCellDataOptReader, LockWrapperWitnessReader},
     transforming::{self, BatchTransformingStatus},
     utils::{
         config_cell_unchanged, get_current_hash, get_global_registry_id, get_next_hash,
@@ -16,7 +14,7 @@ use ckb_std::{
     ckb_types::{core::ScriptHashType, prelude::*},
     high_level::{
         encode_hex, exec_cell, load_cell_data, load_cell_lock, load_cell_type_hash, load_script,
-        load_witness, QueryIter,
+        load_witness_args, QueryIter,
     },
     syscalls::exit,
 };
@@ -52,9 +50,10 @@ pub fn main() -> Result<(), Error> {
 /// When it returns true, there are 2 scenarios:
 /// 1. Update config cell by owner (validated by owner)
 /// 2. Insert config cell by anyone (bypass)
+///
 /// When it returns false, there are also 2:
-/// 1. Config cell contains child scripts. Run them.
-/// 2. Config cell doesn't contain. Run scripts provided in witness. It returns hash only.
+/// 1. Config cell contains wrapped script. Run them.
+/// 2. Config cell doesn't contain. Run wrapped scripts provided in witness.
 fn contain_config_cell(global_registry_id: &[u8; 32]) -> bool {
     let inputs_type_hashes = QueryIter::new(load_cell_type_hash, Source::Input);
 
@@ -108,12 +107,11 @@ fn execute_wrapped_script(
             return Err(Error::InvalidDataLength);
         }
         // the layout of lock script args is same as wrapped script
-        // 32 bytes global registry ID | 32 bytes wrapped script hash |
+        // 32 bytes global registry ID | 32 bytes wrapped script hash
         let current_hash: [u8; 32] = get_wrapped_script_hash(args).try_into().unwrap();
         match current_hash.cmp(wrapped_script_hash) {
             Ordering::Equal => {
-                let data = config_cell_data[NEXT_HASH_LEN..].to_vec();
-                exec_with_config(wrapped_script_hash.clone(), data)?;
+                exec_with_config(&config_cell_data[NEXT_HASH_LEN..])?;
             }
             Ordering::Less => {
                 // current hash < child_script_config_hash < next_hash
@@ -121,24 +119,21 @@ fn execute_wrapped_script(
                 if &next_hash > wrapped_script_hash {
                     exec_no_config(wrapped_script_hash.clone())?;
                 } else {
-                    // Considering multiple combine locks in one transaction, it
+                    // Considering multiple lock wrapper in one transaction, it
                     // attaches multiple cell_deps. Search further.
                     info!("Not match cell_dep, not in range(too large)");
                     continue;
                 }
             }
             Ordering::Greater => {
-                // Considering multiple combine locks in one transaction, it
+                // Considering multiple lock wrapper in one transaction, it
                 // attaches multiple cell_deps. Search further.
                 info!("Not matched cell_dep, not in range (too small)");
                 continue;
             }
         }
     }
-    // When a lock script uses global registry, it must attach a cell_dep:
-    // 1. cell_dp contains child script config or
-    // 2. Proof of config cell not containing child script config
-    warn!("Can't find any corresponding cell_dep or proof not containing child script config");
+    warn!("Can't find any corresponding cell_dep or proof not containing config cell data");
     Err(Error::InvalidCellDepRef)
 }
 
@@ -214,13 +209,7 @@ fn validate_config_cell(global_registry_id: &[u8; 32]) -> Result<(), Error> {
             let script = load_cell_lock(trans.input.index, Source::Input)?;
             if current_script.as_bytes() == script.as_bytes() {
                 let input_data = load_cell_data(0, Source::GroupInput)?;
-                let config_cell_data = input_data[NEXT_HASH_LEN..].to_vec();
-
-                ConfigCellDataReader::verify(&config_cell_data, false)?;
-                let data = ConfigCellDataReader::new_unchecked(&config_cell_data);
-                let wrapped_script = data.wrapped_script();
-                let script_hash = hash(wrapped_script.as_slice());
-                exec_with_config(script_hash, config_cell_data)?;
+                exec_with_config(&input_data[NEXT_HASH_LEN..])?;
             }
         }
     }
@@ -231,7 +220,8 @@ fn validate_config_cell(global_registry_id: &[u8; 32]) -> Result<(), Error> {
 /// execute wrapped script with no config cell
 ///
 fn exec_no_config(wrapped_script_hash: [u8; 32]) -> Result<(), Error> {
-    let witness = load_witness(0, Source::GroupInput)?;
+    let witness = load_witness_args(0, Source::GroupInput)?;
+    let witness = witness.lock().to_opt().unwrap().raw_data();
 
     LockWrapperWitnessReader::verify(&witness, false)?;
     let lock_wrapper_witness = LockWrapperWitnessReader::new_unchecked(&witness);
@@ -265,23 +255,20 @@ fn exec_no_config(wrapped_script_hash: [u8; 32]) -> Result<(), Error> {
 ///
 /// execute wrapped script with config cell
 ///
-fn exec_with_config(wrapped_script_hash: [u8; 32], config_cell_data: Vec<u8>) -> Result<(), Error> {
-    let witness = load_witness(0, Source::GroupInput)?;
+fn exec_with_config(config_cell_data: &[u8]) -> Result<(), Error> {
+    let witness = load_witness_args(0, Source::GroupInput)?;
+    let witness = witness.lock().to_opt().unwrap().raw_data();
 
     LockWrapperWitnessReader::verify(&witness, false)?;
     let lock_wrapper_witness = LockWrapperWitnessReader::new_unchecked(&witness);
     let wrapped_witness = lock_wrapper_witness.wrapped_witness();
 
-    ConfigCellDataOptReader::verify(&config_cell_data, false)?;
-    let config_cell_data = ConfigCellDataOptReader::new_unchecked(&config_cell_data);
+    ConfigCellDataOptReader::verify(config_cell_data, false)?;
+    let config_cell_data = ConfigCellDataOptReader::new_unchecked(config_cell_data);
     let config_cell_data = config_cell_data.to_opt().unwrap();
 
     let wrapped_script = config_cell_data.wrapped_script();
     let script_config = config_cell_data.script_config();
-
-    if hash(wrapped_script.as_slice()) != wrapped_script_hash {
-        return Err(Error::InvalidWrappedScriptHash);
-    }
 
     let hash_type = if wrapped_script.hash_type().as_slice() == &[1] {
         ScriptHashType::Type

@@ -41,8 +41,13 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn insert() -> Result<(), Box<dyn std::error::Error>> {
-    let mut batch =
-        BatchTransforming::new("../ckb-debugger-tests/templates/gr-general.json", 0, 1, 2);
+    let mut batch = BatchTransforming::new(
+        "../ckb-debugger-tests/templates/gr-general.json",
+        0,
+        1,
+        2,
+        3,
+    );
     let next_hash = batch.create_hash(1);
     batch.transforming.push(Transforming {
         input_config_cells: vec![ConfigCell {
@@ -70,8 +75,13 @@ pub fn insert() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn update() -> Result<(), Box<dyn std::error::Error>> {
-    let mut batch =
-        BatchTransforming::new("../ckb-debugger-tests/templates/gr-general.json", 0, 1, 2);
+    let mut batch = BatchTransforming::new(
+        "../ckb-debugger-tests/templates/gr-general.json",
+        0,
+        1,
+        2,
+        3,
+    );
     batch.transforming.push(Transforming {
         input_asset_cells: vec![],
         input_config_cells: vec![ConfigCell {
@@ -92,8 +102,13 @@ pub fn update() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn batch_insert() -> Result<(), Box<dyn std::error::Error>> {
-    let mut batch =
-        BatchTransforming::new("../ckb-debugger-tests/templates/gr-general.json", 0, 1, 2);
+    let mut batch = BatchTransforming::new(
+        "../ckb-debugger-tests/templates/gr-general.json",
+        0,
+        1,
+        2,
+        3,
+    );
     let next_hash = batch.create_hash(1);
     let next_hash2 = batch.create_hash(2);
     assert!(next_hash2 < next_hash);
@@ -128,8 +143,13 @@ pub fn batch_insert() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn batch_transforming() -> Result<(), Box<dyn std::error::Error>> {
-    let mut batch =
-        BatchTransforming::new("../ckb-debugger-tests/templates/gr-general.json", 0, 1, 2);
+    let mut batch = BatchTransforming::new(
+        "../ckb-debugger-tests/templates/gr-general.json",
+        0,
+        1,
+        2,
+        3,
+    );
     let next_hash = batch.create_hash(1);
     let next_hash2 = batch.create_hash(2);
     assert!(next_hash2 < next_hash);
@@ -175,8 +195,13 @@ pub fn batch_transforming() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn insert_fail_modify() -> Result<(), Box<dyn std::error::Error>> {
-    let mut batch =
-        BatchTransforming::new("../ckb-debugger-tests/templates/gr-general.json", 0, 1, 2);
+    let mut batch = BatchTransforming::new(
+        "../ckb-debugger-tests/templates/gr-general.json",
+        0,
+        1,
+        2,
+        3,
+    );
     let next_hash = batch.create_hash(1);
     let next_hash2 = batch.create_hash(2);
     assert!(next_hash2 < next_hash);
@@ -216,8 +241,13 @@ pub fn insert_fail_modify() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn insert_fail_gap() -> Result<(), Box<dyn std::error::Error>> {
-    let mut batch =
-        BatchTransforming::new("../ckb-debugger-tests/templates/gr-general.json", 0, 1, 2);
+    let mut batch = BatchTransforming::new(
+        "../ckb-debugger-tests/templates/gr-general.json",
+        0,
+        1,
+        2,
+        3,
+    );
     let next_hash = batch.create_hash(1);
     let next_hash2 = batch.create_hash(2);
     assert!(next_hash2 < next_hash);

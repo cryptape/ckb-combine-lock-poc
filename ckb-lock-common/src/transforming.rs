@@ -1,7 +1,7 @@
 use super::error::Error;
 use alloc::vec::Vec;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct Cell {
     pub index: usize,
     pub current_hash: [u8; 32],
