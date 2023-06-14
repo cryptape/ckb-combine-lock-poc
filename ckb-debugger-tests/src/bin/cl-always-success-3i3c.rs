@@ -15,18 +15,21 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         &[1, 2, 3],
         &[(); 3].map(|_| Bytes::default()),
         &[&[0, 1, 2]],
+        false,
     )?;
     let child_script_config_1 = create_child_script_config(
         &repr_tx,
         &[1, 2],
         &[(); 2].map(|_| Bytes::default()),
         &[&[0, 1, 1, 1]],
+        false,
     )?;
     let child_script_config_2 = create_child_script_config(
         &repr_tx,
         &[1],
         &[(); 1].map(|_| Bytes::default()),
         &[&[0, 0, 0, 0, 0]],
+        false,
     )?;
 
     let mut args_0 = vec![0x00u8];

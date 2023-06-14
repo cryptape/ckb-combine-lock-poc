@@ -254,7 +254,7 @@ impl BatchTransforming {
         let args = vec![Bytes::new()];
         let vec = vec![0u8; config];
         let vec_vec = vec![vec.as_slice()];
-        create_child_script_config(&self.tx, &cell_dep_index, &args, vec_vec.as_slice()).unwrap()
+        create_child_script_config(&self.tx, &cell_dep_index, &args, vec_vec.as_slice(), true).unwrap()
     }
     // current hash or next hash
     pub fn create_hash(&self, config: SimpleChildScriptConfig) -> [u8; 32] {
