@@ -18,6 +18,7 @@ fn cl_always_failure() -> Result<(), Box<dyn std::error::Error>> {
         &[1, 2],
         &[(); 2].map(|_| Bytes::default()),
         &[&[0, 1]],
+        false,
     )?;
 
     let mut args = vec![0x00u8];
@@ -37,7 +38,7 @@ fn cl_child_script_config_hash_error() -> Result<(), Box<dyn std::error::Error>>
     let mut repr_tx = read_tx_template("../ckb-debugger-tests/templates/cl-always-success.json")?;
 
     let child_script_config =
-        create_child_script_config(&repr_tx, &[1], &[(); 1].map(|_| Bytes::default()), &[&[0]])?;
+        create_child_script_config(&repr_tx, &[1], &[(); 1].map(|_| Bytes::default()), &[&[0]], false)?;
 
     let mut args = vec![0x00u8];
     args.extend(hash(&hash(child_script_config.as_slice())));
@@ -68,7 +69,7 @@ fn cl_child_script_sig_error() -> Result<(), Box<dyn std::error::Error>> {
     auth[1..].copy_from_slice(&child_script_pubkey_hash);
 
     let child_script_config =
-        create_child_script_config(&repr_tx, &[1], &[Bytes::copy_from_slice(&auth)], &[&[0]])?;
+        create_child_script_config(&repr_tx, &[1], &[Bytes::copy_from_slice(&auth)], &[&[0]], false)?;
 
     let mut args = vec![0x00u8];
     args.extend(hash(child_script_config.as_slice()));
@@ -105,6 +106,7 @@ fn cl_cl_always_failure() -> Result<(), Box<dyn std::error::Error>> {
         &[1, 2],
         &[(); 2].map(|_| Bytes::default()),
         &[&[0, 1]],
+        false
     )?;
     let mut sub_args = vec![0x00u8];
     sub_args.extend(hash(sub_child_script_config.as_slice()));
@@ -116,7 +118,7 @@ fn cl_cl_always_failure() -> Result<(), Box<dyn std::error::Error>> {
     let sub_witness_args_lock: Bytes = sub_witness_args.lock().to_opt().unwrap().unpack();
 
     let child_script_config =
-        create_child_script_config(&repr_tx, &[0], &[Bytes::from(sub_args)], &[&[0]])?;
+        create_child_script_config(&repr_tx, &[0], &[Bytes::from(sub_args)], &[&[0]], false)?;
     let mut args = vec![0x00u8];
     args.extend(hash(child_script_config.as_slice()));
     repr_tx.mock_info.inputs[0].output.lock.args = ckb_jsonrpc_types::JsonBytes::from_vec(args);
@@ -132,7 +134,7 @@ fn cl_index_error() -> Result<(), Box<dyn std::error::Error>> {
     let mut repr_tx = read_tx_template("../ckb-debugger-tests/templates/cl-always-success.json")?;
 
     let child_script_config =
-        create_child_script_config(&repr_tx, &[1], &[(); 1].map(|_| Bytes::default()), &[&[0]])?;
+        create_child_script_config(&repr_tx, &[1], &[(); 1].map(|_| Bytes::default()), &[&[0]], false)?;
 
     let mut args = vec![0x00u8];
     args.extend(hash(child_script_config.as_slice()));
@@ -151,7 +153,7 @@ fn cl_vec_index_error() -> Result<(), Box<dyn std::error::Error>> {
     let mut repr_tx = read_tx_template("../ckb-debugger-tests/templates/cl-always-success.json")?;
 
     let child_script_config =
-        create_child_script_config(&repr_tx, &[1], &[(); 1].map(|_| Bytes::default()), &[&[1]])?;
+        create_child_script_config(&repr_tx, &[1], &[(); 1].map(|_| Bytes::default()), &[&[1]], false)?;
 
     let mut args = vec![0x00u8];
     args.extend(hash(child_script_config.as_slice()));
@@ -174,6 +176,7 @@ fn cl_witness_length_wrong() -> Result<(), Box<dyn std::error::Error>> {
         &[1],
         &[(); 1].map(|_| Bytes::default()),
         &[&[0, 0]],
+        false
     )?;
 
     let mut args = vec![0x00u8];

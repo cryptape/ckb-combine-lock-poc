@@ -96,7 +96,7 @@ pub fn batch_insert() -> Result<(), Box<dyn std::error::Error>> {
         BatchTransforming::new("../ckb-debugger-tests/templates/gr-general.json", 0, 1, 2);
     let next_hash = batch.create_hash(1);
     let next_hash2 = batch.create_hash(2);
-    assert!(next_hash2 < next_hash);
+    assert!(next_hash < next_hash2);
 
     batch.transforming.push(Transforming {
         input_config_cells: vec![ConfigCell {
@@ -107,14 +107,14 @@ pub fn batch_insert() -> Result<(), Box<dyn std::error::Error>> {
         output_config_cells: vec![
             ConfigCell {
                 type_: ConfigCellType::Fake([0u8; 32]),
-                next_hash: next_hash2,
-            },
-            ConfigCell {
-                type_: ConfigCellType::Real(2),
                 next_hash: next_hash,
             },
             ConfigCell {
                 type_: ConfigCellType::Real(1),
+                next_hash: next_hash2,
+            },
+            ConfigCell {
+                type_: ConfigCellType::Real(2),
                 next_hash: [0xFF; 32],
             },
         ],
@@ -132,37 +132,37 @@ pub fn batch_transforming() -> Result<(), Box<dyn std::error::Error>> {
         BatchTransforming::new("../ckb-debugger-tests/templates/gr-general.json", 0, 1, 2);
     let next_hash = batch.create_hash(1);
     let next_hash2 = batch.create_hash(2);
-    assert!(next_hash2 < next_hash);
+    assert!(next_hash < next_hash2);
     let middle = find_middle(next_hash, next_hash2);
 
-    // insert next_hash in [middle, 0xFF..FF]
+    // insert next_hash2 in [middle, 0xFF..FF]
     batch.transforming.push(Transforming {
         input_config_cells: vec![ConfigCell {
             type_: ConfigCellType::Fake(middle),
             next_hash: [0xFF; 32],
         }],
-        input_asset_cells: vec![AssetCell { config: 1 }],
+        input_asset_cells: vec![AssetCell { config: 2 }],
         output_config_cells: vec![
             ConfigCell {
                 type_: ConfigCellType::Fake(middle),
-                next_hash,
+                next_hash: next_hash2,
             },
             ConfigCell {
-                type_: ConfigCellType::Real(1),
+                type_: ConfigCellType::Real(2),
                 next_hash: [0xFF; 32],
             },
         ],
     });
 
-    // update next_hash2's cell
+    // update next_hash's cell
     batch.transforming.push(Transforming {
         input_asset_cells: vec![],
         input_config_cells: vec![ConfigCell {
-            type_: ConfigCellType::Real(2),
+            type_: ConfigCellType::Real(1),
             next_hash: middle,
         }],
         output_config_cells: vec![ConfigCell {
-            type_: ConfigCellType::Real(2),
+            type_: ConfigCellType::Real(1),
             next_hash: middle,
         }],
     });
@@ -179,7 +179,7 @@ pub fn insert_fail_modify() -> Result<(), Box<dyn std::error::Error>> {
         BatchTransforming::new("../ckb-debugger-tests/templates/gr-general.json", 0, 1, 2);
     let next_hash = batch.create_hash(1);
     let next_hash2 = batch.create_hash(2);
-    assert!(next_hash2 < next_hash);
+    assert!(next_hash < next_hash2);
 
     batch.transforming.push(Transforming {
         input_config_cells: vec![ConfigCell {
@@ -190,14 +190,14 @@ pub fn insert_fail_modify() -> Result<(), Box<dyn std::error::Error>> {
         output_config_cells: vec![
             ConfigCell {
                 type_: ConfigCellType::Fake([0u8; 32]),
-                next_hash: next_hash2,
-            },
-            ConfigCell {
-                type_: ConfigCellType::Real(2),
                 next_hash: next_hash,
             },
             ConfigCell {
                 type_: ConfigCellType::Real(1),
+                next_hash: next_hash2,
+            },
+            ConfigCell {
+                type_: ConfigCellType::Real(2),
                 next_hash: [0xFF; 32],
             },
         ],
@@ -220,8 +220,8 @@ pub fn insert_fail_gap() -> Result<(), Box<dyn std::error::Error>> {
         BatchTransforming::new("../ckb-debugger-tests/templates/gr-general.json", 0, 1, 2);
     let next_hash = batch.create_hash(1);
     let next_hash2 = batch.create_hash(2);
-    assert!(next_hash2 < next_hash);
-    let fake_hash2 = find_smaller(&next_hash2);
+    assert!(next_hash < next_hash2);
+    let fake_hash2 = find_smaller(&next_hash);
 
     batch.transforming.push(Transforming {
         input_config_cells: vec![ConfigCell {
@@ -236,11 +236,11 @@ pub fn insert_fail_gap() -> Result<(), Box<dyn std::error::Error>> {
                 next_hash: fake_hash2,
             },
             ConfigCell {
-                type_: ConfigCellType::Real(2),
-                next_hash: next_hash,
+                type_: ConfigCellType::Real(1),
+                next_hash: next_hash2,
             },
             ConfigCell {
-                type_: ConfigCellType::Real(1),
+                type_: ConfigCellType::Real(2),
                 next_hash: [0xFF; 32],
             },
         ],
