@@ -3,7 +3,7 @@ use ckb_lock_common::{
     blake2b::new_blake2b,
     transforming::{self, BatchTransformingStatus},
     utils::{
-        config_cell_unchanged, get_child_script_config_hash, get_current_hash, get_next_hash,
+        config_cell_unchanged, get_current_hash, get_next_hash, get_wrapped_script_hash,
         lock_unchanged, type_unchanged,
     },
 };
@@ -72,7 +72,7 @@ fn validate_init_values() -> Result<(), Error> {
     let script = load_cell_lock(0, Source::GroupOutput)?;
     let args = script.args();
     let slice = args.raw_data();
-    let current_hash = get_child_script_config_hash(&slice);
+    let current_hash = get_wrapped_script_hash(&slice);
     if current_hash != [0u8; 32] {
         return Err(Error::InvalidInitValues);
     }
@@ -96,6 +96,12 @@ fn validate_linked_list() -> Result<(), Error> {
         if hash == Some(current_script_hash) {
             let current_hash = get_current_hash(i, Source::Input).unwrap();
             let next_hash = get_next_hash(i, Source::Input).unwrap();
+            if current_hash >= next_hash {
+                warn!(
+                    "current_hash = {:?}, next_hash = {:?}",
+                    current_hash, next_hash
+                );
+            }
             batch_transforming.set_input(transforming::Cell::new(i, current_hash, next_hash))?;
         }
     }
@@ -105,12 +111,19 @@ fn validate_linked_list() -> Result<(), Error> {
         if hash == Some(current_script_hash) {
             let current_hash = get_current_hash(i, Source::Output).unwrap();
             let next_hash = get_next_hash(i, Source::Output).unwrap();
+            if current_hash >= next_hash {
+                warn!(
+                    "current_hash = {:?}, next_hash = {:?}",
+                    current_hash, next_hash
+                );
+            }
             batch_transforming.set_output(transforming::Cell::new(i, current_hash, next_hash))?;
         } else {
             //
             // sUDT mint issue: avoid minting sUDT without signature
             //
             if hash.is_some() {
+                warn!("output type script is not allowed");
                 return Err(Error::OutputTypeForbidden);
             }
             // it's safe to have no other type script
@@ -118,6 +131,12 @@ fn validate_linked_list() -> Result<(), Error> {
     }
 
     if !batch_transforming.validate() {
+        for trans in batch_transforming.transforming {
+            warn!("trans.input = {:?}", trans.input);
+            for output in trans.outputs {
+                warn!("trans.output = {:?}", output);
+            }
+        }
         return Err(Error::InvalidLinkedList);
     }
     // go through all transforming and check more

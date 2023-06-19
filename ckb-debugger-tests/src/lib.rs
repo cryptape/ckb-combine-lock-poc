@@ -1,12 +1,16 @@
 pub mod auto_complete;
 #[allow(dead_code)]
 pub mod combine_lock_mol;
+#[allow(dead_code)]
+pub mod lock_wrapper_mol;
+
 pub mod hash;
 pub mod blockchain {
     pub use ckb_types::packed::{
         Byte, Byte32, Byte32Reader, Byte32Vec, Byte32VecReader, ByteReader, Bytes, BytesOpt,
-        BytesOptReader, BytesReader, BytesVec, BytesVecReader, Script, WitnessArgs,
-        WitnessArgsBuilder, WitnessArgsReader,
+        BytesOptReader, BytesReader, BytesVec, BytesVecReader, Script, ScriptBuilder, ScriptOpt,
+        ScriptOptBuilder, ScriptOptReader, ScriptReader, WitnessArgs, WitnessArgsBuilder,
+        WitnessArgsReader,
     };
 }
 pub mod global_registry;

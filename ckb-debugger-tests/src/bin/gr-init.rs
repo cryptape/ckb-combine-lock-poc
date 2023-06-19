@@ -21,7 +21,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         script.args = JsonBytes::from_vec(config_cell_type_args.to_vec());
     }
 
-    let mut config_cell_lock_args: Vec<u8> = vec![0x01];
+    let mut config_cell_lock_args: Vec<u8> = vec![];
     let global_registry_id = {
         let type_ = repr_tx.tx.outputs[0].type_.clone().unwrap();
         let type_: Script = type_.clone().into();

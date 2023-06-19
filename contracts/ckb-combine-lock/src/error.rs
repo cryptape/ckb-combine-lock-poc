@@ -9,13 +9,12 @@ pub enum Error {
     Encoding,
     // Add customized errors here...
     WrongFormat = 80,
-    WrongScriptConfigHash,
     WrongHashType,
     ChildScriptArrayIndexOutOfBounds,
     CombineLockWitnessIndexOutOfBounds,
     UnlockFailed,
-    WrongMoleculeFormat,
     InnerWitnessIndexOutOfBounds,
+    ChildScriptHashMismatched,
     // error reported from ckb_lock_common
     // mainly from LockWrapper
     CommonError,

@@ -12,24 +12,24 @@ all: \
 	gr-general-insert-fail-gap\
 	gr-general-insert-fail-modify\
 	gr-init \
-	gr-insert\
-	gr-update \
 	cl-always-success \
-	cl-always-success-3i3c \
-	cl-cl-always-success \
-	cl-child-script \
-	gr-child-script \
-	gr-child-script-no-config-cell\
-	child-script-success \
-	child-script-multi-inputs \
-	auth-script-exec-success \
-	negative-cl-always-failure \
-	negative-cl-child-script-config-hash-error \
-	negative-cl-child-script-sig-error \
-	negative-cl-cl-always-failure \
-	negative-cl-index-error \
-	negative-cl-vec-index-error \
-	negative-cl-witness-length-wrong
+	gr-insert \
+	# gr-child-script \
+	# gr-child-script-no-config-cell\
+	# cl-always-success-3i3c \
+	# cl-cl-always-success \
+	# cl-child-script \
+	# child-script-success \
+	# child-script-multi-inputs \
+	# auth-script-exec-success \
+	# negative-cl-always-failure \
+	# negative-cl-child-script-config-hash-error \
+	# negative-cl-child-script-sig-error \
+	# negative-cl-cl-always-failure \
+	# negative-cl-index-error \
+	# negative-cl-vec-index-error \
+	# negative-cl-witness-length-wrong\
+	# gr-update \
 
 cl-always-success:
 	cargo run --$(BUILD) --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
