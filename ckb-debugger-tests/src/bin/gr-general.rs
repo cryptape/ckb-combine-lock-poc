@@ -173,8 +173,6 @@ pub fn batch_transforming() -> Result<(), Box<dyn std::error::Error>> {
             },
         ],
     });
-
-    // update next_hash's cell
     batch.transforming.push(Transforming {
         input_asset_cells: vec![],
         input_config_cells: vec![ConfigCell {

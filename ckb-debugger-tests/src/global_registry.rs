@@ -189,11 +189,12 @@ impl BatchTransforming {
     fn append_input_config_cell(&mut self, config: ChildScriptConfig, next_hash: [u8; 32]) {
         // the hash of ChildScriptConfig serves as current hash and combine lock args.
         let hash = blake2b_256(config.as_slice());
-        let lock = self.create_combine_lock(hash);
-        let lock_script: packed::Script = lock.into();
+        let combine_lock = self.create_combine_lock(hash);
+        let combine_lock: packed::Script = combine_lock.into();
+        let hash = blake2b_256(combine_lock.as_slice());
         let config_cell_data = ConfigCellData::new_builder()
             .script_config(config.as_bytes().pack())
-            .wrapped_script(lock_script)
+            .wrapped_script(combine_lock)
             .build();
 
         let mut data = next_hash.to_vec();
@@ -254,7 +255,8 @@ impl BatchTransforming {
         let args = vec![Bytes::new()];
         let vec = vec![0u8; config];
         let vec_vec = vec![vec.as_slice()];
-        create_child_script_config(&self.tx, &cell_dep_index, &args, vec_vec.as_slice(), true).unwrap()
+        create_child_script_config(&self.tx, &cell_dep_index, &args, vec_vec.as_slice(), true)
+            .unwrap()
     }
     // current hash or next hash
     pub fn create_hash(&self, config: SimpleChildScriptConfig) -> [u8; 32] {
@@ -291,7 +293,8 @@ impl BatchTransforming {
                         ConfigCellType::Fake(h) => (h, None),
                         ConfigCellType::Real(config) => {
                             let c = self.create_config(config);
-                            (blake2b_256(c.as_slice()), Some(c))
+                            let hash = self.create_hash(config);
+                            (hash, Some(c))
                         }
                     };
                     (hash, c.next_hash, data)
@@ -362,7 +365,8 @@ impl BatchTransforming {
                         ConfigCellType::Fake(h) => (h, None),
                         ConfigCellType::Real(config) => {
                             let c = self.create_config(config);
-                            (blake2b_256(c.as_slice()), Some(c))
+                            let hash = self.create_hash(config);
+                            (hash, Some(c))
                         }
                     };
                     (hash, c.next_hash, data)

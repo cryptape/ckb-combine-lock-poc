@@ -6,7 +6,7 @@
           "capacity": "0x10000000",
           "lock": {
             "args": "0x",
-            "code_hash": "0x{{ ref_type combine_lock }}",
+            "code_hash": "0x{{ ref_type lock_wrapper }}",
             "hash_type": "type"
           }
         },
@@ -17,7 +17,7 @@
           "capacity": "0x10000000",
           "lock": {
             "args": "0x",
-            "code_hash": "0x{{ ref_type combine_lock }}",
+            "code_hash": "0x{{ ref_type lock_wrapper }}",
             "hash_type": "type"
           },
           "type": {
@@ -101,6 +101,18 @@
           "type": "{{ def_type config_cell }}"
         },
         "data": "0x"
+      },
+      {
+        "output": {
+          "capacity": "0x10000000",
+          "lock": {
+            "args": "0x",
+            "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "hash_type": "data1"
+          },
+          "type": "{{ def_type lock_wrapper }}"
+        },
+        "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/lock-wrapper }}"
       }
     ]
   },
@@ -110,7 +122,7 @@
         "capacity": "0x0",
         "lock": {
           "args": "0x",
-          "code_hash": "0x{{ ref_type combine_lock }}",
+          "code_hash": "0x{{ ref_type lock_wrapper }}",
           "hash_type": "type"
         },
         "type": {
@@ -123,7 +135,7 @@
         "capacity": "0x10000000",
         "lock": {
           "args": "0x",
-          "code_hash": "0x{{ ref_type combine_lock }}",
+          "code_hash": "0x{{ ref_type lock_wrapper }}",
           "hash_type": "type"
         },
         "type": {

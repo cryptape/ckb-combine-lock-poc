@@ -12,9 +12,9 @@ mol:
 	cp ckb-lock-common/src/lock_wrapper_mol.rs ckb-debugger-tests/src
 
 ci:
-	# cd tests/global-registry && cargo test && cd ../..
-	# capsule build --release
-	# make -C ckb-debugger-tests all
+	cd tests/global-registry && cargo test && cd ../..
+	capsule build --release
+	make -C ckb-debugger-tests all
 
 dev:
 	capsule build --release -- --features log

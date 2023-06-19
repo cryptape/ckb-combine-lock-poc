@@ -147,6 +147,12 @@ fn validate_config_cell(global_registry_id: &[u8; 32]) -> Result<(), Error> {
         if hash == Some(*global_registry_id) {
             let current_hash = get_current_hash(i, Source::Input).unwrap();
             let next_hash = get_next_hash(i, Source::Input).unwrap();
+            if current_hash >= next_hash {
+                warn!(
+                    "current_hash = {:?}, next_hash = {:?}",
+                    current_hash, next_hash
+                );
+            }
             let cell = transforming::Cell::new(i, current_hash, next_hash);
             info!("set_input = {}", cell);
             batch_transforming.set_input(cell)?;
@@ -157,6 +163,12 @@ fn validate_config_cell(global_registry_id: &[u8; 32]) -> Result<(), Error> {
         if hash == Some(*global_registry_id) {
             let current_hash = get_current_hash(i, Source::Output).unwrap();
             let next_hash = get_next_hash(i, Source::Output).unwrap();
+            if current_hash >= next_hash {
+                warn!(
+                    "current_hash = {:?}, next_hash = {:?}",
+                    current_hash, next_hash
+                );
+            }
             let cell = transforming::Cell::new(i, current_hash, next_hash);
             info!("set_output = {}", cell);
             batch_transforming.set_output(cell)?;

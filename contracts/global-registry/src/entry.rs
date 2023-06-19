@@ -96,6 +96,12 @@ fn validate_linked_list() -> Result<(), Error> {
         if hash == Some(current_script_hash) {
             let current_hash = get_current_hash(i, Source::Input).unwrap();
             let next_hash = get_next_hash(i, Source::Input).unwrap();
+            if current_hash >= next_hash {
+                warn!(
+                    "current_hash = {:?}, next_hash = {:?}",
+                    current_hash, next_hash
+                );
+            }
             batch_transforming.set_input(transforming::Cell::new(i, current_hash, next_hash))?;
         }
     }
@@ -105,6 +111,12 @@ fn validate_linked_list() -> Result<(), Error> {
         if hash == Some(current_script_hash) {
             let current_hash = get_current_hash(i, Source::Output).unwrap();
             let next_hash = get_next_hash(i, Source::Output).unwrap();
+            if current_hash >= next_hash {
+                warn!(
+                    "current_hash = {:?}, next_hash = {:?}",
+                    current_hash, next_hash
+                );
+            }
             batch_transforming.set_output(transforming::Cell::new(i, current_hash, next_hash))?;
         } else {
             //
