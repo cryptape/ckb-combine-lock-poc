@@ -45,7 +45,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     auth[0] = 0; // CKB
     auth[1..].copy_from_slice(&child_script_pubkey_hash);
 
-    let child_script = create_script_from_cell_dep(&repr_tx, 1, false)?;
+    let child_script = create_script_from_cell_dep(&repr_tx, 1, true)?;
     let child_script: ChildScript = child_script.into();
     let child_script = child_script.as_builder().args(auth.pack()).build();
 

@@ -110,10 +110,10 @@ impl BatchTransforming {
         lock_wrapper_index: usize,
     ) -> Self {
         let tx = read_tx_template(template_file_name).unwrap();
-        let always_success_script = create_script_from_cell_dep(&tx, always_success_index, false)
+        let always_success_script = create_script_from_cell_dep(&tx, always_success_index, true)
             .unwrap()
             .into();
-        let combine_lock_script = create_script_from_cell_dep(&tx, combine_lock_index, false)
+        let combine_lock_script = create_script_from_cell_dep(&tx, combine_lock_index, true)
             .unwrap()
             .into();
         let mut global_registry_script: Script =
@@ -128,7 +128,7 @@ impl BatchTransforming {
             hash.as_slice().try_into().unwrap()
         };
         let lock_wrapper_script: Script =
-            create_script_from_cell_dep(&tx, lock_wrapper_index, false)
+            create_script_from_cell_dep(&tx, lock_wrapper_index, true)
                 .unwrap()
                 .into();
 
