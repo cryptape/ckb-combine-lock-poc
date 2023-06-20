@@ -102,22 +102,22 @@ auth-script-exec-success:
 	cargo run --$(BUILD) --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
 
 negative-cl-always-failure:
-	cargo run --$(BUILD) --bin negative -- cl-always-failure | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 85"
+	cargo run --$(BUILD) --bin negative -- cl-always-failure | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 84"
 
 negative-cl-child-script-config-hash-error:
-	cargo run --$(BUILD) --bin negative -- cl-child-script-config-hash-error | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 81"
+	cargo run --$(BUILD) --bin negative -- cl-child-script-config-hash-error | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 86"
 
 negative-cl-child-script-sig-error:
-	cargo run --$(BUILD) --bin negative -- cl-child-script-sig-error | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 85"
+	cargo run --$(BUILD) --bin negative -- cl-child-script-sig-error | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 84"
 
 negative-cl-cl-always-failure:
-	cargo run --$(BUILD) --bin negative -- cl-cl-always-failure | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 85"
+	cargo run --$(BUILD) --bin negative -- cl-cl-always-failure | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 84"
 
 negative-cl-index-error:
-	cargo run --$(BUILD) --bin negative -- cl-index-error | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 84"
+	cargo run --$(BUILD) --bin negative -- cl-index-error | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 83"
 
 negative-cl-vec-index-error:
-	cargo run --$(BUILD) --bin negative -- cl-vec-index-error | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 83"
+	cargo run --$(BUILD) --bin negative -- cl-vec-index-error | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 82"
 
 negative-cl-witness-length-wrong:
-	cargo run --$(BUILD) --bin negative -- cl-witness-length-wrong | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 87"
+	cargo run --$(BUILD) --bin negative -- cl-witness-length-wrong | ${CKB_DEBUGGER} --tx-file=- -s lock | grep "Run result: 85"

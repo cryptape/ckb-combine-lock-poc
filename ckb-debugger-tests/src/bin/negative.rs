@@ -21,7 +21,7 @@ fn cl_always_failure() -> Result<(), Box<dyn std::error::Error>> {
         false,
     )?;
 
-    let mut args = vec![0x00u8];
+    let mut args = vec![];
     args.extend(hash(child_script_config.as_slice()));
     repr_tx.mock_info.inputs[0].output.lock.args = ckb_jsonrpc_types::JsonBytes::from_vec(args);
 
@@ -81,7 +81,7 @@ fn cl_child_script_sig_error() -> Result<(), Box<dyn std::error::Error>> {
         false,
     )?;
 
-    let mut args = vec![0x00u8];
+    let mut args = vec![];
     args.extend(hash(child_script_config.as_slice()));
     repr_tx.mock_info.inputs[0].output.lock.args = ckb_jsonrpc_types::JsonBytes::from_vec(args);
 
@@ -118,7 +118,7 @@ fn cl_cl_always_failure() -> Result<(), Box<dyn std::error::Error>> {
         &[&[0, 1]],
         false,
     )?;
-    let mut sub_args = vec![0x00u8];
+    let mut sub_args = vec![];
     sub_args.extend(hash(sub_child_script_config.as_slice()));
     let sub_witness_args = create_witness_args(
         &sub_child_script_config,
@@ -129,7 +129,7 @@ fn cl_cl_always_failure() -> Result<(), Box<dyn std::error::Error>> {
 
     let child_script_config =
         create_child_script_config(&repr_tx, &[0], &[Bytes::from(sub_args)], &[&[0]], false)?;
-    let mut args = vec![0x00u8];
+    let mut args = vec![];
     args.extend(hash(child_script_config.as_slice()));
     repr_tx.mock_info.inputs[0].output.lock.args = ckb_jsonrpc_types::JsonBytes::from_vec(args);
     let witness_args = create_witness_args(&child_script_config, 0, &[sub_witness_args_lock])?;
@@ -151,7 +151,7 @@ fn cl_index_error() -> Result<(), Box<dyn std::error::Error>> {
         false,
     )?;
 
-    let mut args = vec![0x00u8];
+    let mut args = vec![];
     args.extend(hash(child_script_config.as_slice()));
     repr_tx.mock_info.inputs[0].output.lock.args = ckb_jsonrpc_types::JsonBytes::from_vec(args);
 
@@ -175,7 +175,7 @@ fn cl_vec_index_error() -> Result<(), Box<dyn std::error::Error>> {
         false,
     )?;
 
-    let mut args = vec![0x00u8];
+    let mut args = vec![];
     args.extend(hash(child_script_config.as_slice()));
     repr_tx.mock_info.inputs[0].output.lock.args = ckb_jsonrpc_types::JsonBytes::from_vec(args);
 
@@ -199,7 +199,7 @@ fn cl_witness_length_wrong() -> Result<(), Box<dyn std::error::Error>> {
         false,
     )?;
 
-    let mut args = vec![0x00u8];
+    let mut args = vec![];
     args.extend(hash(child_script_config.as_slice()));
     repr_tx.mock_info.inputs[0].output.lock.args = ckb_jsonrpc_types::JsonBytes::from_vec(args);
 

@@ -156,25 +156,12 @@ pub fn create_combine_lock_witness(
     Ok(combine_lock_witness)
 }
 
-// Deprecated.
 pub fn create_witness_args(
     child_script_config: &ChildScriptConfig,
     index: u16,
     inner_witness: &[Bytes],
 ) -> Result<packed::WitnessArgs, anyhow::Error> {
-    let child_script_config_opt = ChildScriptConfigOpt::new_builder()
-        .set(Some(child_script_config.clone()))
-        .build();
-    let mut inner_witness_builder = packed::BytesVec::new_builder();
-    for i in inner_witness {
-        inner_witness_builder = inner_witness_builder.push(i.clone().pack())
-    }
-    let inner_witness = inner_witness_builder.build();
-    let combine_lock_witness = CombineLockWitness::new_builder()
-        .index(Uint16::new_unchecked(index.to_le_bytes().to_vec().into()))
-        .inner_witness(inner_witness)
-        .script_config(child_script_config_opt)
-        .build();
+    let combine_lock_witness = create_combine_lock_witness(child_script_config, index, inner_witness)?;
     let witness_args = packed::WitnessArgs::new_builder()
         .lock(Some(combine_lock_witness.as_bytes()).pack())
         .build();
