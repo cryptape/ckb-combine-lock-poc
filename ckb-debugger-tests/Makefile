@@ -14,7 +14,7 @@ all: \
 	gr-init \
 	cl-always-success \
 	gr-insert \
-	# gr-child-script \
+	gr-child-script \
 	# gr-child-script-no-config-cell \
 	cl-always-success-3i3c \
 	cl-cl-always-success \
