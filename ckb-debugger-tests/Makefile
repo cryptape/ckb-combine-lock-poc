@@ -16,8 +16,8 @@ all: \
 	gr-insert \
 	# gr-child-script \
 	# gr-child-script-no-config-cell \
-	# cl-always-success-3i3c \
-	# cl-cl-always-success \
+	cl-always-success-3i3c \
+	cl-cl-always-success \
 	cl-child-script \
 	child-script-success \
 	child-script-multi-inputs \
