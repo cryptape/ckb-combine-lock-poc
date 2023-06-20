@@ -18,7 +18,7 @@ all: \
 	# gr-child-script-no-config-cell \
 	# cl-always-success-3i3c \
 	# cl-cl-always-success \
-	# cl-child-script \
+	cl-child-script \
 	child-script-success \
 	child-script-multi-inputs \
 	auth-script-exec-success \
