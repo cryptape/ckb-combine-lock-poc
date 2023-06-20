@@ -95,11 +95,13 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // next hash is set to 0xFF..FF, maximum one
     let mut input_data = vec![0xFF; 32];
-    let config_cell_data = ConfigCellData::new_builder()
-        .wrapped_script(combine_lock_script)
-        .script_config(child_script_config.as_bytes().pack())
-        .build();
-    input_data.extend(config_cell_data.as_slice());
+    if clap_args.has_config_cell {
+        let config_cell_data = ConfigCellData::new_builder()
+            .wrapped_script(combine_lock_script.clone())
+            .script_config(child_script_config.as_bytes().pack())
+            .build();
+        input_data.extend(config_cell_data.as_slice());
+    }
     repr_tx.mock_info.cell_deps.last_mut().unwrap().data = JsonBytes::from_vec(input_data);
 
     let inner_witness = BytesVec::new_builder().push(vec![0u8; 65].pack()).build();
@@ -108,12 +110,18 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         Some(child_script_config).pack()
     };
+    let wrapped_script = if clap_args.has_config_cell {
+        None.pack()
+    } else {
+        Some(combine_lock_script).pack()
+    };
     let combine_lock_witness = CombineLockWitness::new_builder()
         .index(Uint16::new_unchecked(0u16.to_le_bytes().to_vec().into()))
         .inner_witness(inner_witness)
         .script_config(config.clone())
         .build();
     let lock_wrapper_witness = LockWrapperWitness::new_builder()
+        .wrapped_script(wrapped_script.clone())
         .wrapped_witness(combine_lock_witness.as_bytes().pack())
         .build();
     let witness_args = WitnessArgs::new_builder()
@@ -132,6 +140,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .inner_witness(inner_witness)
         .build();
     let lock_wrapper_witness = LockWrapperWitness::new_builder()
+        .wrapped_script(wrapped_script)
         .wrapped_witness(combine_lock_witness.as_bytes().pack())
         .build();
     let witness_args = WitnessArgs::new_builder()
