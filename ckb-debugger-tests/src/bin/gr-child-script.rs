@@ -1,11 +1,9 @@
 use ckb_crypto::secp::Privkey;
-use ckb_debugger_tests::combine_lock_mol::{
-    ChildScript, ChildScriptArray, ChildScriptConfig, ChildScriptConfigOpt, ChildScriptVec,
-    ChildScriptVecVec, CombineLockWitness, Uint16,
-};
-use ckb_debugger_tests::{create_script_from_cell_dep, generate_sighash_all};
+use ckb_debugger_tests::combine_lock_mol::{ChildScriptConfigOpt, CombineLockWitness, Uint16};
 use ckb_debugger_tests::{
+    create_child_script_config, create_script_from_cell_dep, generate_sighash_all,
     hash::{blake160, hash},
+    lock_wrapper_mol::{ConfigCellData, LockWrapperWitness},
     read_tx_template,
 };
 use ckb_jsonrpc_types::JsonBytes;
@@ -13,7 +11,6 @@ use ckb_types::packed::{BytesVec, Script, WitnessArgs};
 use ckb_types::prelude::Pack;
 use ckb_types::H256;
 use clap::Parser;
-use log::info;
 use molecule::prelude::{Builder, Entity};
 
 const G_PRIVKEY_BUF: [u8; 32] = [
@@ -30,11 +27,6 @@ struct Args {
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     drop(env_logger::init());
     let clap_args = Args::parse();
-    if clap_args.has_config_cell {
-        info!("has config cell");
-    } else {
-        info!("no config cell");
-    }
 
     let mut repr_tx = read_tx_template("../ckb-debugger-tests/templates/gr-child-script.json")?;
 
@@ -45,19 +37,9 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     auth[0] = 0; // CKB
     auth[1..].copy_from_slice(&child_script_pubkey_hash);
 
-    let child_script = create_script_from_cell_dep(&repr_tx, 1, true)?;
-    let child_script: ChildScript = child_script.into();
-    let child_script = child_script.as_builder().args(auth.pack()).build();
-
-    let child_script_array = ChildScriptArray::new_builder().push(child_script).build();
-    let child_script_vec = ChildScriptVec::new_builder().push(0.into()).build();
-    let child_script_vec_vec = ChildScriptVecVec::new_builder()
-        .push(child_script_vec)
-        .build();
-    let child_script_config = ChildScriptConfig::new_builder()
-        .array(child_script_array)
-        .index(child_script_vec_vec)
-        .build();
+    let child_script_config =
+        create_child_script_config(&repr_tx, &[1], &[auth.into()], &[&[0]], false)?;
+    let child_script_config_hash = hash(child_script_config.as_slice());
     let global_registry_id = {
         let type_ = repr_tx
             .mock_info
@@ -71,12 +53,18 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         let type_: Script = type_.clone().into();
         hash(type_.as_slice())
     };
-    let mut args = vec![1u8]; // use global registry
-    args.extend(global_registry_id.to_vec());
-    args.extend(hash(child_script_config.as_slice()));
+    let combine_lock_script = {
+        let script = create_script_from_cell_dep(&repr_tx, 0, true)?;
+        script
+            .as_builder()
+            .args(child_script_config_hash.as_slice().pack())
+            .build()
+    };
+    let combine_lock_script_hash = hash(combine_lock_script.as_slice());
+    let mut lock_wrapper_args = global_registry_id.clone().to_vec();
+    lock_wrapper_args.extend(combine_lock_script_hash);
+    repr_tx.mock_info.inputs[0].output.lock.args = JsonBytes::from_vec(lock_wrapper_args.clone());
 
-    // set script args
-    repr_tx.mock_info.inputs[0].output.lock.args = JsonBytes::from_vec(args.clone());
     if clap_args.has_config_cell {
         // copy it to config cell. They share same lock scripts.
         // last cell_dep is the config cell.
@@ -87,13 +75,13 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap()
             .output
             .lock
-            .args = JsonBytes::from_vec(args);
+            .args = JsonBytes::from_vec(lock_wrapper_args);
     } else {
         // this cell_dep is a proof that this child script config doesn't exist
         // in config cell
-        let l = args.len();
+        let l = lock_wrapper_args.len();
         for i in l - 8..l {
-            args[i] = 0;
+            lock_wrapper_args[i] = 0;
         }
         repr_tx
             .mock_info
@@ -102,14 +90,19 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap()
             .output
             .lock
-            .args = JsonBytes::from_vec(args);
+            .args = JsonBytes::from_vec(lock_wrapper_args);
     }
 
     // next hash is set to 0xFF..FF, maximum one
-    let mut config_cell_data = vec![0xFF; 32];
-    // config cell data filled
-    config_cell_data.extend(child_script_config.as_slice());
-    repr_tx.mock_info.cell_deps.last_mut().unwrap().data = JsonBytes::from_vec(config_cell_data);
+    let mut input_data = vec![0xFF; 32];
+    if clap_args.has_config_cell {
+        let config_cell_data = ConfigCellData::new_builder()
+            .wrapped_script(combine_lock_script.clone())
+            .script_config(child_script_config.as_bytes().pack())
+            .build();
+        input_data.extend(config_cell_data.as_slice());
+    }
+    repr_tx.mock_info.cell_deps.last_mut().unwrap().data = JsonBytes::from_vec(input_data);
 
     let inner_witness = BytesVec::new_builder().push(vec![0u8; 65].pack()).build();
     let config: ChildScriptConfigOpt = if clap_args.has_config_cell {
@@ -117,14 +110,22 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         Some(child_script_config).pack()
     };
+    let wrapped_script = if clap_args.has_config_cell {
+        None.pack()
+    } else {
+        Some(combine_lock_script).pack()
+    };
     let combine_lock_witness = CombineLockWitness::new_builder()
         .index(Uint16::new_unchecked(0u16.to_le_bytes().to_vec().into()))
         .inner_witness(inner_witness)
         .script_config(config.clone())
         .build();
-
+    let lock_wrapper_witness = LockWrapperWitness::new_builder()
+        .wrapped_script(wrapped_script.clone())
+        .wrapped_witness(combine_lock_witness.as_bytes().pack())
+        .build();
     let witness_args = WitnessArgs::new_builder()
-        .lock(Some(combine_lock_witness.as_bytes()).pack())
+        .lock(Some(lock_wrapper_witness.as_bytes()).pack())
         .build();
     repr_tx.tx.witnesses[0] = JsonBytes::from(witness_args.as_bytes().pack());
 
@@ -138,9 +139,12 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .as_builder()
         .inner_witness(inner_witness)
         .build();
-
+    let lock_wrapper_witness = LockWrapperWitness::new_builder()
+        .wrapped_script(wrapped_script)
+        .wrapped_witness(combine_lock_witness.as_bytes().pack())
+        .build();
     let witness_args = WitnessArgs::new_builder()
-        .lock(Some(combine_lock_witness.as_bytes()).pack())
+        .lock(Some(lock_wrapper_witness.as_bytes()).pack())
         .build();
     repr_tx.tx.witnesses[0] = JsonBytes::from(witness_args.as_bytes().pack());
 

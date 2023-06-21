@@ -135,11 +135,11 @@ pub fn create_child_script_config(
     Ok(child_script_config)
 }
 
-pub fn create_witness_args(
+pub fn create_combine_lock_witness(
     child_script_config: &ChildScriptConfig,
     index: u16,
     inner_witness: &[Bytes],
-) -> Result<packed::WitnessArgs, anyhow::Error> {
+) -> Result<CombineLockWitness, anyhow::Error> {
     let child_script_config_opt = ChildScriptConfigOpt::new_builder()
         .set(Some(child_script_config.clone()))
         .build();
@@ -153,6 +153,15 @@ pub fn create_witness_args(
         .inner_witness(inner_witness)
         .script_config(child_script_config_opt)
         .build();
+    Ok(combine_lock_witness)
+}
+
+pub fn create_witness_args(
+    child_script_config: &ChildScriptConfig,
+    index: u16,
+    inner_witness: &[Bytes],
+) -> Result<packed::WitnessArgs, anyhow::Error> {
+    let combine_lock_witness = create_combine_lock_witness(child_script_config, index, inner_witness)?;
     let witness_args = packed::WitnessArgs::new_builder()
         .lock(Some(combine_lock_witness.as_bytes()).pack())
         .build();

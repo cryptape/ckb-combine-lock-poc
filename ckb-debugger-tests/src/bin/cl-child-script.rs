@@ -46,7 +46,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .index(child_script_vec_vec)
         .build();
 
-    let mut args = vec![0x00u8];
+    let mut args = vec![];
     args.extend(hash(child_script_config.as_slice()));
     repr_tx.mock_info.inputs[0].output.lock.args = ckb_jsonrpc_types::JsonBytes::from_vec(args);
 

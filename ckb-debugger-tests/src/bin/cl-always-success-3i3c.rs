@@ -32,13 +32,13 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         false,
     )?;
 
-    let mut args_0 = vec![0x00u8];
+    let mut args_0 = vec![];
     args_0.extend(hash(child_script_config_0.as_slice()));
     repr_tx.mock_info.inputs[0].output.lock.args = ckb_jsonrpc_types::JsonBytes::from_vec(args_0);
-    let mut args_1 = vec![0x00u8];
+    let mut args_1 = vec![];
     args_1.extend(hash(child_script_config_1.as_slice()));
     repr_tx.mock_info.inputs[1].output.lock.args = ckb_jsonrpc_types::JsonBytes::from_vec(args_1);
-    let mut args_2 = vec![0x00u8];
+    let mut args_2 = vec![];
     args_2.extend(hash(child_script_config_2.as_slice()));
     repr_tx.mock_info.inputs[2].output.lock.args = ckb_jsonrpc_types::JsonBytes::from_vec(args_2);
 
