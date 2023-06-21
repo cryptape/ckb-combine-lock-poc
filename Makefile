@@ -20,7 +20,7 @@ dev:
 	capsule build --release -- --features log
 
 install:
-	wget 'https://github.com/XuJiandong/ckb-standalone-debugger/releases/download/ckb2023-0523/ckb-debugger-linux-x64.tar.gz'
+	wget 'https://github.com/XuJiandong/ckb-standalone-debugger/releases/download/ckb2023-0621/ckb-debugger-linux-x64.tar.gz'
 	tar zxvf ckb-debugger-linux-x64.tar.gz
 	mv ckb-debugger ~/.cargo/bin/ckb-debugger-2023
 	cargo install cross --git https://github.com/cross-rs/cross
