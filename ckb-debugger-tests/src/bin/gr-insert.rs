@@ -1,6 +1,8 @@
+use ckb_combine_lock_types::{
+    combine_lock::{ChildScriptConfigOpt, CombineLockWitness, Uint16},
+    lock_wrapper::LockWrapperWitness,
+};
 use ckb_crypto::secp::Privkey;
-use ckb_debugger_tests::combine_lock_mol::{ChildScriptConfigOpt, CombineLockWitness, Uint16};
-use ckb_debugger_tests::lock_wrapper_mol::LockWrapperWitness;
 use ckb_debugger_tests::{
     create_child_script_config, create_script_from_cell_dep, generate_sighash_all,
 };

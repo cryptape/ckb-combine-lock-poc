@@ -13,12 +13,12 @@ use molecule::{
     prelude::{Builder, Entity},
 };
 
-use crate::{
-    combine_lock_mol::{ChildScriptConfig, ChildScriptConfigOpt, CombineLockWitness, Uint16},
-    create_child_script_config, create_script_from_cell_dep,
-    lock_wrapper_mol::{ConfigCellData, LockWrapperWitness},
-    read_tx_template,
+use ckb_combine_lock_types::{
+    combine_lock::{ChildScriptConfig, ChildScriptConfigOpt, CombineLockWitness, Uint16},
+    lock_wrapper::{ConfigCellData, LockWrapperWitness},
 };
+
+use crate::{create_child_script_config, create_script_from_cell_dep, read_tx_template};
 
 // Use always success script. Repeat with `SimpleChildScriptConfig` times. Note,
 // same count means same child script config hash. It's quite important that

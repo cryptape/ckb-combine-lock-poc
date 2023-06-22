@@ -1,7 +1,8 @@
 extern crate alloc;
 
-use crate::{combine_lock_mol::ChildScript, error::Error};
+use crate::error::Error;
 use alloc::{format, string::String, vec::Vec};
+use ckb_combine_lock_types::combine_lock::ChildScript;
 use ckb_std::ckb_types::core::ScriptHashType;
 use ckb_std::ckb_types::prelude::*;
 use core::convert::From;

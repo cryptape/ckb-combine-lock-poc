@@ -1,8 +1,8 @@
 extern crate alloc;
 use crate::error::Error;
+use ckb_combine_lock_types::lock_wrapper::{ConfigCellDataOptReader, LockWrapperWitnessReader};
 use ckb_lock_common::{
     blake2b::hash,
-    lock_wrapper_mol::{ConfigCellDataOptReader, LockWrapperWitnessReader},
     transforming::{self, BatchTransformingStatus},
     utils::{
         config_cell_unchanged, get_current_hash, get_global_registry_id, get_next_hash,

@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 ckb-lock-common = { path = "../../ckb-lock-common" }
-ckb-std = { git = "https://github.com/nervosnetwork/ckb-std.git", rev = "17c6af8", features = ["ckb2023"] }
+ckb-std = { version = "0.14.0", features = ["ckb2023"] }
 log = { version = "0.4.17", default-features = false }

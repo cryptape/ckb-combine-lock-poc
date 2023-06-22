@@ -1,8 +1,8 @@
-use ckb_crypto::secp::Privkey;
-use ckb_debugger_tests::combine_lock_mol::{
+use ckb_combine_lock_types::combine_lock::{
     ChildScript, ChildScriptArray, ChildScriptConfig, ChildScriptConfigOpt, ChildScriptVec,
     ChildScriptVecVec, CombineLockWitness, Uint16,
 };
+use ckb_crypto::secp::Privkey;
 use ckb_debugger_tests::generate_sighash_all;
 use ckb_debugger_tests::{
     hash::{blake160, hash},

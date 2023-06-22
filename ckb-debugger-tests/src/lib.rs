@@ -1,34 +1,20 @@
 pub mod auto_complete;
-#[allow(dead_code)]
-pub mod combine_lock_mol;
-#[allow(dead_code)]
-pub mod lock_wrapper_mol;
-
-pub mod hash;
-pub mod blockchain {
-    pub use ckb_types::packed::{
-        Byte, Byte32, Byte32Reader, Byte32Vec, Byte32VecReader, ByteReader, Bytes, BytesOpt,
-        BytesOptReader, BytesReader, BytesVec, BytesVecReader, Script, ScriptBuilder, ScriptOpt,
-        ScriptOptBuilder, ScriptOptReader, ScriptReader, WitnessArgs, WitnessArgsBuilder,
-        WitnessArgsReader,
-    };
-}
 pub mod global_registry;
-pub mod mol_utils;
+pub mod hash;
 
 use anyhow;
 use anyhow::Context;
 use auto_complete::auto_complete;
+use ckb_combine_lock_types::combine_lock::{
+    ChildScriptArray, ChildScriptConfig, ChildScriptConfigOpt, ChildScriptVec, ChildScriptVecVec,
+    CombineLockWitness, Uint16,
+};
 use ckb_debugger_api::embed::Embed;
 use ckb_hash::new_blake2b;
 use ckb_mock_tx_types::{MockTransaction, ReprMockTransaction};
 use ckb_types::core::ScriptHashType;
 use ckb_types::packed;
 use ckb_types::prelude::*;
-use combine_lock_mol::{
-    ChildScript, ChildScriptArray, ChildScriptConfig, ChildScriptConfigOpt, ChildScriptVec,
-    ChildScriptVecVec, CombineLockWitness, Uint16,
-};
 use hash::hash;
 use molecule::bytes::Bytes;
 use molecule::prelude::*;
@@ -92,18 +78,6 @@ pub fn create_script_from_cell_dep(
     Ok(script)
 }
 
-impl From<packed::Script> for ChildScript {
-    fn from(value: packed::Script) -> Self {
-        ChildScript::new_unchecked(value.as_bytes())
-    }
-}
-
-impl From<ChildScript> for packed::Script {
-    fn from(value: ChildScript) -> Self {
-        packed::Script::new_unchecked(value.as_bytes())
-    }
-}
-
 pub fn create_child_script_config(
     repr_tx: &ReprMockTransaction,
     cell_dep_index: &[usize],
@@ -161,7 +135,8 @@ pub fn create_witness_args(
     index: u16,
     inner_witness: &[Bytes],
 ) -> Result<packed::WitnessArgs, anyhow::Error> {
-    let combine_lock_witness = create_combine_lock_witness(child_script_config, index, inner_witness)?;
+    let combine_lock_witness =
+        create_combine_lock_witness(child_script_config, index, inner_witness)?;
     let witness_args = packed::WitnessArgs::new_builder()
         .lock(Some(combine_lock_witness.as_bytes()).pack())
         .build();
