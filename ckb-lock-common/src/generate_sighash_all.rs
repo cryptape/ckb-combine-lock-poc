@@ -1,9 +1,9 @@
 use crate::blake2b::new_blake2b;
 use crate::error::Error;
 use blake2b_rs::Blake2b;
-use ckb_std::ckb_constants::{InputField, Source};
+use ckb_std::ckb_constants::Source;
 use ckb_std::high_level::{load_tx_hash, load_witness};
-use ckb_std::syscalls::{load_cell, load_input_by_field, SysError};
+use ckb_std::syscalls::{load_cell, SysError};
 
 #[allow(dead_code)]
 pub fn generate_sighash_all() -> Result<[u8; 32], Error> {
@@ -67,30 +67,17 @@ fn load_and_hash_witness(ctx: &mut Blake2b, index: usize, source: Source) -> Res
 }
 
 fn calculate_inputs_len() -> Result<usize, Error> {
-    let mut temp = [0u8; 8];
+    let mut buf = [0u8; 0];
     let mut i = 0;
     loop {
-        let sysret = load_input_by_field(&mut temp, 0, i, Source::Input, InputField::Since);
-        match sysret {
-            Err(SysError::IndexOutOfBound) => break,
-            Err(x) => return Err(x.into()),
-            Ok(_) => i += 1,
-        }
-    }
-    Ok(i)
-}
-
-#[allow(dead_code)]
-fn calculate_outputs_len() -> Result<usize, Error> {
-    let mut temp = [0u8; 8];
-    let mut i = 0;
-    loop {
-        let sysret = load_cell(&mut temp, 0, i, Source::Output);
+        // load cell to a zero-length buffer must be failed, we are using this tricky way to reduce the cycles of counting inputs
+        // instead of loading field data to a non-empty buffer.
+        let sysret = load_cell(&mut buf, 0, i, Source::Input);
         match sysret {
             Err(SysError::IndexOutOfBound) => break,
             Err(SysError::LengthNotEnough(_)) => i += 1,
             Err(x) => return Err(x.into()),
-            Ok(_) => i += 1,
+            Ok(_) => unreachable!(),
         }
     }
     Ok(i)
