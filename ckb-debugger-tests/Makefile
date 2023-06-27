@@ -21,7 +21,6 @@ all: \
 	cl-child-script \
 	child-script-success \
 	child-script-multi-inputs \
-	auth-script-exec-success \
 	negative-cl-always-failure \
 	negative-cl-child-script-config-hash-error \
 	negative-cl-child-script-sig-error \
@@ -96,9 +95,6 @@ child-script-success:
 	cargo run --$(BUILD) --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
 
 child-script-multi-inputs:
-	cargo run --$(BUILD) --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
-
-auth-script-exec-success:
 	cargo run --$(BUILD) --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
 
 negative-cl-always-failure:
