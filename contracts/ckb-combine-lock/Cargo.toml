@@ -8,7 +8,8 @@ edition = "2021"
 [dependencies]
 blake2b-rs = "0.2.0"
 ckb-lock-common = { path = "../../ckb-lock-common" }
-ckb-std = { git = "https://github.com/nervosnetwork/ckb-std.git", rev = "17c6af8", features = ["ckb2023"] }
+ckb-combine-lock-types = { path = "../../crates/types" }
+ckb-std = { version = "0.14.0", features = ["ckb2023"] }
 hex = { version = "0.4", default-features = false, features = ["alloc"] }
 log = { version = "0.4.17", default-features = false }
 molecule = { version = "0.7.3", default-features = false }

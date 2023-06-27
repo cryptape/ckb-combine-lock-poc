@@ -1,5 +1,5 @@
 [workspace]
-members = ["contracts/ckb-combine-lock", "contracts/child-script-example", "contracts/child-script-always-success", "contracts/auth-script-test", "contracts/child-script-always-failure", "contracts/global-registry", "contracts/lock-wrapper"]
+members = ["crates/types", "ckb-debugger-tests", "contracts/ckb-combine-lock", "contracts/child-script-example", "contracts/child-script-always-success", "contracts/auth-script-test", "contracts/child-script-always-failure", "contracts/global-registry", "contracts/lock-wrapper"]
 
 [profile.release]
 overflow-checks = true

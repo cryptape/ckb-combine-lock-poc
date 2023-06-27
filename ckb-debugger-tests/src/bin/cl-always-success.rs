@@ -1,4 +1,4 @@
-use ckb_debugger_tests::combine_lock_mol::{
+use ckb_combine_lock_types::combine_lock::{
     ChildScript, ChildScriptArray, ChildScriptConfig, ChildScriptConfigOpt, ChildScriptVec,
     ChildScriptVecVec, CombineLockWitness, Uint16,
 };

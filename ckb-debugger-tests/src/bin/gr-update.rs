@@ -1,5 +1,5 @@
+use ckb_combine_lock_types::lock_wrapper::{ConfigCellData, LockWrapperWitness};
 use ckb_debugger_tests::hash::hash;
-use ckb_debugger_tests::lock_wrapper_mol::{ConfigCellData, LockWrapperWitness};
 use ckb_debugger_tests::{
     create_child_script_config, create_combine_lock_witness, create_script_from_cell_dep,
     read_tx_template,

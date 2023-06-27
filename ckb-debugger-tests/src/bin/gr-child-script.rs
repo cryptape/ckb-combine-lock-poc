@@ -1,9 +1,11 @@
+use ckb_combine_lock_types::{
+    combine_lock::{ChildScriptConfigOpt, CombineLockWitness, Uint16},
+    lock_wrapper::{ConfigCellData, LockWrapperWitness},
+};
 use ckb_crypto::secp::Privkey;
-use ckb_debugger_tests::combine_lock_mol::{ChildScriptConfigOpt, CombineLockWitness, Uint16};
 use ckb_debugger_tests::{
     create_child_script_config, create_script_from_cell_dep, generate_sighash_all,
     hash::{blake160, hash},
-    lock_wrapper_mol::{ConfigCellData, LockWrapperWitness},
     read_tx_template,
 };
 use ckb_jsonrpc_types::JsonBytes;

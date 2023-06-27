@@ -1,11 +1,10 @@
 use crate::error::Error;
 use alloc::ffi::CString;
 use alloc::vec::Vec;
-use ckb_lock_common::{
-    blake2b::hash,
-    combine_lock_mol::{ChildScriptConfig, ChildScriptConfigReader, CombineLockWitness, CombineLockWitnessReader},
-    utils::WRAPPED_SCRIPT_HASH_LEN,
+use ckb_combine_lock_types::combine_lock::{
+    ChildScriptConfig, ChildScriptConfigReader, CombineLockWitness, CombineLockWitnessReader,
 };
+use ckb_lock_common::{blake2b::hash, utils::WRAPPED_SCRIPT_HASH_LEN};
 
 use ckb_std::{
     ckb_constants::Source,
