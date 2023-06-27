@@ -2,8 +2,6 @@
 extern crate alloc;
 
 pub mod blake2b;
-pub mod chained_exec;
-pub mod child_script_entry;
 pub mod ckb_auth;
 pub mod error;
 pub mod generate_sighash_all;

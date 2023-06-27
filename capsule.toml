@@ -23,10 +23,6 @@ name = "child-script-always-success"
 template_type = "Rust"
 
 [[contracts]]
-name = "auth-script-test"
-template_type = "Rust"
-
-[[contracts]]
 name = "global-registry"
 template_type = "Rust"
 
@@ -37,4 +33,3 @@ template_type = "Rust"
 [[contracts]]
 name = "lock-wrapper"
 template_type = "Rust"
-
