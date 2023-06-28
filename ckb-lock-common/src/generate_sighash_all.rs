@@ -8,16 +8,24 @@ use ckb_std::syscalls::{load_cell, load_input_by_field, load_witness, SysError};
 pub const MAX_WITNESS_SIZE: usize = 32768;
 pub const ONE_BATCH_SIZE: usize = 32768;
 
-#[allow(dead_code)]
+pub fn load_witness_c_style(
+    buf: &mut [u8],
+    offset: usize,
+    index: usize,
+    source: Source,
+) -> Result<usize, SysError> {
+    match load_witness(buf, offset, index, source) {
+        Ok(size) => Ok(size),
+        Err(SysError::LengthNotEnough(size)) => Ok(size),
+        Err(other) => Err(other),
+    }
+}
+
 pub fn generate_sighash_all() -> Result<[u8; 32], Error> {
     let mut temp = [0u8; MAX_WITNESS_SIZE];
 
     // Load witness of first input.
-    let mut read_len = match load_witness(&mut temp, 0, 0, Source::GroupInput) {
-        Ok(size) => size,
-        Err(SysError::LengthNotEnough(_)) => MAX_WITNESS_SIZE,
-        Err(other) => return Err(other.into()),
-    };
+    let mut read_len = load_witness_c_style(&mut temp, 0, 0, Source::GroupInput)?;
     let witness_len = read_len;
     if read_len > MAX_WITNESS_SIZE {
         read_len = MAX_WITNESS_SIZE;
@@ -84,7 +92,7 @@ fn load_and_hash_witness(
     hash_length: bool,
 ) -> Result<(), SysError> {
     let mut temp = [0u8; ONE_BATCH_SIZE];
-    let len = load_witness(&mut temp, start, index, source)?;
+    let len = load_witness_c_style(&mut temp, start, index, source)?;
     if hash_length {
         ctx.update(&(len as u64).to_le_bytes());
     }
@@ -95,7 +103,7 @@ fn load_and_hash_witness(
     };
     ctx.update(&temp[..offset]);
     while offset < len {
-        let current_len = load_witness(&mut temp, start + offset, index, source)?;
+        let current_len = load_witness_c_style(&mut temp, start + offset, index, source)?;
         let current_read = if current_len > ONE_BATCH_SIZE {
             ONE_BATCH_SIZE
         } else {

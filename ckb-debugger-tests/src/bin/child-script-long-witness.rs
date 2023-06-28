@@ -16,7 +16,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let witness_args = WitnessArgsBuilder::default()
         .lock(Some(Bytes::from(vec![0x00; 65])).pack())
-        .input_type(Some(Bytes::from(vec![0x00; 1024 * 32 + 1])).pack())
+        .input_type(Some(Bytes::from(vec![0x00; 1024 * 100])).pack())
         .build()
         .as_bytes();
     tx.tx.witnesses.clear();
@@ -33,7 +33,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     tx.tx.witnesses.push(JsonBytes::from_bytes(
         WitnessArgsBuilder::default()
             .lock(Some(Bytes::from(sig)).pack())
-            .input_type(Some(Bytes::from(vec![0x00; 1024 * 32 + 1])).pack())
+            .input_type(Some(Bytes::from(vec![0x00; 1024 * 100])).pack())
             .build()
             .as_bytes(),
     ));
