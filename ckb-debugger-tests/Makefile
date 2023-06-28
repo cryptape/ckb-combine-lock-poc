@@ -20,6 +20,7 @@ all: \
 	cl-cl-always-success \
 	cl-child-script \
 	child-script-success \
+	child-script-long-witness \
 	child-script-multi-inputs \
 	negative-cl-always-failure \
 	negative-cl-child-script-config-hash-error \
@@ -92,6 +93,9 @@ gr-update:
 	cargo run --$(BUILD) --bin gr-update | ${CKB_DEBUGGER} --tx-file=- -s type --cell-index=0 --cell-type output
 
 child-script-success:
+	cargo run --$(BUILD) --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
+
+child-script-long-witness:
 	cargo run --$(BUILD) --bin $@ | ${CKB_DEBUGGER} --tx-file=- -s lock
 
 child-script-multi-inputs:
