@@ -13,7 +13,11 @@ pub fn generate_sighash_all() -> Result<[u8; 32], Error> {
     let mut temp = [0u8; MAX_WITNESS_SIZE];
 
     // Load witness of first input.
-    let mut read_len = load_witness(&mut temp, 0, 0, Source::GroupInput)?;
+    let mut read_len = match load_witness(&mut temp, 0, 0, Source::GroupInput) {
+        Ok(size) => size,
+        Err(SysError::LengthNotEnough(_)) => MAX_WITNESS_SIZE,
+        Err(other) => return Err(other.into()),
+    };
     let witness_len = read_len;
     if read_len > MAX_WITNESS_SIZE {
         read_len = MAX_WITNESS_SIZE;
