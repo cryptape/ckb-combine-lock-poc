@@ -1,10 +1,12 @@
-use crate::{error::Error, transforming::Cell};
-use alloc::{fmt, vec::Vec};
+use crate::{error::Error, generated::blockchain::WitnessArgs, transforming::Cell};
+use alloc::{boxed::Box, fmt, vec::Vec};
 use ckb_std::{
     ckb_constants::Source,
     high_level::{load_cell_capacity, load_cell_data, load_cell_lock, load_cell_type},
+    syscalls::{load_witness, SysError},
 };
 use molecule::prelude::Entity;
+use molecule2::{self, Cursor, Read};
 
 pub const GLOBAL_REGISTRY_ID_LEN: usize = 32;
 pub const WRAPPED_SCRIPT_HASH_LEN: usize = 32;
@@ -96,4 +98,45 @@ impl fmt::Display for Cell {
             self.index, current_hash, next_hash
         )
     }
+}
+
+struct WitnessDataSource {
+    source: Source,
+    index: usize,
+}
+
+impl WitnessDataSource {
+    fn new(source: Source, index: usize) -> Self {
+        WitnessDataSource { source, index }
+    }
+    fn as_cursor(self) -> Result<Cursor, Error> {
+        let mut buf = [0u8; 4];
+        let total_size = match load_witness(&mut buf, 0, self.index, self.source) {
+            Ok(size) => size,
+            Err(SysError::LengthNotEnough(size)) => size,
+            Err(_) => {
+                return Err(Error::IndexOutOfBound);
+            }
+        };
+        Ok(Cursor::new(total_size, Box::new(self)))
+    }
+}
+
+impl Read for WitnessDataSource {
+    fn read(&self, buf: &mut [u8], offset: usize) -> Result<usize, molecule2::Error> {
+        match load_witness(buf, offset, self.index, self.source) {
+            Ok(size) => Ok(size),
+            Err(SysError::LengthNotEnough(_)) => Ok(buf.len()),
+            Err(_) => Err(molecule2::Error::Read),
+        }
+    }
+}
+
+pub fn get_signature_location(source: Source, index: usize) -> Result<(usize, usize), Error> {
+    let data_source = WitnessDataSource::new(source, index);
+    let cursor = data_source.as_cursor()?;
+    let witness_args: WitnessArgs = cursor.into();
+    let lock = witness_args.lock().unwrap();
+    let bytes = lock.convert_to_rawbytes().map_err(|e| Error::Encoding)?;
+    Ok((bytes.offset, bytes.size))
 }
