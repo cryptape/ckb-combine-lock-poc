@@ -137,6 +137,6 @@ pub fn get_signature_location(source: Source, index: usize) -> Result<(usize, us
     let cursor = data_source.as_cursor()?;
     let witness_args: WitnessArgs = cursor.into();
     let lock = witness_args.lock().unwrap();
-    let bytes = lock.convert_to_rawbytes().map_err(|e| Error::Encoding)?;
+    let bytes = lock.convert_to_rawbytes().map_err(|_| Error::Encoding)?;
     Ok((bytes.offset, bytes.size))
 }

@@ -998,6 +998,7 @@ dependencies = [
 [[package]]
 name = "molecule2"
 version = "0.1.1"
+source = "git+https://github.com/XuJiandong/moleculec-c2.git?rev=4c97e75#4c97e75cb608ba208bda98ce85ea429dabe91424"
 
 [[package]]
 name = "numext-constructor"
