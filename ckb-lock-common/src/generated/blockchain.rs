@@ -2,6 +2,7 @@
 #![allow(unused_imports)]
 extern crate alloc;
 use alloc::vec::Vec;
+use core::convert::TryInto;
 use molecule2::Cursor;
 
 pub struct Uint32 {

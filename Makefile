@@ -8,12 +8,9 @@ all:
 mol: ckb-lock-common/src/generated/blockchain.rs
 	${MOLC} --language rust --schema-file crates/types/combine_lock.mol | rustfmt > crates/types/src/combine_lock.rs
 	${MOLC} --language rust --schema-file crates/types/lock_wrapper.mol | rustfmt > crates/types/src/lock_wrapper.rs
-
-target/blockchain.json: crates/types/blockchain.mol
-	${MOLC} --language - --schema-file $^ --format json > $@
-
-ckb-lock-common/src/generated/blockchain.rs: target/blockchain.json
-	moleculec-c2 --rust --input $< | rustfmt > $@
+	${MOLC} --language - --schema-file crates/types/blockchain.mol --format json | moleculec-c2 --rust --input - | rustfmt > ckb-lock-common/src/generated/blockchain.rs
+	${MOLC} --language - --schema-file crates/types/lock_wrapper.mol --format json | moleculec-c2 --rust --input - | rustfmt > ckb-lock-common/src/generated/lock_wrapper.rs
+	${MOLC} --language - --schema-file crates/types/combine_lock.mol --format json | moleculec-c2 --rust --input - | rustfmt > ckb-lock-common/src/generated/combine_lock.rs
 
 ci:
 	cd tests/global-registry && cargo test && cd ../..
@@ -22,7 +19,7 @@ ci:
 
 # this is optional
 install-moleculec:
-	cargo install --git https://github.com/XuJiandong/moleculec-c2.git --rev cece491 moleculec-c2
+	cargo install --git https://github.com/XuJiandong/moleculec-c2.git --rev 717f288 moleculec-c2
 	cargo install --force --version "0.7.3" "moleculec"
 
 install:

@@ -1,5 +1,6 @@
 use crate::blake2b::new_blake2b;
 use crate::error::Error;
+use crate::utils::{get_signature_location, get_witness_len};
 use alloc::{vec, vec::Vec};
 use blake2b_rs::Blake2b;
 use ckb_std::ckb_constants::{InputField, Source};
@@ -10,45 +11,27 @@ const CHUNK_SIZE: usize = 32768;
 
 pub fn generate_sighash_all() -> Result<[u8; 32], Error> {
     // Digest first witness in the script group.
-    let mut chunks = ChunksLoader::new(load_witness, CHUNK_SIZE, 0, Source::GroupInput).into_iter();
+    let chunks = ChunksLoader::new(load_witness, CHUNK_SIZE, 0, Source::GroupInput).into_iter();
     let mut ctx = new_blake2b();
-    if let Some((total_len, mut chunk_data)) = chunks.next() {
-        if total_len < 20 {
-            return Err(Error::Encoding);
-        }
-        let lock_length = u32::from_le_bytes(chunk_data[16..20].try_into().unwrap()) as usize;
-        if total_len < lock_length + 20 {
-            return Err(Error::Encoding);
-        }
-        let mut zero_remain = lock_length + 20;
-        if zero_remain > chunk_data.len() {
-            chunk_data[20..].fill(0);
-            zero_remain -= CHUNK_SIZE;
-        } else {
-            chunk_data[20..zero_remain].fill(0);
-            zero_remain = 0;
-        }
-
-        let tx_hash = load_tx_hash()?;
-        ctx.update(&tx_hash);
-        ctx.update(&(total_len as u64).to_le_bytes());
-        ctx.update(&chunk_data);
-        for (_total_len, mut chunk_data) in chunks {
-            if zero_remain > 0 {
-                if zero_remain > chunk_data.len() {
-                    chunk_data[..].fill(0);
-                    zero_remain -= CHUNK_SIZE;
-                } else {
-                    chunk_data[..zero_remain].fill(0);
-                    zero_remain = 0;
-                }
+    let tx_hash = load_tx_hash()?;
+    ctx.update(&tx_hash);
+    let total_len = get_witness_len(0, Source::GroupInput)?;
+    ctx.update(&(total_len as u64).to_le_bytes());
+    let location = get_signature_location(0, Source::GroupInput)?;
+    let mut current_offset = 0;
+    for (_, mut chunk_data) in chunks {
+        let chunk_len = chunk_data.len();
+        if location.0 >= current_offset && location.0 < (current_offset + chunk_len) {
+            let end = location.0 + location.1;
+            if end >= (current_offset + chunk_len) {
+                chunk_data[location.0..].fill(0);
+            } else {
+                chunk_data[location.0..(end - current_offset)].fill(0);
             }
-            ctx.update(&chunk_data);
         }
-    } else {
-        return Err(Error::Encoding);
+        ctx.update(&chunk_data);
+        current_offset += chunk_len;
     }
-
     // Digest other witnesses in the script group.
     load_and_hash_witness(&mut ctx, 1, Source::GroupInput);
     // Digest witnesses that not covered by inputs.

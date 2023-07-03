@@ -110,15 +110,8 @@ impl WitnessDataSource {
         WitnessDataSource { source, index }
     }
     fn as_cursor(self) -> Result<Cursor, Error> {
-        let mut buf = [0u8; 4];
-        let total_size = match load_witness(&mut buf, 0, self.index, self.source) {
-            Ok(size) => size,
-            Err(SysError::LengthNotEnough(size)) => size,
-            Err(_) => {
-                return Err(Error::IndexOutOfBound);
-            }
-        };
-        Ok(Cursor::new(total_size, Box::new(self)))
+        let len = get_witness_len(self.index, self.source)?;
+        Ok(Cursor::new(len, Box::new(self)))
     }
 }
 
@@ -132,11 +125,23 @@ impl Read for WitnessDataSource {
     }
 }
 
-pub fn get_signature_location(source: Source, index: usize) -> Result<(usize, usize), Error> {
+pub fn get_signature_location(index: usize, source: Source) -> Result<(usize, usize), Error> {
     let data_source = WitnessDataSource::new(source, index);
     let cursor = data_source.as_cursor()?;
     let witness_args: WitnessArgs = cursor.into();
     let lock = witness_args.lock().unwrap();
     let bytes = lock.convert_to_rawbytes().map_err(|_| Error::Encoding)?;
     Ok((bytes.offset, bytes.size))
+}
+
+pub fn get_witness_len(index: usize, source: Source) -> Result<usize, Error> {
+    let mut buf = [0u8; 4];
+    let len = match load_witness(&mut buf, 0, index, source) {
+        Ok(size) => size,
+        Err(SysError::LengthNotEnough(size)) => size,
+        Err(_) => {
+            return Err(Error::IndexOutOfBound);
+        }
+    };
+    Ok(len)
 }
