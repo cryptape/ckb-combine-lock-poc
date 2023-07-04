@@ -184,6 +184,7 @@ dependencies = [
  "ckb-std",
  "hex",
  "log 0.4.17",
+ "molecule2",
 ]
 
 [[package]]
@@ -228,6 +229,7 @@ dependencies = [
  "hex",
  "log 0.4.17",
  "molecule",
+ "molecule2",
 ]
 
 [[package]]

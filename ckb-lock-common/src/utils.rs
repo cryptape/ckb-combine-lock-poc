@@ -1,15 +1,11 @@
-use crate::generated::combine_lock::CombineLockWitness;
-use crate::generated::lock_wrapper::LockWrapperWitness;
-use crate::{error::Error, generated::blockchain::WitnessArgs, transforming::Cell};
+use crate::{error::Error, transforming::Cell};
 
-use alloc::{boxed::Box, fmt, vec::Vec};
+use alloc::{fmt, vec::Vec};
 use ckb_std::{
     ckb_constants::Source,
     high_level::{load_cell_capacity, load_cell_data, load_cell_lock, load_cell_type},
-    syscalls::{load_witness, SysError},
 };
 use molecule::prelude::Entity;
-use molecule2::{self, Cursor, Read};
 
 pub const GLOBAL_REGISTRY_ID_LEN: usize = 32;
 pub const WRAPPED_SCRIPT_HASH_LEN: usize = 32;
@@ -101,59 +97,4 @@ impl fmt::Display for Cell {
             self.index, current_hash, next_hash
         )
     }
-}
-
-struct WitnessDataSource {
-    source: Source,
-    index: usize,
-}
-
-impl WitnessDataSource {
-    fn new(source: Source, index: usize) -> Self {
-        WitnessDataSource { source, index }
-    }
-    fn as_cursor(self) -> Result<Cursor, Error> {
-        let len = get_witness_len(self.index, self.source)?;
-        Ok(Cursor::new(len, Box::new(self)))
-    }
-}
-
-impl Read for WitnessDataSource {
-    fn read(&self, buf: &mut [u8], offset: usize) -> Result<usize, molecule2::Error> {
-        match load_witness(buf, offset, self.index, self.source) {
-            Ok(size) => Ok(size),
-            Err(SysError::LengthNotEnough(_)) => Ok(buf.len()),
-            Err(_) => Err(molecule2::Error::Read),
-        }
-    }
-}
-
-pub fn get_signature_location(
-    index: usize,
-    source_index: usize,
-    source: Source,
-) -> Result<(usize, usize), Error> {
-    let data_source = WitnessDataSource::new(source, source_index);
-    let cursor = data_source.as_cursor()?;
-    let witness_args: WitnessArgs = cursor.into();
-    let lock = witness_args.lock().unwrap();
-    let lock = lock.convert_to_rawbytes().unwrap();
-    let lock_wrapper: LockWrapperWitness = lock.into();
-    let lock_wrapper_witness = lock_wrapper.wrapped_witness();
-    let combine_lock_witness: CombineLockWitness = lock_wrapper_witness.into();
-    let inner_witness = combine_lock_witness.inner_witness();
-    let witness = inner_witness.get(index);
-    Ok((witness.offset, witness.size))
-}
-
-pub fn get_witness_len(index: usize, source: Source) -> Result<usize, Error> {
-    let mut buf = [0u8; 4];
-    let len = match load_witness(&mut buf, 0, index, source) {
-        Ok(size) => size,
-        Err(SysError::LengthNotEnough(size)) => size,
-        Err(_) => {
-            return Err(Error::IndexOutOfBound);
-        }
-    };
-    Ok(len)
 }

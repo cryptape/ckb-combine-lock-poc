@@ -8,5 +8,6 @@ pub mod generate_sighash_all;
 pub mod generated;
 pub mod lock_wrapper;
 pub mod logger;
+pub mod simple_cursor;
 pub mod transforming;
 pub mod utils;

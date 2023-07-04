@@ -13,3 +13,4 @@ ckb-std = { version = "0.14.0", features = ["ckb2023"] }
 hex = { version = "0.4", default-features = false, features = ["alloc"] }
 log = { version = "0.4.17", default-features = false }
 molecule = { version = "0.7.3", default-features = false }
+molecule2 = { git = "https://github.com/XuJiandong/moleculec-c2.git", rev = "4c97e75" }
