@@ -159,31 +159,12 @@ pub fn generate_sighash_all(
     tx: &ReprMockTransaction,
     index: usize,
 ) -> Result<[u8; 32], anyhow::Error> {
-    let lock_indexs = get_group(index, &tx);
-    if lock_indexs.is_empty() {
+    let lock_indexes = get_group(index, &tx);
+    if lock_indexes.is_empty() {
         panic!("not get lock index");
     }
 
-    let witness = tx
-        .tx
-        .witnesses
-        .get(lock_indexs[0])
-        .unwrap()
-        .as_bytes()
-        .to_vec();
-    let witness = packed::WitnessArgs::new_unchecked(Bytes::from(witness));
-
-    let witness = packed::WitnessArgsBuilder::default()
-        .lock({
-            let data = witness.lock().to_opt().unwrap();
-
-            let mut buf = Vec::new();
-            buf.resize(data.len(), 0);
-            Some(Bytes::from(buf)).pack()
-        })
-        .input_type(witness.input_type())
-        .output_type(witness.output_type())
-        .build();
+    let witness = tx.tx.witnesses.get(lock_indexes[0]).unwrap();
 
     let mut blake2b = new_blake2b();
     let mut message = [0u8; 32];
@@ -198,9 +179,9 @@ pub fn generate_sighash_all(
     blake2b.update(&witness_data);
 
     // group
-    if lock_indexs.len() > 1 {
-        for i in 1..lock_indexs.len() {
-            let witness = mock_tx.tx.witnesses().get(lock_indexs[i]).unwrap();
+    if lock_indexes.len() > 1 {
+        for i in 1..lock_indexes.len() {
+            let witness = mock_tx.tx.witnesses().get(lock_indexes[i]).unwrap();
 
             blake2b.update(&(witness.len() as u64).to_le_bytes());
             blake2b.update(&witness.raw_data());

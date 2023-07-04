@@ -1,5 +1,6 @@
 extern crate alloc;
 use crate::error::Error;
+use alloc::vec::Vec;
 use ckb_lock_common::ckb_auth::{
     ckb_auth, AuthAlgorithmIdType, CkbAuthType, CkbEntryType, EntryCategoryType,
 };
@@ -19,11 +20,12 @@ static DL_CODE_HASH: [u8; 32] = [
 static DL_HASH_TYPE: ScriptHashType = ScriptHashType::Data1;
 
 fn parse_execution_args() -> Result<Bytes, Error> {
-    if ckb_std::env::argv().len() == 0 {
+    let len = ckb_std::env::argv().len();
+    if len == 0 {
         let script = load_script()?;
         return Ok(script.args().unpack());
     }
-    if ckb_std::env::argv().len() == 2 {
+    if len == 3 {
         return Ok(Bytes::from(hex::decode(
             ckb_std::env::argv()[0].to_bytes(),
         )?));
@@ -32,16 +34,40 @@ fn parse_execution_args() -> Result<Bytes, Error> {
 }
 
 fn parse_execution_witness_args_lock() -> Result<Bytes, Error> {
-    if ckb_std::env::argv().len() == 0 {
+    let len = ckb_std::env::argv().len();
+    if len == 0 {
         let execution_witness_args = load_witness_args(0, Source::GroupInput)?;
         let execution_witness_args_lock: Bytes =
             execution_witness_args.lock().to_opt().unwrap().unpack();
         return Ok(execution_witness_args_lock);
     }
-    if ckb_std::env::argv().len() == 2 {
+    if len == 3 {
         return Ok(Bytes::from(hex::decode(
             ckb_std::env::argv()[1].to_bytes(),
         )?));
+    }
+    return Err(Error::WrongFormat);
+}
+
+fn parse_execution_index() -> Result<Vec<usize>, Error> {
+    let len = ckb_std::env::argv().len();
+    if len == 3 {
+        let s = ckb_std::env::argv()[2].to_string_lossy().into_owned();
+        if s.len() > 256 {
+            return Err(Error::WrongFormat);
+        }
+        let result: Vec<usize> = s
+            .split_terminator(":")
+            .into_iter()
+            .map(|n| {
+                let s = usize::from_str_radix(n, 16).unwrap();
+                if s > 1024 {
+                    panic!("too long index");
+                }
+                s
+            })
+            .collect::<Vec<_>>();
+        return Ok(result);
     }
     return Err(Error::WrongFormat);
 }
@@ -61,7 +87,8 @@ pub fn main() -> Result<(), Error> {
     }
     let auth_id = execution_args_slice[0] as u8;
     let pubkey_hash: [u8; 20] = execution_args_slice[1..].try_into().unwrap();
-    let message = generate_sighash_all().map_err(|_| Error::GeneratedMsgError)?;
+    let indexes = parse_execution_index()?;
+    let message = generate_sighash_all(indexes[0]).map_err(|_| Error::GeneratedMsgError)?;
     let id = CkbAuthType {
         algorithm_id: AuthAlgorithmIdType::try_from(auth_id)?,
         pubkey_hash: pubkey_hash,

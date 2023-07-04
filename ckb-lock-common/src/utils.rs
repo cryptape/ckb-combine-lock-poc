@@ -1,4 +1,7 @@
+use crate::generated::combine_lock::CombineLockWitness;
+use crate::generated::lock_wrapper::LockWrapperWitness;
 use crate::{error::Error, generated::blockchain::WitnessArgs, transforming::Cell};
+
 use alloc::{boxed::Box, fmt, vec::Vec};
 use ckb_std::{
     ckb_constants::Source,
@@ -125,13 +128,22 @@ impl Read for WitnessDataSource {
     }
 }
 
-pub fn get_signature_location(index: usize, source: Source) -> Result<(usize, usize), Error> {
-    let data_source = WitnessDataSource::new(source, index);
+pub fn get_signature_location(
+    index: usize,
+    source_index: usize,
+    source: Source,
+) -> Result<(usize, usize), Error> {
+    let data_source = WitnessDataSource::new(source, source_index);
     let cursor = data_source.as_cursor()?;
     let witness_args: WitnessArgs = cursor.into();
     let lock = witness_args.lock().unwrap();
-    let bytes = lock.convert_to_rawbytes().map_err(|_| Error::Encoding)?;
-    Ok((bytes.offset, bytes.size))
+    let lock = lock.convert_to_rawbytes().unwrap();
+    let lock_wrapper: LockWrapperWitness = lock.into();
+    let lock_wrapper_witness = lock_wrapper.wrapped_witness();
+    let combine_lock_witness: CombineLockWitness = lock_wrapper_witness.into();
+    let inner_witness = combine_lock_witness.inner_witness();
+    let witness = inner_witness.get(index);
+    Ok((witness.offset, witness.size))
 }
 
 pub fn get_witness_len(index: usize, source: Source) -> Result<usize, Error> {

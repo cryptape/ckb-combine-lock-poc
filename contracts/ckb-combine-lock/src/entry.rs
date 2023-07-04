@@ -1,5 +1,6 @@
 use crate::error::Error;
 use alloc::ffi::CString;
+use alloc::format;
 use alloc::vec::Vec;
 use ckb_combine_lock_types::combine_lock::{
     ChildScriptConfig, ChildScriptConfigReader, CombineLockWitness, CombineLockWitnessReader,
@@ -115,6 +116,7 @@ pub fn main() -> Result<(), Error> {
             &[
                 CString::new(child_script_args.as_str()).unwrap().as_c_str(),
                 CString::new(child_script_inner_witness.as_str()).unwrap().as_c_str(),
+                CString::new(format!("{:x}", i)).unwrap().as_c_str(),
             ],
             8,
             &mut Vec::new(),
