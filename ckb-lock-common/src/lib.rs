@@ -6,6 +6,7 @@ pub mod ckb_auth;
 pub mod error;
 pub mod generate_sighash_all;
 pub mod generated;
+pub mod intersection;
 pub mod lock_wrapper;
 pub mod logger;
 pub mod simple_cursor;

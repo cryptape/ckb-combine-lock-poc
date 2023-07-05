@@ -14,7 +14,7 @@ use ckb_std::{
     high_level::load_script,
 };
 use core::result::Result;
-use log::info;
+use log::{info, warn};
 use molecule2::Cursor;
 
 static DL_CODE_HASH: [u8; 32] = [
@@ -29,7 +29,7 @@ fn parse_args() -> Result<Bytes, Error> {
         let script = load_script()?;
         return Ok(script.args().unpack());
     }
-    if len == 3 {
+    if len == 2 {
         return Ok(Bytes::from(hex::decode(
             ckb_std::env::argv()[0].to_bytes(),
         )?));
@@ -47,14 +47,16 @@ fn parse_witness() -> Result<Cursor, Error> {
         let lock = lock.convert_to_rawbytes().unwrap();
         return Ok(lock);
     }
-    if len == 2 || len == 3 {
+    if len == 2 {
         let arg = env::argv()[1].to_str().unwrap();
         let simple_cursor = SimpleCursor::parse(arg).unwrap();
 
         cursor.offset = simple_cursor.offset as usize;
         cursor.size = simple_cursor.size as usize;
+        cursor.validate();
         return Ok(cursor);
     }
+    warn!("parse_witness failed, wrong format");
     return Err(Error::WrongFormat);
 }
 
@@ -72,6 +74,10 @@ pub fn main() -> Result<(), Error> {
         &witness_args_lock
     );
     if execution_args_slice.len() != 21 {
+        warn!(
+            "args length is wrong, 21 is expected: {}",
+            execution_args_slice.len()
+        );
         return Err(Error::WrongFormat);
     }
     let auth_id = execution_args_slice[0] as u8;

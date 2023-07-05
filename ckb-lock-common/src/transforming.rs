@@ -1,3 +1,6 @@
+// don't add extra code in the file.
+// it will be included in test cases in native code.
+
 use super::error::Error;
 use alloc::vec::Vec;
 
