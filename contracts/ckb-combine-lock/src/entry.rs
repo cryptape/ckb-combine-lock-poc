@@ -40,7 +40,6 @@ fn parse_witness() -> Result<Cursor, Error> {
     if len == 0 {
         let witness_args: WitnessArgs = cursor.into();
         let lock = witness_args.lock().unwrap();
-        let lock = lock.convert_to_rawbytes().unwrap();
         return Ok(lock);
     }
     if len == 2 || len == 3 {
@@ -62,7 +61,6 @@ fn parse_script_config() -> Result<Bytes, Error> {
         let cursor = data_source.as_cursor().unwrap();
         let witness_args: WitnessArgs = cursor.into();
         let lock = witness_args.lock().unwrap();
-        let lock = lock.convert_to_rawbytes().unwrap();
         let combine_lock_witness: CombineLockWitness = lock.into();
         let script_config = combine_lock_witness.script_config().unwrap();
         let bytes: Vec<u8> = script_config.cursor.try_into().unwrap();

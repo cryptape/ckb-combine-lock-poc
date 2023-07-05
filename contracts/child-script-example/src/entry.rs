@@ -44,7 +44,6 @@ fn parse_witness() -> Result<Cursor, Error> {
     if len == 0 {
         let witness_args: WitnessArgs = cursor.into();
         let lock = witness_args.lock().unwrap();
-        let lock = lock.convert_to_rawbytes().unwrap();
         return Ok(lock);
     }
     if len == 2 {

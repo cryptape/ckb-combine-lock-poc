@@ -239,7 +239,6 @@ fn exec_no_config(wrapped_script_hash: [u8; 32]) -> Result<(), Error> {
     let cursor = data_source.as_cursor()?;
     let witness_args: WitnessArgs = cursor.into();
     let lock = witness_args.lock().unwrap();
-    let lock = lock.convert_to_rawbytes().unwrap();
     let lock_wrapper: LockWrapperWitness = lock.into();
     let wrapped_witness = lock_wrapper.wrapped_witness();
     let wrapped_script = lock_wrapper.wrapped_script().unwrap();
@@ -274,7 +273,6 @@ fn exec_with_config(config_cell_data: &[u8]) -> Result<(), Error> {
     let cursor = data_source.as_cursor()?;
     let witness_args: WitnessArgs = cursor.into();
     let lock = witness_args.lock().unwrap();
-    let lock = lock.convert_to_rawbytes().unwrap();
     let lock_wrapper: LockWrapperWitness = lock.into();
     let wrapped_witness = lock_wrapper.wrapped_witness();
 

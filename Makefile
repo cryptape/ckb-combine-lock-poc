@@ -19,7 +19,7 @@ ci:
 
 # this is optional
 install-moleculec:
-	cargo install --git https://github.com/XuJiandong/moleculec-c2.git --rev 717f288 moleculec-c2
+	cargo install --git https://github.com/XuJiandong/moleculec-c2.git --rev 4f1bd3c moleculec-c2
 	cargo install --force --version "0.7.3" "moleculec"
 
 install:
