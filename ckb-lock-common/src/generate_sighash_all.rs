@@ -24,7 +24,7 @@ pub fn generate_sighash_all(target: &SimpleCursor) -> Result<[u8; 32], Error> {
         if let Some(slice) =
             get_intersection(chunk_offset..chunk_offset + chunk.len(), target.clone())
         {
-            chunk[slice].fill(0);
+            chunk[slice.start - chunk_offset..slice.end - chunk_offset].fill(0);
         }
         ctx.update(&chunk);
         chunk_offset += chunk.len();

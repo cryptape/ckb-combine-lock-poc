@@ -107,10 +107,13 @@ fn test_intersection(
     target: (usize, usize),
     result: Option<Range<usize>>,
 ) {
-    let chunk = chunk.0 .. (chunk.0 + chunk.1);
-    let target = target.0 .. (target.0 + target.1);
-    let r = get_intersection(chunk, target);
-    assert_eq!(r, result);
+    let r = get_intersection(chunk.0 .. (chunk.0 + chunk.1), target.0 .. (target.0 + target.1));
+    let r2 = if let Some(rr) = r {
+        Some(rr.start - chunk.0..rr.end - chunk.0)
+    } else {
+        r
+    };
+    assert_eq!(r2, result);
 }
 
 #[test]

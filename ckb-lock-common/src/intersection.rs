@@ -3,32 +3,12 @@
 use core::ops::Range;
 
 pub fn get_intersection(chunk: Range<usize>, target: Range<usize>) -> Option<Range<usize>> {
-    let chunk_size = chunk.end - chunk.start;
+    let max_start = chunk.start.max(target.start);
+    let min_end = chunk.end.min(target.end);
 
-    if target.start >= chunk.start {
-        if target.start < (chunk.start + chunk_size) {
-            if target.end >= (chunk.start + chunk_size) {
-                // case 1:
-                // chunk_begin, signature_begin, chunk_end, signature_end
-                return Some(target.start - chunk.start..chunk_size);
-            } else {
-                // case 2:
-                // chunk_begin, signature_begin, signature_end, chunk_end
-                return Some(target.start - chunk.start..target.end - chunk.start);
-            }
-        }
+    if max_start < min_end {
+        Some(max_start..min_end)
     } else {
-        if target.end > chunk.start {
-            if target.end >= chunk.end {
-                // case 3:
-                // signature_begin, chunk_begin, chunk_end, signature_end
-                return Some(0..chunk_size);
-            } else {
-                // case 4:
-                // signature_begin, chunk_begin, signature_end, chunk_end
-                return Some(0..target.end - chunk.start);
-            }
-        }
+        None
     }
-    None
 }
