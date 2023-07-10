@@ -19,14 +19,12 @@ pub fn generate_sighash_all(target: &SimpleCursor) -> Result<[u8; 32], Error> {
     let total_len = get_witness_len(0, Source::GroupInput)?;
     ctx.update(&(total_len as u64).to_le_bytes());
     let mut chunk_offset = 0;
+    let target = target.offset as usize..target.offset as usize + target.size as usize;
     for (_, mut chunk) in chunks {
-        if let Some((begin, end)) = get_intersection(
-            chunk_offset,
-            chunk.len(),
-            target.offset as usize,
-            target.size as usize,
-        ) {
-            chunk[begin..end].fill(0);
+        if let Some(slice) =
+            get_intersection(chunk_offset..chunk_offset + chunk.len(), target.clone())
+        {
+            chunk[slice].fill(0);
         }
         ctx.update(&chunk);
         chunk_offset += chunk.len();

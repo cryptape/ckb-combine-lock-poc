@@ -72,7 +72,7 @@ impl Read for WitnessDataSource {
 }
 
 pub fn get_witness_len(index: usize, source: Source) -> Result<usize, Error> {
-    let mut buf = [0u8; 4];
+    let mut buf = [0u8; 0];
     let len = match load_witness(&mut buf, 0, index, source) {
         Ok(size) => size,
         Err(SysError::LengthNotEnough(size)) => size,
