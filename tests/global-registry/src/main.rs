@@ -3,10 +3,15 @@
 extern crate alloc;
 
 mod error;
+#[path = "../../../ckb-lock-common/src/intersection.rs"]
+mod intersection;
 #[path = "../../../ckb-lock-common/src/transforming.rs"]
 mod transforming;
 
+use intersection::get_intersection;
 use transforming::{BatchTransformingStatus, Cell};
+use core::ops::Range;
+
 
 fn test(inputs: &[(u8, u8)], outputs: &[(u8, u8)], result: bool) {
     let mut batch = BatchTransformingStatus::new();
@@ -95,6 +100,77 @@ fn test_input_overlap() {
     let input = Cell::new(0, [2; 32], [4; 32]);
     let result = batch.set_input(input);
     assert!(result.is_err());
+}
+
+fn test_intersection(
+    chunk: (usize, usize),
+    target: (usize, usize),
+    result: Option<Range<usize>>,
+) {
+    let r = get_intersection(chunk.0 .. (chunk.0 + chunk.1), target.0 .. (target.0 + target.1));
+    let r2 = if let Some(rr) = r {
+        Some(rr.start - chunk.0..rr.end - chunk.0)
+    } else {
+        r
+    };
+    assert_eq!(r2, result);
+}
+
+#[test]
+fn test_intersection_1() {
+    let target = (0, 50);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, None);
+    let target = (0, 100);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, None);
+    let target = (0, 101);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, Some(0..1));
+    let target = (0, 130);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, Some(0..30));
+    let target = (0, 150);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, Some(0..50));
+    let target = (0, 151);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, Some(0..50));
+    let target = (0, 200);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, Some(0..50));
+
+    let target = (99, 1);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, None);
+
+    let target = (100, 1);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, Some(0..1));
+
+    let target = (100, 40);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, Some(0..40));
+
+    let target = (100, 50);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, Some(0..50));
+
+    let target = (101, 50);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, Some(1..50));
+
+    let target = (149, 50);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, Some(49..50));
+
+    let target = (150, 50);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, None);
+
+    let target = (200, 50);
+    let chunk = (100, 50);
+    test_intersection(chunk, target, None);
 }
 
 fn main() {}

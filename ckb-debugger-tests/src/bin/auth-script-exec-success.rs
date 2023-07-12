@@ -38,6 +38,12 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut tx = read_tx_template("../ckb-debugger-tests/templates/auth-script-success.json")?;
     update_auth_code_hash(&mut tx);
+    tx.tx.witnesses.push(JsonBytes::from_bytes(
+        WitnessArgsBuilder::default()
+            .lock(Some(Bytes::from(vec![0; 65])).pack())
+            .build()
+            .as_bytes(),
+    ));
 
     let message = generate_sighash_all(&tx, 0)?;
 

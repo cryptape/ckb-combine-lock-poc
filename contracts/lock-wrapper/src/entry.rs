@@ -1,8 +1,11 @@
 extern crate alloc;
 use crate::error::Error;
-use ckb_combine_lock_types::lock_wrapper::{ConfigCellDataOptReader, LockWrapperWitnessReader};
+use alloc::{ffi::CString, format, vec::Vec};
+use ckb_combine_lock_types::lock_wrapper::ConfigCellDataOptReader;
 use ckb_lock_common::{
     blake2b::hash,
+    generated::{blockchain::WitnessArgs, lock_wrapper::LockWrapperWitness},
+    simple_cursor::{SimpleCursor, WitnessDataSource},
     transforming::{self, BatchTransformingStatus},
     utils::{
         config_cell_unchanged, get_current_hash, get_global_registry_id, get_next_hash,
@@ -14,7 +17,7 @@ use ckb_std::{
     ckb_types::{core::ScriptHashType, prelude::*},
     high_level::{
         encode_hex, exec_cell, load_cell_data, load_cell_lock, load_cell_type_hash, load_script,
-        load_witness_args, QueryIter,
+        QueryIter,
     },
     syscalls::exit,
 };
@@ -232,35 +235,33 @@ fn validate_config_cell(global_registry_id: &[u8; 32]) -> Result<(), Error> {
 /// execute wrapped script with no config cell
 ///
 fn exec_no_config(wrapped_script_hash: [u8; 32]) -> Result<(), Error> {
-    let witness = load_witness_args(0, Source::GroupInput)?;
-    let witness = witness.lock().to_opt().unwrap().raw_data();
+    let data_source = WitnessDataSource::new(Source::GroupInput, 0);
+    let cursor = data_source.as_cursor()?;
+    let witness_args: WitnessArgs = cursor.into();
+    let lock = witness_args.lock().unwrap();
+    let lock_wrapper: LockWrapperWitness = lock.into();
+    let wrapped_witness = lock_wrapper.wrapped_witness();
+    let wrapped_script = lock_wrapper.wrapped_script().unwrap();
 
-    LockWrapperWitnessReader::verify(&witness, false)?;
-    let lock_wrapper_witness = LockWrapperWitnessReader::new_unchecked(&witness);
-    let wrapped_script = lock_wrapper_witness.wrapped_script();
-    let wrapped_script = wrapped_script.to_opt().unwrap();
-    let wrapped_witness = lock_wrapper_witness.wrapped_witness();
-
-    if hash(wrapped_script.as_slice()) != wrapped_script_hash {
+    let wrapped_script_bytes: Vec<u8> = wrapped_script.cursor.clone().try_into().unwrap();
+    if hash(&wrapped_script_bytes) != wrapped_script_hash {
         return Err(Error::InvalidWrappedScriptHash);
     }
 
-    let hash_type = if wrapped_script.hash_type().as_slice() == &[1] {
+    let hash_type = if wrapped_script.hash_type() == 1 {
         ScriptHashType::Type
     } else {
         ScriptHashType::Data
     };
-
-    let arg0 = encode_hex(wrapped_script.args().raw_data());
-    let arg1 = encode_hex(wrapped_witness.raw_data());
+    let args_bytes: Vec<u8> = wrapped_script.args().try_into().unwrap();
+    let arg0 = encode_hex(&args_bytes);
+    let wrapped_witness_cursor = SimpleCursor::new_from_cursor(&wrapped_witness);
+    let arg1 = CString::new(format!("{}", wrapped_witness_cursor)).unwrap();
     debug!("arg0: {:?}", arg0);
     debug!("arg1: {:?}", arg1);
 
-    exec_cell(
-        wrapped_script.code_hash().as_slice(),
-        hash_type,
-        &[&arg0, &arg1],
-    )?;
+    let code_hash: Vec<u8> = wrapped_script.code_hash().try_into().unwrap();
+    exec_cell(&code_hash, hash_type, &[&arg0, &arg1])?;
     unreachable!();
 }
 
@@ -268,12 +269,12 @@ fn exec_no_config(wrapped_script_hash: [u8; 32]) -> Result<(), Error> {
 /// execute wrapped script with config cell
 ///
 fn exec_with_config(config_cell_data: &[u8]) -> Result<(), Error> {
-    let witness = load_witness_args(0, Source::GroupInput)?;
-    let witness = witness.lock().to_opt().unwrap().raw_data();
-
-    LockWrapperWitnessReader::verify(&witness, false)?;
-    let lock_wrapper_witness = LockWrapperWitnessReader::new_unchecked(&witness);
-    let wrapped_witness = lock_wrapper_witness.wrapped_witness();
+    let data_source = WitnessDataSource::new(Source::GroupInput, 0);
+    let cursor = data_source.as_cursor()?;
+    let witness_args: WitnessArgs = cursor.into();
+    let lock = witness_args.lock().unwrap();
+    let lock_wrapper: LockWrapperWitness = lock.into();
+    let wrapped_witness = lock_wrapper.wrapped_witness();
 
     ConfigCellDataOptReader::verify(config_cell_data, false)?;
     let config_cell_data = ConfigCellDataOptReader::new_unchecked(config_cell_data);
@@ -289,7 +290,8 @@ fn exec_with_config(config_cell_data: &[u8]) -> Result<(), Error> {
     };
 
     let arg0 = encode_hex(wrapped_script.args().raw_data());
-    let arg1 = encode_hex(wrapped_witness.raw_data());
+    let wrapped_witness_cursor = SimpleCursor::new_from_cursor(&wrapped_witness);
+    let arg1 = CString::new(format!("{}", wrapped_witness_cursor)).unwrap();
     let arg2 = encode_hex(script_config.raw_data());
 
     debug!("arg0: {:?}", arg0);

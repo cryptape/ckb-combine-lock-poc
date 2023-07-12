@@ -184,6 +184,7 @@ dependencies = [
  "ckb-std",
  "hex",
  "log 0.4.17",
+ "molecule2",
 ]
 
 [[package]]
@@ -228,6 +229,7 @@ dependencies = [
  "hex",
  "log 0.4.17",
  "molecule",
+ "molecule2",
 ]
 
 [[package]]
@@ -390,6 +392,7 @@ dependencies = [
  "hex",
  "log 0.4.17",
  "molecule",
+ "molecule2",
 ]
 
 [[package]]
@@ -993,6 +996,11 @@ dependencies = [
  "cfg-if",
  "faster-hex 0.6.1",
 ]
+
+[[package]]
+name = "molecule2"
+version = "0.1.1"
+source = "git+https://github.com/XuJiandong/moleculec-c2.git?rev=4c97e75#4c97e75cb608ba208bda98ce85ea429dabe91424"
 
 [[package]]
 name = "numext-constructor"
