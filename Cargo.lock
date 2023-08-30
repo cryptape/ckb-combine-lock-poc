@@ -27,11 +27,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "294d17c72e0ba59fad763caa112368d0672083779cdebbb97164f4bb4c1e339a"
 
 [[package]]
-name = "blake2b-ref"
-version = "0.3.1"
-source = "git+https://github.com/jjyr/blake2b-ref.rs.git?rev=f1efc48#f1efc4872d67a8d4c4a57d2d0e16f8b5e53724b9"
-
-[[package]]
 name = "blake2b-rs"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -108,7 +103,7 @@ dependencies = [
 name = "ckb-combine-lock"
 version = "0.1.0"
 dependencies = [
- "blake2b-ref 0.3.1 (git+https://github.com/jjyr/blake2b-ref.rs.git?rev=f1efc48)",
+ "blake2b-ref 0.3.1",
  "ckb-combine-lock-types",
  "ckb-lock-common",
  "ckb-std",
@@ -186,7 +181,7 @@ dependencies = [
 name = "ckb-lock-common"
 version = "0.1.0"
 dependencies = [
- "blake2b-ref 0.3.1 (git+https://github.com/jjyr/blake2b-ref.rs.git?rev=f1efc48)",
+ "blake2b-ref 0.3.1",
  "ckb-combine-lock-types",
  "ckb-std",
  "hex",
@@ -250,7 +245,7 @@ version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5c776d70eb4f60a22a3180857646d77b2da8d33c0c4a063ad9f6610fc94609f"
 dependencies = [
- "blake2b-ref 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "blake2b-ref 0.3.1",
  "cfg-if",
  "molecule",
 ]
@@ -345,7 +340,7 @@ dependencies = [
 name = "global-registry"
 version = "0.1.0"
 dependencies = [
- "blake2b-ref 0.3.1 (git+https://github.com/jjyr/blake2b-ref.rs.git?rev=f1efc48)",
+ "blake2b-ref 0.3.1",
  "ckb-lock-common",
  "ckb-std",
  "hex",
@@ -378,7 +373,7 @@ checksum = "b4668fb0ea861c1df094127ac5f1da3409a82116a4ba74fca2e58ef927159bb3"
 name = "lock-wrapper"
 version = "0.1.0"
 dependencies = [
- "blake2b-ref 0.3.1 (git+https://github.com/jjyr/blake2b-ref.rs.git?rev=f1efc48)",
+ "blake2b-ref 0.3.1",
  "ckb-combine-lock-types",
  "ckb-lock-common",
  "ckb-std",
