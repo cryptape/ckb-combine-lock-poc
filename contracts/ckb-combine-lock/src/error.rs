@@ -29,6 +29,7 @@ impl From<SysError> for Error {
             LengthNotEnough(_) => Self::LengthNotEnough,
             Encoding => Self::Encoding,
             Unknown(err_code) => panic!("unexpected sys error {}", err_code),
+            _ => panic!("unexpected sys error"),
         }
     }
 }

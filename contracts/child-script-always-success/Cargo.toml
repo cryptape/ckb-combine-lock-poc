@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 ckb-lock-common = { path = "../../ckb-lock-common" }
-ckb-std = { version = "0.14.0", features = ["ckb2023"] }
+ckb-std = { version = "0.14.3", features = ["ckb2023", "build-with-clang"] }
 log = { version = "0.4.17", default-features = false }

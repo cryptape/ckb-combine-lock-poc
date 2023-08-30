@@ -3,7 +3,7 @@ use crate::error::Error;
 use crate::intersection::get_intersection;
 use crate::simple_cursor::{get_witness_len, SimpleCursor};
 use alloc::{vec, vec::Vec};
-use blake2b_rs::Blake2b;
+use blake2b_ref::Blake2b;
 use ckb_std::ckb_constants::{InputField, Source};
 use ckb_std::high_level::load_tx_hash;
 use ckb_std::syscalls::{load_input_by_field, load_witness, SysError};

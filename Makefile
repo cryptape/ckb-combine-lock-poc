@@ -3,7 +3,7 @@
 MOLC := moleculec
 
 all:
-	capsule build --release
+	cargo build --release --target=riscv64imac-unknown-none-elf
 
 mol: ckb-lock-common/src/generated/blockchain.rs
 	${MOLC} --language rust --schema-file crates/types/combine_lock.mol | rustfmt > crates/types/src/combine_lock.rs
@@ -14,7 +14,7 @@ mol: ckb-lock-common/src/generated/blockchain.rs
 
 ci:
 	cd tests/global-registry && cargo test && cd ../..
-	capsule build --release
+	cargo build --release --target=riscv64imac-unknown-none-elf
 	make -C ckb-debugger-tests all
 
 # this is optional
@@ -23,10 +23,8 @@ install-moleculec:
 	cargo install --force --version "0.7.3" "moleculec"
 
 install:
+	rustup target add riscv64imac-unknown-none-elf
 	wget 'https://github.com/XuJiandong/ckb-standalone-debugger/releases/download/ckb2023-0621/ckb-debugger-linux-x64.tar.gz'
 	tar zxvf ckb-debugger-linux-x64.tar.gz
 	mv ckb-debugger ~/.cargo/bin/ckb-debugger-2023
-	cargo install cross --git https://github.com/cross-rs/cross
-	wget 'https://github.com/nervosnetwork/capsule/releases/download/v0.10.0/capsule_v0.10.0_x86_64-linux.tar.gz'
-	tar xzvf capsule_v0.10.0_x86_64-linux.tar.gz
-	mv capsule_v0.10.0_x86_64-linux/capsule ~/.cargo/bin
+	wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 16 && rm llvm.sh

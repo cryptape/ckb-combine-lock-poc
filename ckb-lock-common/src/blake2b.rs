@@ -1,4 +1,4 @@
-pub use blake2b_rs::{Blake2b, Blake2bBuilder};
+pub use blake2b_ref::{Blake2b, Blake2bBuilder};
 
 pub const CKB_PERSONALIZATION: &[u8] = b"ckb-default-hash";
 
