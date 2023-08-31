@@ -37,7 +37,7 @@
           },
           "type": "{{ def_type child-script-example }}"
         },
-        "data": "0x{{ data ../../build/release/child-script-example }}"
+        "data": "0x{{ data ../../target/riscv64imac-unknown-none-elf/release/child-script-example }}"
       },
       {
         "output": {

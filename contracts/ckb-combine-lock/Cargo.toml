@@ -6,10 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-blake2b-rs = "0.2.0"
+blake2b-ref = "0.3.1"
 ckb-lock-common = { path = "../../ckb-lock-common" }
 ckb-combine-lock-types = { path = "../../crates/types" }
-ckb-std = { version = "0.14.0", features = ["ckb2023"] }
+ckb-std = { version = "0.14.3", features = ["ckb2023", "build-with-clang"] }
 hex = { version = "0.4", default-features = false, features = ["alloc"] }
 log = { version = "0.4.17", default-features = false }
 molecule = { version = "0.7.3", default-features = false }

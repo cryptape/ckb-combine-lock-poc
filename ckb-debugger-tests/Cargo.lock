@@ -180,6 +180,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ckb-combine-lock-types"
+version = "0.1.0"
+dependencies = [
+ "ckb-types",
+ "molecule",
+]
+
+[[package]]
 name = "ckb-constant"
 version = "0.108.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -237,6 +245,7 @@ name = "ckb-debugger-tests"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "ckb-combine-lock-types",
  "ckb-crypto",
  "ckb-debugger-api",
  "ckb-hash",
